@@ -1,5 +1,8 @@
 # Zecale
 
+A zk-SNARK aggregator leveraging recursive composition of SNARKs.
+This project can be used to scale privacy preserving solutions like [Zeth](https://github.com/clearmatics/zeth)
+
 ## Building and running the project:
 
 ### Environment
