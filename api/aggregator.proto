@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package aggregator_proto;
+
+import "google/protobuf/empty.proto";
+
+// Useful to have the formats for the verification keys
+//  - It will be necessary to deposit the nested VK to the aggregator for the proof of verification
+//  - It will be necessary to fetch the VK of the aggregator to be able to verify the proof on-chain
+import "api/groth16_messages.proto";
+
+service Aggregator {
+    // Fetch the verification key from the aggregator service to be able to verify the proofs
+    // on-chain (instantiate the verifier contract)
+    rpc GetVerificationKey(google.protobuf.Empty) returns (VerificationKey) {}
+
+    // Set nested verification key
+    // Returns "true" if the key is succesfully set
+    // Returns "false" if the key is not succesfully set
+    rpc SetNestedVerificationKey(VerificationKey) returns (bool) {}
+
+    // Request a proof to verify a batch of zeth proofs
+    // Doesn't take any argument since the proofs are already in the Zeth tx pool
+    // of the aggregator, so they don't need to be passed as arguments here
+    // The function returns the proof of CI for the validity of the batch of proofs
+    rpc GenerateAggregateProof() returns (ExtendedProof) {}
+
+    // Function to submit the Zeth transaction to be batched verify later on
+    rpc SubmitZethTx(ExtendedProof) returns (bool) {}
+}
+
+// Inputs of the Prove function of the Prover service
+message ProofInputs {
+    string mk_root = 1;
+    // List of inputs to the Joinsplit
+    repeated JoinsplitInput js_inputs = 2;
+    // List of output to the Joinsplit
+    repeated ZethNote js_outputs = 3;
+    // Hexadecimal string representing a uint64 value
+    string pub_in_value = 4;
+    // Hexadecimal string representing a uint64 value
+    string pub_out_value = 5;
+    string h_sig = 6;
+    string phi = 7;
+}
+
+message VerificationKey {
+    oneof VK {
+        VerificationKeyGROTH16 groth16_verification_key = 1;
+    }
+}
+
+message ExtendedProof {
+    oneof EP {
+        ExtendedProofGROTH16 groth16_extended_proof = 1;
+    }
+}
