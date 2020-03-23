@@ -8,21 +8,22 @@
 #include <libff/algebra/fields/field_utils.hpp>
 
 
-#include<libff/algebra/curves/alt_bn128/alt_bn128_init.hpp>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_init.hpp>
 
 // Header to use the merkle tree data structure to keep a local merkle tree
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
-// Header to access the snark aliases
-#include "snarks_alias.hpp"
-
 // include the joinsplit gadget - generate the zeth proofs
-#include "circuit_wrapper.hpp"
+#include <zeth/src/circuit_wrapper.hpp>
+#include <zeth/src/circuits/blake2s/blake2s_comp.hpp>
+#include <zeth/src/libsnark_helpers/libsnark_helpers.hpp>
+#include <zeth/src/snarks_core_imports.hpp>
+#include <zeth/src/util.hpp>
+
+// Header to access the snark aliases
+#include <zeth/src/snarks_alias.hpp>
+
 #include "aggregator_circuit_wrapper.hpp"
-#include "circuits/blake2s/blake2s_comp.hpp"
-#include "libsnark_helpers/libsnark_helpers.hpp"
-#include "snarks_core_imports.hpp"
-#include "util.hpp"
 
 using namespace libzeth;
 

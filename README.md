@@ -36,6 +36,9 @@ cd zecale
 # Configure your environment
 . ./setup_env.sh
 
+# Initialize the submodules
+git submodule update --init --recursive
+
 # Compile the aggregator
 mkdir build
 cd build
