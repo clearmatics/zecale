@@ -7,7 +7,7 @@ import "google/protobuf/empty.proto";
 // Useful to have the formats for the verification keys
 //  - It will be necessary to deposit the nested VK to the aggregator for the proof of verification
 //  - It will be necessary to fetch the VK of the aggregator to be able to verify the proof on-chain
-import "api/groth16_messages.proto";
+import "depends/zeth/api/groth16_messages.proto";
 
 service Aggregator {
     // Fetch the verification key from the aggregator service to be able to verify the proofs
@@ -46,12 +46,14 @@ message ProofInputs {
 
 message VerificationKey {
     oneof VK {
-        VerificationKeyGROTH16 groth16_verification_key = 1;
+        VerificationKeyPGHR13 pghr13_verification_key = 1;
+        VerificationKeyGROTH16 groth16_verification_key = 2;
     }
 }
 
 message ExtendedProof {
     oneof EP {
-        ExtendedProofGROTH16 groth16_extended_proof = 1;
+        ExtendedProofPGHR13 pghr13_extended_proof = 1;
+        ExtendedProofGROTH16 groth16_extended_proof = 2;
     }
 }

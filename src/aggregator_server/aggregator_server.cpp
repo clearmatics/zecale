@@ -8,7 +8,7 @@
 #include "util.hpp"
 #include "util_api.hpp"
 #include "zeth.h"
-#include "zethConfig.h"
+#include "zecaleConfig.h"
 
 #include <boost/program_options.hpp>
 #include <fstream>
@@ -195,7 +195,7 @@ std::string get_server_version()
     int n;
     // Defined in the zethConfig file
     n = snprintf(
-        buffer, 100, "Version %d.%d", ZETH_VERSION_MAJOR, ZETH_VERSION_MINOR);
+        buffer, 100, "Version %d.%d", ZECALE_VERSION_MAJOR, ZECALE_VERSION_MINOR);
     if (n < 0) {
         return "Version <Not specified>";
     }

@@ -1,3 +1,0 @@
-// The configured options and settings for Tutorial
-#define ZETH_VERSION_MAJOR @ZETH_VERSION_MAJOR@
-#define ZETH_VERSION_MINOR @ZETH_VERSION_MINOR@

@@ -1,2 +1,0 @@
-/usr/bin/ar qc libzeth.a  CMakeFiles/zeth.dir/types/bits.cpp.o CMakeFiles/zeth.dir/circuits/circuits-utils.cpp.o CMakeFiles/zeth.dir/libsnark_helpers/debug_helpers.cpp.o CMakeFiles/zeth.dir/util.cpp.o CMakeFiles/zeth.dir/util_api.cpp.o CMakeFiles/zeth.dir/proto-src/api/pghr13_messages.pb.cc.o CMakeFiles/zeth.dir/proto-src/api/groth16_messages.pb.cc.o CMakeFiles/zeth.dir/proto-src/api/util.pb.cc.o CMakeFiles/zeth.dir/proto-src/api/prover.pb.cc.o
-/usr/bin/ranlib libzeth.a

@@ -1,1 +1,0 @@
-cmd='cd;/home/user99/Documents/antoine/dev/sc-zeth/depends/libsodium;&&;./autogen.sh;&&;./configure;--prefix=<INSTALL_DIR>;--enable-minimal;--disable-shared;--enable-static'

@@ -1,0 +1,3 @@
+// The configured options and settings for Tutorial
+#define ZECALE_VERSION_MAJOR @ZECALE_VERSION_MAJOR@
+#define ZECALE_VERSION_MINOR @ZECALE_VERSION_MINOR@
