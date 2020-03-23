@@ -1,20 +1,23 @@
-#ifndef __ZETH_CIRCUITS_AGGREGATOR_TCC__
-#define __ZETH_CIRCUITS_AGGREGATOR_TCC__
+#ifndef __ZECALE_CIRCUITS_AGGREGATOR_TCC__
+#define __ZECALE_CIRCUITS_AGGREGATOR_TCC__
 
 // Contains the circuits for the notes
-#include "circuits/notes/note.hpp"
-#include "types/joinsplit.hpp"
+#include <zeth/src/circuits/notes/note.hpp>
+#include <zeth/src/types/joinsplit.hpp>
 // Contains the definitions of the constants we use
-#include "zeth.h"
+#include <zeth/zeth.h>
 
 #include <boost/static_assert.hpp>
-#include <src/types/merkle_tree_field.hpp>
+#include <zeth/src/types/merkle_tree_field.hpp>
 
 // Include the verifier gadgets
 #include <libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp>
 #include <libff/algebra/fields/field_utils.hpp>
 
 using namespace libzeth;
+
+namespace libzecale
+{
 
 // We know that a proof (PGHR13 or GROTH16) is made of group elements (G1 or G2)
 // where the coordinates of the group elements are elements of E/F_q (for G1),
@@ -337,4 +340,6 @@ public:
     }
 };
 
-#endif // __ZETH_CIRCUITS_AGGREGATOR_TCC__
+} // namespace libzecale
+
+#endif // __ZECALE_CIRCUITS_AGGREGATOR_TCC__

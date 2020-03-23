@@ -1,6 +1,3 @@
-[submodule "depends/libsnark"]
-    path = depends/libsnark
-    url = https://github.com/clearmatics/libsnark.git
 [submodule "depends/zeth"]
 	path = depends/zeth
 	url = https://github.com/clearmatics/zeth.git

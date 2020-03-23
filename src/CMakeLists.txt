@@ -16,19 +16,19 @@ find_package(Protobuf REQUIRED)
 find_package(GRPC REQUIRED)
 
 set(PROTOS
-    $ENV{ZETH_API_DIR}/prover.proto
+    $ENV{ZECALE_API_DIR}/aggregator.proto
 )
 
 set(PROTOS_UTIL
-    $ENV{ZETH_API_DIR}/util.proto
+    $ENV{ZECALE_API_DIR}/util.proto
 )
 
 set(PROTOS_PGHR13
-    $ENV{ZETH_API_DIR}/pghr13_messages.proto
+    $ENV{ZECALE_API_DIR}/pghr13_messages.proto
 )
 
 set(PROTOS_GROTH16
-    $ENV{ZETH_API_DIR}/groth16_messages.proto
+    $ENV{ZECALE_API_DIR}/groth16_messages.proto
 )
 
 # Set the target of the generated files to ${CMAKE_CURRENT_BINARY_DIR}/proto-src
@@ -36,6 +36,12 @@ set(PROTOS_GROTH16
 set(PROTO_SRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/proto-src)
 file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
 include_directories(${PROTO_SRC_DIR})
+
+set(PROTOBUF_IMPORT_DIRS ..)
+set(PROTOBUF_PROTO_PATH ..)
+set(PROTOBUF_APPEND_DEST_PATH "/api")
+set(PROTOBUF_GENERATE_CPP_APPEND_PATH FALSE)
+set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
 
 # See cmake scripts in the cmake folder
 # Generate the grpc and protobuf files and set the result of the generation
@@ -73,18 +79,18 @@ file(
   circuits/**.cpp circuits/**.hpp circuits/**.tcc aggregator_circuit_wrapper.???
   zecale.h
 )
-add_library(zeth ${ZETH_SOURCE} ${PROTO_SRCS})
+add_library(zecale ${ZECALE_SOURCE} ${PROTO_SRCS})
 target_include_directories(
   zecale
 
   PUBLIC
   .
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libff
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+  ${DEPENDS_DIR}/zeth
+  ${DEPENDS_DIR}/zeth/depends/libsnark
+  ${DEPENDS_DIR}/zeth/depends/libsnark/depends/libff
+  ${DEPENDS_DIR}/zeth/depends/libsnark/depends/libfqfft
 )
 target_link_libraries(zecale zeth)
-add_dependencies(zecale zeth)
 
 # aggregator_server executable
 file(
@@ -134,6 +140,8 @@ zecale_test(test_aggregator SOURCE test/aggregator_test.cpp FAST)
 # aggregator test has extra dependencies
 target_link_libraries(
   test_aggregator
+
+  zecale
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
 )
