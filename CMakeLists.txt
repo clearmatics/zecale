@@ -14,23 +14,27 @@ endif()
 # Name of the project
 # https://cmake.org/cmake/help/v3.0/command/project.html#command:project
 # Sets the env vars PROJECT_SOURCE_DIR, and PROJECT_BINARY_DIR
-project(zeth)
+project(zecale)
 
 # Versionning of the project
-set (ZETH_VERSION_MAJOR 0)
-set (ZETH_VERSION_MINOR 3)
+set (ZECALE_VERSION_MAJOR 0)
+set (ZECALE_VERSION_MINOR 1)
 
 # Configure a header file to pass some of the CMake settings
 # to the source code
 configure_file (
-    "${PROJECT_SOURCE_DIR}/zethConfig.h.in"
-    "${PROJECT_BINARY_DIR}/zethConfig.h"
+    "${PROJECT_SOURCE_DIR}/zecaleConfig.h.in"
+    "${PROJECT_BINARY_DIR}/zecaleConfig.h"
 )
 
 # Flags and compilation options to chose the type of zksnark
+#
+# We use PGHR13 for this first version because the GROTH16 verifier gadget
+# is not provided in the gadgetlib1 of libsnark.
+# TODO: Implement it
 set(
-  ZKSNARK # Variable name
-  "PGHR13" # We use PGHR13 for now because the GROTH16 verifier is not provided in the gadgetlib1 of libsnark
+  ZKSNARK
+  "PGHR13"
   CACHE
   STRING
   "Default snark: one of PGHR13, GROTH16"
@@ -45,17 +49,17 @@ option(
 
 # Flags and compilation options for use with libsnark
 #
-# Note: This configuration determines over which curve the zeth proofs are generated
-#
-# However, we will use the MNT4 curve in order to generate the aggregation proofs, and thus verify the zeth proofs
+# Note: This configuration determines over which curve the zeth proofs are verifier/aggregated
+# Here the Zeth proofs are assumed to be generated over MNT4 since we will verify them over MNT6
 set(
-  CURVE # Variable name
-  "ALT_BN128" # We use the MNT6 curve for experimenting with recursive composition of snarks here, this is useful to pick the settings related to alt_bn128 in https://github.com/scipr-lab/libff/blob/master/libff/common/default_types/ec_pp.hpp
+  CURVE
+  "MNT6"
   CACHE
   STRING
-  "Default curve: one of ALT_BN128, BN128, EDWARDS, MNT4, MNT6"
+  "Default curve: MNT6"
 )
 
+# Dependencies
 set(
   DEPENDS_DIR
   "${CMAKE_CURRENT_SOURCE_DIR}/depends"
@@ -145,10 +149,6 @@ add_definitions(-DCURVE_${CURVE})
 add_definitions(-DZKSNARK_${ZKSNARK})
 
 enable_testing()
-
-if(${CURVE} STREQUAL "BN128")
-  add_definitions(-DBN_SUPPORT_SNARK=1)
-endif()
 
 if("${VERBOSE}")
   add_definitions(-DVERBOSE=1)

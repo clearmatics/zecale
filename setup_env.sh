@@ -1,12 +1,9 @@
 #!/bin/bash
 
-export ZETH=`pwd`
-export ZETH_KEYSTORE=$ZETH/keystore
-export ZETH_COINSTORE=$ZETH/coinstore
-export ZETH_TRUSTED_SETUP_DIR=$ZETH/trusted_setup
-export ZETH_DEBUG_DIR=$ZETH/debug
-export ZETH_API_DIR=$ZETH/api
-export ZETH_CONTRACTS_DIR=$ZETH/zeth-contracts/contracts
+export ZECALE=`pwd`
+export ZECALE_TRUSTED_SETUP_DIR=$ZECALE/trusted_setup
+export ZECALE_DEBUG_DIR=$ZECALE/debug
+export ZECALE_API_DIR=$ZECALE/api
 
-# Add the zeth executables in the PATH
-export PATH=$ZETH/build/src:$PATH
+# Add the zecale executables in the PATH
+export PATH=$ZECALE/build/src:$PATH
