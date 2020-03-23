@@ -1,0 +1,42 @@
+Start testing: Mar 18 16:12 GMT
+----------------------------------------------------------
+1/1 Testing: test_aggregator
+1/1 Test: test_aggregator
+Command: "/home/user99/Documents/antoine/dev/sc-zeth/build/src/test_aggregator"
+Directory: /home/user99/Documents/antoine/dev/sc-zeth/build/src
+"test_aggregator" start time: Mar 18 16:12 GMT
+Output:
+----------------------------------------------------------
+Reset time counters for profiling
+[==========] Running 1 test from 1 test case.
+[----------] Global test environment set-up.
+[----------] 1 test from MainTests
+[ RUN      ] MainTests.AggregatorTest
+Capacity of ScalarFieldZethT: 297
+Capacity of ScalarFieldAggregatorT: 297
+Entering test for the aggregator
+Before creation of the Aggregator prover
+Before gen Aggregator setup
+[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG1
+[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG2
+G1_size_in_bits = 596, G2_size_in_bits = 1788
+r1cs_ppzksnark_verification_key_variable<ppT>::size_in_bits(9) = 16092
+(enter) Call to mnt4_affine_ate_precompute_G2	[             ]	(0.0161s x1.00 from start)
+(leave) Call to mnt4_affine_ate_precompute_G2	[0.0013s x1.00]	(0.0173s x1.00 from start)
+[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG2.1
+[aggregator.tcc -- generate_r1cs_constraints] DEBUG1
+[aggregator.tcc -- generate_r1cs_constraints] DEBUG2
+[aggregator.tcc -- generate_r1cs_constraints] DEBUG3
+[aggregator.tcc -- generate_r1cs_constraints] DEBUG3.1.i
+[aggregator.tcc -- generate_r1cs_constraints] DEBUG3.2.i
+[r1cs_ppzksnark_verifier_gadget<ppT>::generate_r1cs_constraints] DEBUG1
+[r1cs_ppzksnark_verifier_gadget<ppT>::generate_r1cs_constraints] DEBUG2
+<end of output>
+Test time =   0.30 sec
+----------------------------------------------------------
+Test Failed.
+"test_aggregator" end time: Mar 18 16:12 GMT
+"test_aggregator" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Mar 18 16:12 GMT

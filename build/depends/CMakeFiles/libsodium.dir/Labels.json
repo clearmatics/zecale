@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/user99/Documents/antoine/dev/sc-zeth/build/depends/CMakeFiles/libsodium"
+		},
+		{
+			"file" : "/home/user99/Documents/antoine/dev/sc-zeth/build/depends/CMakeFiles/libsodium.rule"
+		},
+		{
+			"file" : "/home/user99/Documents/antoine/dev/sc-zeth/build/depends/CMakeFiles/libsodium-complete.rule"
+		},
+		{
+			"file" : "/home/user99/Documents/antoine/dev/sc-zeth/build/depends/libsodium-prefix/src/libsodium-stamp/libsodium-install.rule"
+		},
+		{
+			"file" : "/home/user99/Documents/antoine/dev/sc-zeth/build/depends/libsodium-prefix/src/libsodium-stamp/libsodium-mkdir.rule"
+		},
+		{
+			"file" : "/home/user99/Documents/antoine/dev/sc-zeth/build/depends/libsodium-prefix/src/libsodium-stamp/libsodium-download.rule"
+		},
+		{
+			"file" : "/home/user99/Documents/antoine/dev/sc-zeth/build/depends/libsodium-prefix/src/libsodium-stamp/libsodium-update.rule"
+		},
+		{
+			"file" : "/home/user99/Documents/antoine/dev/sc-zeth/build/depends/libsodium-prefix/src/libsodium-stamp/libsodium-patch.rule"
+		},
+		{
+			"file" : "/home/user99/Documents/antoine/dev/sc-zeth/build/depends/libsodium-prefix/src/libsodium-stamp/libsodium-configure.rule"
+		},
+		{
+			"file" : "/home/user99/Documents/antoine/dev/sc-zeth/build/depends/libsodium-prefix/src/libsodium-stamp/libsodium-build.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"libsodium"
+		],
+		"name" : "libsodium"
+	}
+}

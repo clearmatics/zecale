@@ -1,0 +1,190 @@
+<?xml version="1.0"?>
+
+<valgrindoutput>
+
+<protocolversion>4</protocolversion>
+<protocoltool>memcheck</protocoltool>
+
+<preamble>
+  <line>Memcheck, a memory error detector</line>
+  <line>Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.</line>
+  <line>Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info</line>
+  <line>Command: src/test_aggregator</line>
+</preamble>
+
+<pid>15363</pid>
+<ppid>18796</ppid>
+<tool>memcheck</tool>
+
+<args>
+  <vargv>
+    <exe>/usr/bin/valgrind.bin</exe>
+    <arg>--tool=memcheck</arg>
+    <arg>--leak-check=full</arg>
+    <arg>--track-origins=yes</arg>
+    <arg>--xml=yes</arg>
+    <arg>--xml-file=valgring_output.xml</arg>
+  </vargv>
+  <argv>
+    <exe>src/test_aggregator</exe>
+  </argv>
+</args>
+
+<status>
+  <state>RUNNING</state>
+  <time>00:00:00:00.194 </time>
+</status>
+
+
+<status>
+  <state>FINISHED</state>
+  <time>00:01:56:35.182 </time>
+</status>
+
+<error>
+  <unique>0x3</unique>
+  <tid>1</tid>
+  <kind>Leak_PossiblyLost</kind>
+  <xwhat>
+    <text>960 bytes in 3 blocks are possibly lost in loss record 4 of 5</text>
+    <leakedbytes>960</leakedbytes>
+    <leakedblocks>3</leakedblocks>
+  </xwhat>
+  <stack>
+    <frame>
+      <ip>0x4C31B25</ip>
+      <obj>/usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so</obj>
+      <fn>calloc</fn>
+    </frame>
+    <frame>
+      <ip>0x40134A6</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>allocate_dtv</fn>
+      <dir>/build/glibc-OTsEL5/glibc-2.27/elf/../elf</dir>
+      <file>dl-tls.c</file>
+      <line>286</line>
+    </frame>
+    <frame>
+      <ip>0x40134A6</ip>
+      <obj>/lib/x86_64-linux-gnu/ld-2.27.so</obj>
+      <fn>_dl_allocate_tls</fn>
+      <dir>/build/glibc-OTsEL5/glibc-2.27/elf/../elf</dir>
+      <file>dl-tls.c</file>
+      <line>530</line>
+    </frame>
+    <frame>
+      <ip>0x605C227</ip>
+      <obj>/lib/x86_64-linux-gnu/libpthread-2.27.so</obj>
+      <fn>allocate_stack</fn>
+      <dir>/build/glibc-OTsEL5/glibc-2.27/nptl</dir>
+      <file>allocatestack.c</file>
+      <line>627</line>
+    </frame>
+    <frame>
+      <ip>0x605C227</ip>
+      <obj>/lib/x86_64-linux-gnu/libpthread-2.27.so</obj>
+      <fn>pthread_create@@GLIBC_2.2.5</fn>
+      <dir>/build/glibc-OTsEL5/glibc-2.27/nptl</dir>
+      <file>pthread_create.c</file>
+      <line>644</line>
+    </frame>
+    <frame>
+      <ip>0x5C23F3F</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0</obj>
+    </frame>
+    <frame>
+      <ip>0x5C1AEB9</ip>
+      <obj>/usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0</obj>
+      <fn>GOMP_parallel</fn>
+    </frame>
+    <frame>
+      <ip>0x15A35E</ip>
+      <obj>/home/user99/Documents/antoine/dev/sc-zeth/build/src/test_aggregator</obj>
+      <fn>libsnark::sparse_vector&lt;libsnark::knowledge_commitment&lt;libff::mnt4_G1, libff::mnt4_G1&gt; &gt; libsnark::kc_batch_exp&lt;libff::mnt4_G1, libff::mnt4_G1, libff::Fp_model&lt;5l, libff::mnt46_modulus_A&gt; &gt;(unsigned long, unsigned long, unsigned long, std::vector&lt;std::vector&lt;libff::mnt4_G1, std::allocator&lt;libff::mnt4_G1&gt; &gt;, std::allocator&lt;std::vector&lt;libff::mnt4_G1, std::allocator&lt;libff::mnt4_G1&gt; &gt; &gt; &gt; const&amp;, std::vector&lt;std::vector&lt;libff::mnt4_G1, std::allocator&lt;libff::mnt4_G1&gt; &gt;, std::allocator&lt;std::vector&lt;libff::mnt4_G1, std::allocator&lt;libff::mnt4_G1&gt; &gt; &gt; &gt; const&amp;, libff::Fp_model&lt;5l, libff::mnt46_modulus_A&gt; const&amp;, libff::Fp_model&lt;5l, libff::mnt46_modulus_A&gt; const&amp;, std::vector&lt;libff::Fp_model&lt;5l, libff::mnt46_modulus_A&gt;, std::allocator&lt;libff::Fp_model&lt;5l, libff::mnt46_modulus_A&gt; &gt; &gt; const&amp;, unsigned long)</fn>
+      <dir>/home/user99/Documents/antoine/dev/sc-zeth/depends/libsnark/libsnark/knowledge_commitment</dir>
+      <file>kc_multiexp.tcc</file>
+      <line>177</line>
+    </frame>
+    <frame>
+      <ip>0x15CDDE</ip>
+      <obj>/home/user99/Documents/antoine/dev/sc-zeth/build/src/test_aggregator</obj>
+      <fn>libsnark::r1cs_ppzksnark_keypair&lt;libff::mnt4_pp&gt; libsnark::r1cs_ppzksnark_generator&lt;libff::mnt4_pp&gt;(libsnark::r1cs_constraint_system&lt;libff::mnt4_pp::Fp_type&gt; const&amp;)</fn>
+      <dir>/home/user99/Documents/antoine/dev/sc-zeth/depends/libsnark/libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark</dir>
+      <file>r1cs_ppzksnark.tcc</file>
+      <line>353</line>
+    </frame>
+    <frame>
+      <ip>0x16F420</ip>
+      <obj>/home/user99/Documents/antoine/dev/sc-zeth/build/src/test_aggregator</obj>
+      <fn>gen_trusted_setup&lt;libff::mnt4_pp&gt;</fn>
+      <dir>/home/user99/Documents/antoine/dev/sc-zeth/src/./snarks/pghr13/core</dir>
+      <file>computation.tcc</file>
+      <line>44</line>
+    </frame>
+    <frame>
+      <ip>0x16F420</ip>
+      <obj>/home/user99/Documents/antoine/dev/sc-zeth/build/src/test_aggregator</obj>
+      <fn>libzeth::circuit_wrapper&lt;libff::Fp_model&lt;5l, libff::mnt46_modulus_A&gt;, libzeth::BLAKE2s_256_comp&lt;libff::Fp_model&lt;5l, libff::mnt46_modulus_A&gt; &gt;, libzeth::MiMC_mp_gadget&lt;libff::Fp_model&lt;5l, libff::mnt46_modulus_A&gt; &gt;, libff::mnt4_pp, 1ul, 1ul, 2ul&gt;::generate_trusted_setup() const</fn>
+      <dir>/home/user99/Documents/antoine/dev/sc-zeth/src/.</dir>
+      <file>circuit_wrapper.tcc</file>
+      <line>43</line>
+    </frame>
+    <frame>
+      <ip>0x146F76</ip>
+      <obj>/home/user99/Documents/antoine/dev/sc-zeth/build/src/test_aggregator</obj>
+      <fn>(anonymous namespace)::MainTests_AggregatorTest_Test::TestBody()</fn>
+      <dir>/home/user99/Documents/antoine/dev/sc-zeth/src/test</dir>
+      <file>aggregator_test.cpp</file>
+      <line>296</line>
+    </frame>
+    <frame>
+      <ip>0x1CF349</ip>
+      <obj>/home/user99/Documents/antoine/dev/sc-zeth/build/src/test_aggregator</obj>
+      <fn>HandleSehExceptionsInMethodIfSupported&lt;testing::Test, void&gt;</fn>
+      <dir>/home/user99/Documents/antoine/dev/sc-zeth/depends/libsnark/depends/gtest/googletest/src</dir>
+      <file>gtest.cc</file>
+      <line>2401</line>
+    </frame>
+    <frame>
+      <ip>0x1CF349</ip>
+      <obj>/home/user99/Documents/antoine/dev/sc-zeth/build/src/test_aggregator</obj>
+      <fn>void testing::internal::HandleExceptionsInMethodIfSupported&lt;testing::Test, void&gt;(testing::Test*, void (testing::Test::*)(), char const*)</fn>
+      <dir>/home/user99/Documents/antoine/dev/sc-zeth/depends/libsnark/depends/gtest/googletest/src</dir>
+      <file>gtest.cc</file>
+      <line>2437</line>
+    </frame>
+    <frame>
+      <ip>0x1C52D3</ip>
+      <obj>/home/user99/Documents/antoine/dev/sc-zeth/build/src/test_aggregator</obj>
+      <fn>testing::Test::Run() [clone .part.537]</fn>
+      <dir>/home/user99/Documents/antoine/dev/sc-zeth/depends/libsnark/depends/gtest/googletest/src</dir>
+      <file>gtest.cc</file>
+      <line>2475</line>
+    </frame>
+    <frame>
+      <ip>0x1C55A4</ip>
+      <obj>/home/user99/Documents/antoine/dev/sc-zeth/build/src/test_aggregator</obj>
+      <fn>Run</fn>
+      <dir>/home/user99/Documents/antoine/dev/sc-zeth/depends/libsnark/depends/gtest/googletest/src</dir>
+      <file>gtest.cc</file>
+      <line>2467</line>
+    </frame>
+    <frame>
+      <ip>0x1C55A4</ip>
+      <obj>/home/user99/Documents/antoine/dev/sc-zeth/build/src/test_aggregator</obj>
+      <fn>testing::TestInfo::Run() [clone .part.538]</fn>
+      <dir>/home/user99/Documents/antoine/dev/sc-zeth/depends/libsnark/depends/gtest/googletest/src</dir>
+      <file>gtest.cc</file>
+      <line>2651</line>
+    </frame>
+  </stack>
+</error>
+
+<errorcounts>
+</errorcounts>
+
+<suppcounts>
+</suppcounts>
+
+</valgrindoutput>
+
