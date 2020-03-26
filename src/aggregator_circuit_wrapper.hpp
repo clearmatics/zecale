@@ -3,6 +3,7 @@
 
 #include "circuits/aggregator.tcc"
 #include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
+#include <libzeth/libsnark_helpers/extended_proof.hpp>
 
 // We directly import PGHR13 related files as we only support this SNARK for now
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
