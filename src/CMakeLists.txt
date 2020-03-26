@@ -15,33 +15,20 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(Protobuf REQUIRED)
 find_package(GRPC REQUIRED)
 
-set(PROTOS
-    $ENV{ZETH_API_DIR}/prover.proto
-)
-
-set(PROTOS_UTIL
-    $ENV{ZETH_API_DIR}/util.proto
-)
-
-set(PROTOS_PGHR13
-    $ENV{ZETH_API_DIR}/pghr13_messages.proto
-)
-
-set(PROTOS_GROTH16
-    $ENV{ZETH_API_DIR}/groth16_messages.proto
+file(
+  GLOB
+  PROTO_FILES
+  ${PROJECT_SOURCE_DIR}/api/*.proto
 )
 
 # Set the target of the generated files to ${CMAKE_CURRENT_BINARY_DIR}/proto-src
 # Then create this folder and add it to the include directories
-set(PROTO_SRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/proto-src)
+set(PROTO_SRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/proto_src)
 file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
 include_directories(${PROTO_SRC_DIR})
 
-# Generating sensibly into a python module requires setting --proto_path to the
-# zeth root, and referencing files as 'api/prover.proto' etc.  This requires us
-# to tweak the references to the source files.
-set(PROTOBUF_IMPORT_DIRS ..)
-set(PROTOBUF_PROTO_PATH ..)
+set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR})
+set(PROTOBUF_PROTO_PATH ${PROJECT_SOURCE_DIR})
 set(PROTOBUF_APPEND_DEST_PATH "/api")
 set(PROTOBUF_GENERATE_CPP_APPEND_PATH FALSE)
 set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
@@ -49,8 +36,8 @@ set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
 # See cmake scripts in the cmake folder
 # Generate the grpc and protobuf files and set the result of the generation
 # in the given env var (PROTO_SRCS, PROTO_HDRS, GRPC_SRCS, GRPC_HDRS)
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTOS_PGHR13} ${PROTOS_GROTH16} ${PROTOS_UTIL} ${PROTOS})
-grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_SRC_DIR} ${PROTOS_PGHR13} ${PROTOS_GROTH16} ${PROTOS_UTIL} ${PROTOS})
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTO_FILES})
+grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_SRC_DIR} ${PROTO_FILES})
 
 set_property(SOURCE ${PROTO_SRCS} PROPERTY
   COMPILE_FLAGS "-Wno-unused-variable -Wno-unused-parameter"
@@ -59,67 +46,48 @@ set_property(SOURCE ${GRPC_SRCS} PROPERTY
   COMPILE_FLAGS "-Wno-unused-variable -Wno-unused-parameter"
 )
 
-include_directories(
-  $ENV{ZETH}
-  $ENV{ZETH}/src
-  libff/common/default_types
-)
-
 # Enable Boost for program_options
 find_package( Boost REQUIRED COMPONENTS system filesystem program_options )
 include_directories( ${Boost_INCLUDE_DIR} )
 
-# libsodium
-ExternalProject_Get_Property(libsodium INSTALL_DIR)
-set(libsodium_INCLUDE_DIR "${INSTALL_DIR}/include")
-set(libsodium_LIBRARY "${INSTALL_DIR}/lib/libsodium.a")
-
 # Add the binary tree to the search path for include files
-# so that we will find zethConfig.h
+# so that we will find zecaleConfig.h
 include_directories( ${PROJECT_BINARY_DIR} )
 
 string(TOLOWER ${ZKSNARK} ZKSNARK_NAME)
 
-# zeth library
+# zecale library
 file(
   GLOB_RECURSE
-  ZETH_SOURCE
-  types/**.cpp types/**.hpp types/**.tcc
-  circuits/**.cpp circuits/**.hpp circuits/**.tcc circuit_wrapper.??? aggregator_circuit_wrapper.???
-  commitments/**.?pp commitments/**.tcc
-  libsnark_helpers/**.?pp libsnark_helpers/**.tcc
-  snarks/**.hpp snarks/**.tcc snarks/${ZKSNARK_NAME}/**.cpp
-  snarks_alias.hpp
-  include_libsnark.hpp
-  util.?pp util.tcc
-  util_api.?pp util_api.tcc
-  zeth.h
+  ZECALE_SOURCE
+  circuits/**.?pp circuits/**.tcc
+  aggregator_circuit_wrapper.???
+  zecale.h
 )
-add_library(zeth ${ZETH_SOURCE} ${PROTO_SRCS})
+add_library(zecale ${ZECALE_SOURCE} ${PROTO_SRCS})
 target_include_directories(
-  zeth
+  zecale
 
   PUBLIC
   .
-  ${DEPENDS_DIR}/libsnark
-  ${DEPENDS_DIR}/libsnark/depends/libff
-  ${DEPENDS_DIR}/libsnark/depends/libfqfft
-  ${libsodium_INCLUDE_DIR}
+  ${DEPENDS_DIR}/zeth
+  ${DEPENDS_DIR}/zeth/depends/libsnark
+  ${DEPENDS_DIR}/zeth/depends/libsnark/depends/libff
+  ${DEPENDS_DIR}/zeth/depends/libsnark/depends/libfqfft
 )
-target_link_libraries(zeth snark ${libsodium_LIBRARY})
-add_dependencies(zeth libsodium)
+target_link_libraries(zecale zeth)
 
-# prover_server executable
+# aggregator_server executable
 file(
   GLOB_RECURSE
-  PROVER_SERVER_SOURCE
-  prover_server/*.?pp prover_server/*.tcc
+  AGGREGATOR_SERVER_SOURCE
+  aggregator_server/*.?pp aggregator_server/*.tcc
 )
-add_executable(prover_server ${PROVER_SERVER_SOURCE} ${GRPC_SRCS})
+add_executable(aggregator_server ${AGGREGATOR_SERVER_SOURCE} ${GRPC_SRCS})
 target_link_libraries(
-  prover_server
+  aggregator_server
 
-  zeth
+  zecale
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
@@ -127,66 +95,38 @@ target_link_libraries(
   protobuf::libprotobuf
 )
 
-# pot-process utility (GROTH16 only)
-if(${ZKSNARK} STREQUAL "GROTH16")
-  add_executable(pot-process pot_process/pot_process.cpp)
-  target_link_libraries(
-    pot-process
-    zeth
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_PROGRAM_OPTIONS_LIBRARY}
-  )
-endif()
-
 ## Tests
 include(CTest)
 
 # A target which builds all tests, even if they will not be run.
 add_custom_target(build_tests)
 
-function(zeth_test TEST_NAME)
-  cmake_parse_arguments(zeth_test "FAST" "" "SOURCE" ${ARGN} )
-  file(GLOB test_src ${zeth_test_SOURCE})
+function(zecale_test TEST_NAME)
+  cmake_parse_arguments(zecale_test "FAST" "" "SOURCE" ${ARGN} )
+  file(GLOB test_src ${zecale_test_SOURCE})
 
   # Test executable
   add_executable(${TEST_NAME} EXCLUDE_FROM_ALL ${test_src})
-  target_link_libraries(${TEST_NAME} zeth gtest_main ${Boost_SYSTEM_LIBRARY})
+  target_link_libraries(${TEST_NAME} zecale gtest_main ${Boost_SYSTEM_LIBRARY})
 
   # Add all tests to the 'build_tests' target
   add_dependencies(build_tests ${TEST_NAME})
 
-  if((NOT FAST_TESTS_ONLY) OR zeth_test_FAST)
+  if((NOT FAST_TESTS_ONLY) OR zecale_test_FAST)
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
     add_dependencies(check ${TEST_NAME})
   else()
     message("Skipping slow test ${TEST_NAME}")
   endif()
-endfunction(zeth_test)
+endfunction(zecale_test)
 
-zeth_test(test_aggregator SOURCE test/aggregator_test.cpp FAST)
-#zeth_test(test_prover SOURCE test/prover_test.cpp)
-
-# prover test has extra dependencies
-#target_link_libraries(
-#  test_prover
-#  ${Boost_SYSTEM_LIBRARY}
-#  ${Boost_FILESYSTEM_LIBRARY}
-#)
+zecale_test(test_aggregator SOURCE test/aggregator_test.cpp FAST)
 
 # aggregator test has extra dependencies
 target_link_libraries(
   test_aggregator
+
+  zecale
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
 )
-
-# Groth16-only tests and MPC
-if(${ZKSNARK} STREQUAL "GROTH16")
-  zeth_test(test_simple SOURCE test/simple_test.cpp FAST)
-  zeth_test(test_powersoftau SOURCE test/powersoftau_test.cpp FAST)
-  zeth_test(test_mpc SOURCE test/mpc_*.cpp FAST)
-  target_link_libraries(
-    test_mpc ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY})
-
-  add_subdirectory(mpc)
-endif()

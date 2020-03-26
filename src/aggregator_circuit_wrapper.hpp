@@ -1,15 +1,17 @@
-#ifndef __ZETH_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
-#define __ZETH_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
+#ifndef __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
+#define __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
 
 #include "circuits/aggregator.tcc"
-#include "libsnark_helpers/libsnark_helpers.hpp"
+#include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
 
 // We directly import PGHR13 related files as we only support this SNARK for now
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 // zkSNARK specific imports
-#include "snarks_core_imports.hpp"
+#include <libzeth/snarks_core_imports.hpp>
 
-namespace libzeth
+using namespace libzeth;
+
+namespace libzecale
 {
 
 template<
@@ -47,7 +49,8 @@ public:
         const libsnark::r1cs_ppzksnark_proving_key<AggregateProofCurve> &aggregator_proving_key) const;
 };
 
-} // namespace libzeth
+} // namespace libzecale
+
 #include "aggregator_circuit_wrapper.tcc"
 
-#endif // __ZETH_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
+#endif // __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__

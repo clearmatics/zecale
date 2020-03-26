@@ -1,3 +1,0 @@
-test_aggregator 0 0
----
-test_aggregator
