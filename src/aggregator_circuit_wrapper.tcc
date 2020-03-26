@@ -1,14 +1,16 @@
-#ifndef __ZETH_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
-#define __ZETH_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
+#ifndef __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
+#define __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
 
-#include "snarks_alias.hpp"
-#include "zeth.h"
+#include <libzeth/snarks_alias.hpp>
+#include <libzeth/zeth.h>
 
 // Not stricly required since the .tcc is already included
 // in the .hpp, but this additional include fixes IDE complaints
 //#include "aggregator_circuit_wrapper.hpp"
 
-namespace libzeth
+using namespace libzeth;
+
+namespace libzecale
 {
 
 template<
@@ -99,6 +101,6 @@ extended_proof<AggregateProofCurve> aggregator_circuit_wrapper<
     return ext_proof;
 }
 
-} // namespace libzeth
+} // namespace libzecale
 
-#endif // __ZETH_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
+#endif // __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__

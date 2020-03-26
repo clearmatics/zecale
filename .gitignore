@@ -1,0 +1,15 @@
+# Ignore the build repo
+/build/
+
+# Ignore trusted setup repo
+/trusted_setup/
+
+# Ignore the content of the debug folder
+debug/*json
+
+# Ignore node_modules
+/zecale-contracts/node_modules/*
+
+# Ignore some unix temp files
+*~
+\#*\#

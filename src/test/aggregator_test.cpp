@@ -8,21 +8,22 @@
 #include <libff/algebra/fields/field_utils.hpp>
 
 
-#include<libff/algebra/curves/alt_bn128/alt_bn128_init.hpp>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_init.hpp>
 
 // Header to use the merkle tree data structure to keep a local merkle tree
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
-// Header to access the snark aliases
-#include "snarks_alias.hpp"
-
 // include the joinsplit gadget - generate the zeth proofs
-#include "circuit_wrapper.hpp"
+#include <libzeth/circuit_wrapper.hpp>
+#include <libzeth/circuits/blake2s/blake2s_comp.hpp>
+#include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
+#include <libzeth/snarks_core_imports.hpp>
+#include <libzeth/util.hpp>
+
+// Header to access the snark aliases
+#include <libzeth/snarks_alias.hpp>
+
 #include "aggregator_circuit_wrapper.hpp"
-#include "circuits/blake2s/blake2s_comp.hpp"
-#include "libsnark_helpers/libsnark_helpers.hpp"
-#include "snarks_core_imports.hpp"
-#include "util.hpp"
 
 using namespace libzeth;
 
@@ -46,6 +47,8 @@ typedef libff::Fr<AggregateProofCurve> ScalarFieldAggregatorT;
 typedef BLAKE2s_256_comp<ScalarFieldZethT> HashT;
 typedef MiMC_mp_gadget<ScalarFieldZethT> HashTreeT;
 static const size_t TreeDepth = 2;
+
+using namespace libzecale;
 
 namespace
 {

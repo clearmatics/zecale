@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package prover_proto;
+package aggregator_proto;
 
 message ZethNote {
     string apk = 1;
