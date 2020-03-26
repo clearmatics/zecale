@@ -1,9 +1,8 @@
 # Ignore the build repo
 /build/
 
-# Ignore the output of the trusted setup (ie: Proving and Verifying key)
-/trusted_setup/*.raw
-/trusted_setup/*.json
+# Ignore trusted setup repo
+/trusted_setup/
 
 # Ignore the content of the debug folder
 debug/*json
