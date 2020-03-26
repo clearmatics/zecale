@@ -15,30 +15,20 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(Protobuf REQUIRED)
 find_package(GRPC REQUIRED)
 
-set(PROTOS
-    $ENV{ZECALE_API_DIR}/aggregator.proto
-)
-
-set(PROTOS_UTIL
-    $ENV{ZECALE_API_DIR}/util.proto
-)
-
-set(PROTOS_PGHR13
-    $ENV{ZECALE_API_DIR}/pghr13_messages.proto
-)
-
-set(PROTOS_GROTH16
-    $ENV{ZECALE_API_DIR}/groth16_messages.proto
+file(
+  GLOB
+  PROTO_FILES
+  ${PROJECT_SOURCE_DIR}/api/*.proto
 )
 
 # Set the target of the generated files to ${CMAKE_CURRENT_BINARY_DIR}/proto-src
 # Then create this folder and add it to the include directories
-set(PROTO_SRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/proto-src)
+set(PROTO_SRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/proto_src)
 file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
 include_directories(${PROTO_SRC_DIR})
 
-set(PROTOBUF_IMPORT_DIRS ..)
-set(PROTOBUF_PROTO_PATH ..)
+set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR})
+set(PROTOBUF_PROTO_PATH ${PROJECT_SOURCE_DIR})
 set(PROTOBUF_APPEND_DEST_PATH "/api")
 set(PROTOBUF_GENERATE_CPP_APPEND_PATH FALSE)
 set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
@@ -46,20 +36,14 @@ set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
 # See cmake scripts in the cmake folder
 # Generate the grpc and protobuf files and set the result of the generation
 # in the given env var (PROTO_SRCS, PROTO_HDRS, GRPC_SRCS, GRPC_HDRS)
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTOS_PGHR13} ${PROTOS_GROTH16} ${PROTOS_UTIL} ${PROTOS})
-grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_SRC_DIR} ${PROTOS_PGHR13} ${PROTOS_GROTH16} ${PROTOS_UTIL} ${PROTOS})
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_SRC_DIR} ${PROTO_FILES})
+grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_SRC_DIR} ${PROTO_FILES})
 
 set_property(SOURCE ${PROTO_SRCS} PROPERTY
   COMPILE_FLAGS "-Wno-unused-variable -Wno-unused-parameter"
 )
 set_property(SOURCE ${GRPC_SRCS} PROPERTY
   COMPILE_FLAGS "-Wno-unused-variable -Wno-unused-parameter"
-)
-
-include_directories(
-  $ENV{ZECALE}
-  $ENV{ZECALE}/src
-  libff/common/default_types
 )
 
 # Enable Boost for program_options
@@ -76,7 +60,8 @@ string(TOLOWER ${ZKSNARK} ZKSNARK_NAME)
 file(
   GLOB_RECURSE
   ZECALE_SOURCE
-  circuits/**.cpp circuits/**.hpp circuits/**.tcc aggregator_circuit_wrapper.???
+  circuits/**.?pp circuits/**.tcc
+  aggregator_circuit_wrapper.???
   zecale.h
 )
 add_library(zecale ${ZECALE_SOURCE} ${PROTO_SRCS})

@@ -2,13 +2,13 @@
 #define __ZECALE_CIRCUITS_AGGREGATOR_TCC__
 
 // Contains the circuits for the notes
-#include <zeth/src/circuits/notes/note.hpp>
-#include <zeth/src/types/joinsplit.hpp>
+#include <libzeth/circuits/notes/note.hpp>
+#include <libzeth/types/joinsplit.hpp>
 // Contains the definitions of the constants we use
-#include <zeth/zeth.h>
+#include <libzeth/zeth.h>
 
 #include <boost/static_assert.hpp>
-#include <zeth/src/types/merkle_tree_field.hpp>
+#include <libzeth/types/merkle_tree_field.hpp>
 
 // Include the verifier gadgets
 #include <libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp>

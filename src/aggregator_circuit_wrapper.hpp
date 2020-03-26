@@ -1,13 +1,13 @@
 #ifndef __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
 #define __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
 
-#include <zeth/src/circuits/aggregator.tcc>
-#include <zeth/src/libsnark_helpers/libsnark_helpers.hpp>
+#include "circuits/aggregator.tcc"
+#include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
 
 // We directly import PGHR13 related files as we only support this SNARK for now
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 // zkSNARK specific imports
-#include <zeth/snarks_core_imports.hpp>
+#include <libzeth/snarks_core_imports.hpp>
 
 using namespace libzeth;
 

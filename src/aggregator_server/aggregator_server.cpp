@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include <zeth/src/circuit_types.hpp>
-#include <zeth/src/libsnark_helpers/libsnark_helpers.hpp>
-#include <zeth/src/snarks_alias.hpp>
-#include <zeth/src/util.hpp>
-#include <zeth/src/util_api.hpp>
-#include <zeth/src/zeth.h>
+#include <libzeth/circuit_types.hpp>
+#include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
+#include <libzeth/snarks_alias.hpp>
+#include <libzeth/util.hpp>
+#include <libzeth/util_api.hpp>
+#include <libzeth/zeth.h>
 
 #include <boost/program_options.hpp>
 #include <fstream>
@@ -31,7 +31,7 @@
 #pragma GCC diagnostic pop
 
 // Include the API for the given SNARK
-#include <zeth/src/snarks_api_imports.hpp>
+#include <libzeth/snarks_api_imports.hpp>
 
 #include "zecaleConfig.h"
 
