@@ -1,8 +1,8 @@
 #ifndef __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
 #define __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
 
-#include <zeth/snarks_alias.hpp>
-#include <zeth/zeth.h>
+#include <libzeth/snarks_alias.hpp>
+#include <libzeth/zeth.h>
 
 // Not stricly required since the .tcc is already included
 // in the .hpp, but this additional include fixes IDE complaints

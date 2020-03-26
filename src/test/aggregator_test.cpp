@@ -14,14 +14,14 @@
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 // include the joinsplit gadget - generate the zeth proofs
-#include <zeth/src/circuit_wrapper.hpp>
-#include <zeth/src/circuits/blake2s/blake2s_comp.hpp>
-#include <zeth/src/libsnark_helpers/libsnark_helpers.hpp>
-#include <zeth/src/snarks_core_imports.hpp>
-#include <zeth/src/util.hpp>
+#include <libzeth/circuit_wrapper.hpp>
+#include <libzeth/circuits/blake2s/blake2s_comp.hpp>
+#include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
+#include <libzeth/snarks_core_imports.hpp>
+#include <libzeth/util.hpp>
 
 // Header to access the snark aliases
-#include <zeth/src/snarks_alias.hpp>
+#include <libzeth/snarks_alias.hpp>
 
 #include "aggregator_circuit_wrapper.hpp"
 
@@ -47,6 +47,8 @@ typedef libff::Fr<AggregateProofCurve> ScalarFieldAggregatorT;
 typedef BLAKE2s_256_comp<ScalarFieldZethT> HashT;
 typedef MiMC_mp_gadget<ScalarFieldZethT> HashTreeT;
 static const size_t TreeDepth = 2;
+
+using namespace libzecale;
 
 namespace
 {
