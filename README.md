@@ -1,7 +1,10 @@
 # Zecale
 
-A zk-SNARK aggregator leveraging recursive composition of SNARKs.
-This project can be used to scale privacy preserving solutions like [Zeth](https://github.com/clearmatics/zeth)
+A general purpose zk-SNARK aggregator leveraging recursive composition of SNARKs.
+
+This project can be used to:
+1. Scale privacy preserving solutions like [Zeth](https://github.com/clearmatics/zeth) by aggregating proofs off-chain (i.e. generate a proof of computational integrity of their validity) and settling a batch of transactions via a single transaction on-chain.
+2. Wrap proofs for a given statement in order to hide the predicate that was evaluated. In other word, by setting the size of the batch to `1`, a "wrapping" proof is generated to proof the correct verification of another proofs on witness the verification key and the public inputs. The wrapping proof can the be settled on-chain. This use is very similar to the "Zero-knowledge EXEcution environment" described in [Zexe](https://eprint.iacr.org/2018/962.pdf)
 
 ## Building and running the project:
 
@@ -9,21 +12,18 @@ This project can be used to scale privacy preserving solutions like [Zeth](https
 
 In order to follow the README below, you will need:
 - [Docker](https://www.docker.com/get-started)
-- [Npm](https://www.npmjs.com/get-npm) (at least version `6.4.1`)
-- [Node](https://nodejs.org/en/) (at least version `v9.5.0`)
 - [Python3](https://www.python.org/downloads/) (at least version `3.7`)
 
 ### Development dependencies (for building outside of the Docker container)
 
-Immediate dependencies are provided as submodules and compiled during
-the Zeth build. Ensure submodules are synced.
+Immediate dependencies are provided as submodules and compiled during the Zeth build.
+Ensure submodules are synced (`git submodule update --init --recursive`).
 
 The following libraries are also required to build:
 
 - grpc
 - gmp
 - boost
-- openssl
 
 #### Build the project
 
@@ -32,7 +32,6 @@ The following libraries are also required to build:
 git clone git@github.com:clearmatics/zecale.git
 cd zecale
 
-# All the commands below are run in the docker container
 # Configure your environment
 . ./setup_env.sh
 
@@ -42,14 +41,17 @@ git submodule update --init --recursive
 # Compile the aggregator
 mkdir build
 cd build
-cmake .. [<flags (see below)>]
-# Compile all libraries and tools, including the prover_server
+cmake ..
+
+# Compile all targets
 make
+
 # (optional) Run the unit tests
 make test
+
 # (optional) Run the all tests (unit tests, syntax checks, etc)
 make check
 
-# Start the prover_server process
+# Start the aggregator_server process
 aggregator_server
 ```
