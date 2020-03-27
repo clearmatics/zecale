@@ -6,11 +6,21 @@
 #define __ZECALE_APPLICATION_POOL_HPP__
 
 #include <queue>
+#include <vector>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
-#include <libzeth/libsnark_helpers/extended_proof.hpp>
+#include "transaction_to_aggregate.hpp"
 
 namespace libzecale
 {
+
+template<typename ppT>
+class compare_transactions {
+public:
+    bool operator()(const transaction_to_aggregate<ppT>& tx_1, const transaction_to_aggregate<ppT>& tx_2)
+    {
+       return tx_1.fee_wei < tx_2.fee_wei;
+    }
+};
 
 /// An `application_pool` represents the pool of proofs to be aggregated that
 /// are for the same predicate.
@@ -34,7 +44,7 @@ private:
     //
     // TODO: Switch to a pool with an "order_by" policy
     // something like std::priority_queue for eg.
-    std::queue<std::shared_ptr<libzeth::extended_proof<ppT>>> proofs_queue; // Modify this to be a pool of transactions to aggregate and order the pool per the fee (which was added as a field in the proto files)
+    std::priority_queue<transaction_to_aggregate<ppT>, std::vector<transaction_to_aggregate<ppT>>, compare_transactions<ppT>> tx_pool;
 
 public:
     application_pool(std::string name, libsnark::r1cs_ppzksnark_verification_key<ppT> vk);
