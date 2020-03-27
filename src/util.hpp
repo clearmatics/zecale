@@ -2,15 +2,22 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZECALE_UTIL_TCC__
-#define __ZECALE_UTIL_TCC__
+#ifndef __ZECALE_UTIL_HPP__
+#define __ZECALE_UTIL_HPP__
 
 #include <string>
+#include <string.h>
 
 namespace libzecale
 {
 
 void erase_substring(std::string &string, const std::string &substring);
-uint8_t* parse_hex_field_element_to_bytes(std::string element);
+int hex_str_to_bin(char *source_str, uint8_t *dest_buffer);
+
+template<typename FieldT>
+FieldT hex_str_to_field_element(std::string field_str);
 
 } // namespace libzecale
+#include "util.tcc"
+
+#endif // __ZECALE_UTIL_HPP__
