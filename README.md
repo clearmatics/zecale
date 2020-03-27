@@ -1,10 +1,10 @@
-# Zecale
+# Zecale (/zi:kale/)
 
 A general purpose zk-SNARK aggregator leveraging recursive composition of SNARKs.
 
 This project can be used to:
-1. Scale privacy preserving solutions like [Zeth](https://github.com/clearmatics/zeth) by aggregating proofs off-chain (i.e. generate a proof of computational integrity of their validity) and settling a batch of transactions via a single transaction on-chain.
-2. Wrap proofs for a given statement in order to hide the predicate that was evaluated. In other word, by setting the size of the batch to `1`, a "wrapping" proof is generated to proof the correct verification of another proofs on witness the verification key and the public inputs. The wrapping proof can the be settled on-chain. This use is very similar to the "Zero-knowledge EXEcution environment" described in [Zexe](https://eprint.iacr.org/2018/962.pdf)
+1. Scale privacy preserving solutions like [Zeth](https://github.com/clearmatics/zeth) by aggregating proofs off-chain (i.e. generate a proof of computational integrity of their validity) and settling a batch of transactions via a single transaction on-chain. This is also referred to as "zk-zk-rollups".
+2. Wrap proofs for a given statement in order to hide the predicate that was evaluated. In other words, by setting the size of the batch to `1`, a "wrapping" proof is generated to prove the correct verification of another proof on witness the verification key and the public inputs. The wrapping proof can the be settled on-chain. This use is very similar to the "Zero-knowledge EXEcution environment" described in [Zexe](https://eprint.iacr.org/2018/962.pdf).
 
 ## Building and running the project:
 

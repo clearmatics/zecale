@@ -17,29 +17,19 @@ void erase_substring(std::string &string, const std::string &substring)
 	}
 }
 
-uint8_t* parse_hex_field_element_to_bytes(std::string element)
+int hex_str_to_bin(char *source_str, uint8_t *dest_buffer)
 {
-    const char hexstring[] = element.c_str();
-    const char* pos = hexstring;
+  char *line = source_str;
+  char *data = line;
+  int offset;
+  int read_byte;
+  int data_len = 0;
 
-    const size_t length = strlen(hexstring);
-
-    // We assume for now that the string received is of the right form
-    // ie.
-    // - No "0x" prefix
-    // - Valid hexadecimal string
-    // - Even length
-    //
-    // TODO: harden this and handle edge cases
-    uint8_t[length/2] bytes;
-
-    // We iterate on the length of bytes
-    for (size_t count = 0; count < sizeof(bytes)/sizeof(*bytes); count++) {
-        sscanf(pos, "%2hhx", &bytes[count]);
-        pos += 2;
-    }
-
-    return bytes;
+  while (sscanf(data, "%02x%n", &read_byte, &offset) == 1) {
+    dest_buffer[data_len++] = read_byte;
+    data += offset;
+  }
+  return data_len;
 }
 
 } // libzecale
