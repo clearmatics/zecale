@@ -21,3 +21,14 @@ message HexPointBaseGroup2Affine {
     string y_c1_coord = 3;
     string y_c0_coord = 4;
 }
+
+// A Zeth transaction is a "TransactionToAggregate"
+// where `application_name` is set to "zeth" (the application name/ID of zeth)
+message TransactionToAggregate {
+    // Using the application name avoids to pass the verification key.
+    // This is more bandwidth efficient.
+    string application_name = 1;
+    ExtendedProof extended_proof = 2;
+    // Only if an incentive structure is in place and fees are supported
+    int32 fee_in_wei = 3;
+}

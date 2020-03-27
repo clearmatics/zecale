@@ -17,9 +17,8 @@ template<
     size_t NumProofs>
 application_pool<ppT, NumProofs>::application_pool(
     std::string name,
-    libsnark::r1cs_ppzksnark_verification_key<ppT> vk) : proofs_queue()
+    libsnark::r1cs_ppzksnark_verification_key<ppT> vk) : name(name), proofs_queue()
 {
-    this->name = name;
     this->verification_key = std::make_shared<libsnark::r1cs_primary_input<ppT>>(vk);
 }
 
