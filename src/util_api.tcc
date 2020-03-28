@@ -39,34 +39,41 @@ libzeth::extended_proof<ppT> parse_extended_proof(
 #endif
 }
 
+// TODO:
+// Think about supporting point compression to minimize bandwidth usage
+// but this needs to be "tradeoffed" with the decompression work given to
+// the aggregator.
 template<typename ppT>
 libff::G1<ppT> parse_hexPointBaseGroup1Affine(
     const aggregator_proto::HexPointBaseGroup1Affine &point)
 {
-    // TODO:
-    // Think about supporting point compression to minimize bandwidth usage
-    // but this needs to be "tradeoffed" with the decompression work given to
-    // the aggregator.
+    libff::Fq<ppT> x_coordinate = hex_str_to_field_element(point.x_coord());
+    libff::Fq<ppT> y_coordinate = hex_str_to_field_element(point.y_coord());
 
-    // Read the point coordinates as strings and erase the leading "0x"
-    std::string x_coordinate = erase_substring(point.x_coord(), std::string("0x"));
-    uint8_t[(libff::Fq<ppT>::num_bits + 8 - 1) / 8] x_bytes;
-    memcpy(x_bytes, parse_hex_field_element_to_bytes(x_coordinate), (libff::Fq<ppT>::num_bits + 8 - 1) / 8);
-
-    std::string y_coordinate = erase_substring(point.y_coord(), std::string("0x"));
-    uint8_t[(libff::Fq<ppT>::num_bits + 8 - 1) / 8] y_bytes;
-    memcpy(y_bytes, parse_hex_field_element_to_bytes(y_coordinate), (libff::Fq<ppT>::num_bits + 8 - 1) / 8);
-
-    libff::bigint<FieldT::num_limbs> x = libsnark_bigint_from_bytes(x_bytes);
-    libff::bigint<FieldT::num_limbs> y = libsnark_bigint_from_bytes(y_bytes);
-
-    libff::G1<ppT> libff_point = libff::G1<ppT>(x, y);
+    libff::G1<ppT> libff_point = libff::G1<ppT>(x_coordinate, y_coordinate);
 
     return res;
 }
 
 template<typename ppT>
-prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
+libff::G2<ppT> parse_hexPointBaseGroup2Affine(
+    const aggregator_proto::HexPointBaseGroup1Affine &point)
+{
+    libff::Fq<ppT> x_c1 = hex_str_to_field_element(point.x_c1_coord());
+    libff::Fq<ppT> x_c0 = hex_str_to_field_element(point.x_c0_coord());
+    libff::Fq<ppT> y_c1 = hex_str_to_field_element(point.y_c1_coord());
+    libff::Fq<ppT> y_c0 = hex_str_to_field_element(point.y_c0_coord());
+
+    libff::Fqe<ppT> x_coordinate(x_c0, x_c1);
+    libff::Fqe<ppT> y_coordinate(y_c0, y_c1);
+
+    libff::G2<ppT> libff_point = libff::G2<ppT>(x_coordinate, y_coordinate, libff::Fqe<ppT>::one());
+
+    return res;
+}
+
+template<typename ppT>
+aggregator_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
     const libff::G1<ppT> &point)
 {
     libff::G1<ppT> aff = point;
@@ -76,7 +83,7 @@ prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
     std::string y_coord =
         "0x" + hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.Y.as_bigint());
 
-    prover_proto::HexPointBaseGroup1Affine res;
+    aggregator_proto::HexPointBaseGroup1Affine res;
     res.set_x_coord(x_coord);
     res.set_y_coord(y_coord);
 
@@ -84,7 +91,7 @@ prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
 }
 
 template<typename ppT>
-prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
+aggregator_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     const libff::G2<ppT> &point)
 {
     libff::G2<ppT> aff = point;
@@ -98,7 +105,7 @@ prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     std::string y_c0_coord =
         "0x" + hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.Y.c0.as_bigint());
 
-    prover_proto::HexPointBaseGroup2Affine res;
+    aggregator_proto::HexPointBaseGroup2Affine res;
     res.set_x_c0_coord(x_c0_coord);
     res.set_x_c1_coord(x_c1_coord);
     res.set_y_c0_coord(y_c0_coord);
