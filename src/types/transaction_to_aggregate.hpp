@@ -18,17 +18,17 @@ template<typename ppT>
 class transaction_to_aggregate
 {
 private:
-    std::string application_name;
-    std::shared_ptr<libzeth::extended_proof<ppT>> extended_proof;
-    uint32_t fee_wei;
+    std::string _application_name;
+    std::shared_ptr<libzeth::extended_proof<ppT>> _extended_proof;
+    uint32_t _fee_wei;
 
 public:
     transaction_to_aggregate(std::string application_name, const libzeth::extended_proof<ppT> &extended_proof, uint32_t fee_wei = 0);
     virtual ~transaction_to_aggregate(){};
 
-    inline std::string application_name() const { return this->application_name; };
-    inline libzeth::extended_proof<ppT> extended_proof() const { return *(this->extended_proof); };
-    inline uint32_t fee_wei() const { return this->fee_wei; };
+    inline std::string application_name() const { return this->_application_name; };
+    inline libzeth::extended_proof<ppT> extended_proof() const { return *(this->_extended_proof); };
+    inline uint32_t fee_wei() const { return this->_fee_wei; };
 };
 
 } // namespace libzecale
