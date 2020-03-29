@@ -20,6 +20,13 @@ transaction_to_aggregate<ppT>::transaction_to_aggregate(
     this->_extended_proof = std::make_shared<libzeth::extended_proof<ppT>>(extended_proof);
 }
 
+template<typename ppT>
+std::ostream& operator<<(std::ostream& os, const transaction_to_aggregate<ppT>& tx)
+{
+    os << "app-name:" << tx.application_name() << ", fee-wei" << tx.fee_wei();
+    return os;
+}
+
 } // namespace libzecale
 
 #endif // __ZECALE_TYPES_TRANSACTION_TO_AGGREGATE_TCC__
