@@ -13,6 +13,10 @@ message HexPointBaseGroup1Affine {
 }
 
 // The points in G2 are represented in affine form.
+//
+// IMPORTANT:
+// Here we assume that the twist field elements are polynomials of degree 1
+// i.e. they can be represented using a vector of 2 base field elements.
 message HexPointBaseGroup2Affine {
     // First coordinate of the point
     string x_c1_coord = 1;
