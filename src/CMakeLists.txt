@@ -121,8 +121,19 @@ function(zecale_test TEST_NAME)
 endfunction(zecale_test)
 
 zecale_test(util_test SOURCE test/util_test.cpp FAST)
-zecale_test(test_aggregator SOURCE test/aggregator_test.cpp FAST)
 
+zecale_test(util_api_test SOURCE test/util_api_test.cpp FAST)
+target_link_libraries(
+  util_api_test
+
+  zecale
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+  gRPC::grpc++_reflection
+  protobuf::libprotobuf
+)
+
+zecale_test(test_aggregator SOURCE test/aggregator_test.cpp FAST)
 # aggregator test has extra dependencies
 target_link_libraries(
   test_aggregator
