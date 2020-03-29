@@ -55,3 +55,16 @@ make check
 # Start the aggregator_server process
 aggregator_server
 ```
+
+##### Build and run the project in a docker container
+
+```bash
+# Pull the zeth-base image (this project has the same configuration as Zeth)
+docker pull clearmatics/zeth-base:latest
+
+# Build the Zecale dev image
+docker build -f Dockerfile-zecale -t zecale-dev:0.1 .
+
+# Start the container
+docker run -ti -p 50052:50052 --name zecale zecale-dev:v0.1
+```
