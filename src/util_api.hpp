@@ -5,6 +5,7 @@
 #ifndef __ZECALE_UTIL_API_HPP__
 #define __ZECALE_UTIL_API_HPP__
 
+#include "api/aggregator.pb.h"
 #include "api/util.pb.h"
 
 #include "types/transaction_to_aggregate.hpp"
