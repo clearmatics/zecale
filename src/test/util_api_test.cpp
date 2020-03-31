@@ -1,14 +1,11 @@
-#include "gtest/gtest.h"
-
-#include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
-
-#include <libzeth/libsnark_helpers/debug_helpers.hpp>
-#include "util_api.hpp"
-#include "util.hpp"
-
 #include "api/aggregator.pb.h"
 #include "api/util.pb.h"
+#include "util.hpp"
+#include "util_api.hpp"
 
+#include "gtest/gtest.h"
+#include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
+#include <libzeth/libsnark_helpers/debug_helpers.hpp>
 #include <stdio.h>
 
 typedef libff::mnt4_pp ppT;
@@ -23,21 +20,26 @@ TEST(MainTests, ParseTransactionToAggregate)
 {
     // 1. Format arbitary data that will be parsed afterwards
     libsnark::r1cs_ppzksnark_proof<ppT> proof(
-        libsnark::knowledge_commitment<libff::G1<ppT>, libff::G1<ppT>>(libff::G1<ppT>::random_element(), libff::G1<ppT>::random_element()),
-        libsnark::knowledge_commitment<libff::G2<ppT>, libff::G1<ppT>>(libff::G2<ppT>::random_element(), libff::G1<ppT>::random_element()),
-        libsnark::knowledge_commitment<libff::G1<ppT>, libff::G1<ppT>>(libff::G1<ppT>::random_element(), libff::G1<ppT>::random_element()),
+        libsnark::knowledge_commitment<libff::G1<ppT>, libff::G1<ppT>>(
+            libff::G1<ppT>::random_element(), libff::G1<ppT>::random_element()),
+        libsnark::knowledge_commitment<libff::G2<ppT>, libff::G1<ppT>>(
+            libff::G2<ppT>::random_element(), libff::G1<ppT>::random_element()),
+        libsnark::knowledge_commitment<libff::G1<ppT>, libff::G1<ppT>>(
+            libff::G1<ppT>::random_element(), libff::G1<ppT>::random_element()),
         libff::G1<ppT>::random_element(),
         libff::G1<ppT>::random_element());
-	
+
     std::vector<libff::Fr<ppT>> inputs;
     inputs.push_back(libff::Fr<ppT>::random_element());
     inputs.push_back(libff::Fr<ppT>::random_element());
     inputs.push_back(libff::Fr<ppT>::random_element());
-    libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_inputs = libsnark::r1cs_primary_input<libff::Fr<ppT>>(inputs);
+    libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_inputs =
+        libsnark::r1cs_primary_input<libff::Fr<ppT>>(inputs);
 
     libzeth::extended_proof<ppT> mock_extended_proof(proof, primary_inputs);
 
-    libsnark::r1cs_ppzksnark_proof<ppT> proofObj = mock_extended_proof.get_proof();
+    libsnark::r1cs_ppzksnark_proof<ppT> proofObj =
+        mock_extended_proof.get_proof();
     aggregator_proto::HexPointBaseGroup1Affine *a =
         new aggregator_proto::HexPointBaseGroup1Affine();
     aggregator_proto::HexPointBaseGroup1Affine *a_p =
@@ -70,7 +72,8 @@ TEST(MainTests, ParseTransactionToAggregate)
     ss << "[";
     for (size_t i = 0; i < pub_inputs.size(); ++i) {
         ss << "0x"
-           << libzeth::hex_from_libsnark_bigint<libff::Fr<ppT>>(pub_inputs[i].as_bigint());
+           << libzeth::hex_from_libsnark_bigint<libff::Fr<ppT>>(
+                  pub_inputs[i].as_bigint());
         if (i < pub_inputs.size() - 1) {
             ss << ", ";
         }
@@ -81,9 +84,12 @@ TEST(MainTests, ParseTransactionToAggregate)
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
     // https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
-    aggregator_proto::ExtendedProof* ext_proof = new aggregator_proto::ExtendedProof();
-    aggregator_proto::ExtendedProofPGHR13* grpc_extended_pghr13_proof_obj = new aggregator_proto::ExtendedProofPGHR13();
-    //aggregator_proto::ExtendedProofPGHR13 *grpc_extended_pghr13_proof_obj = ext_proof->mutable_pghr13_extended_proof();
+    aggregator_proto::ExtendedProof *ext_proof =
+        new aggregator_proto::ExtendedProof();
+    aggregator_proto::ExtendedProofPGHR13 *grpc_extended_pghr13_proof_obj =
+        new aggregator_proto::ExtendedProofPGHR13();
+    // aggregator_proto::ExtendedProofPGHR13 *grpc_extended_pghr13_proof_obj =
+    // ext_proof->mutable_pghr13_extended_proof();
 
     grpc_extended_pghr13_proof_obj->set_allocated_a(a);
     grpc_extended_pghr13_proof_obj->set_allocated_a_p(a_p);
@@ -95,23 +101,31 @@ TEST(MainTests, ParseTransactionToAggregate)
     grpc_extended_pghr13_proof_obj->set_allocated_k(k);
     grpc_extended_pghr13_proof_obj->set_inputs(inputs_json);
 
-    ext_proof->set_allocated_pghr13_extended_proof(grpc_extended_pghr13_proof_obj);
+    ext_proof->set_allocated_pghr13_extended_proof(
+        grpc_extended_pghr13_proof_obj);
 
-    aggregator_proto::TransactionToAggregate *grpc_tx_to_aggregate_obj = new aggregator_proto::TransactionToAggregate();
+    aggregator_proto::TransactionToAggregate *grpc_tx_to_aggregate_obj =
+        new aggregator_proto::TransactionToAggregate();
     grpc_tx_to_aggregate_obj->set_application_name("zeth");
     grpc_tx_to_aggregate_obj->set_fee_in_wei(12);
     grpc_tx_to_aggregate_obj->set_allocated_extended_proof(ext_proof);
 
     // Parse the TransactionToAggregate
-    transaction_to_aggregate<ppT> retrieved_tx = parse_transaction_to_aggregate<ppT>(*grpc_tx_to_aggregate_obj);
+    transaction_to_aggregate<ppT> retrieved_tx =
+        parse_transaction_to_aggregate<ppT>(*grpc_tx_to_aggregate_obj);
 
-    ASSERT_EQ(retrieved_tx.extended_proof().get_primary_input(), mock_extended_proof.get_primary_input());
-    ASSERT_EQ(retrieved_tx.extended_proof().get_proof(), mock_extended_proof.get_proof());
+    ASSERT_EQ(
+        retrieved_tx.extended_proof().get_primary_input(),
+        mock_extended_proof.get_primary_input());
+    ASSERT_EQ(
+        retrieved_tx.extended_proof().get_proof(),
+        mock_extended_proof.get_proof());
     ASSERT_EQ(retrieved_tx.application_name(), "zeth");
     ASSERT_EQ(retrieved_tx.fee_wei(), 12);
-    
+
     // The destructor of `aggregator_proto::TransactionToAggregate` should be
-    // invoked which whould free the memory allocated for the fields of this message
+    // invoked which whould free the memory allocated for the fields of this
+    // message
     delete grpc_tx_to_aggregate_obj;
 }
 

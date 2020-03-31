@@ -2,13 +2,6 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include <libzeth/circuit_types.hpp>
-#include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
-#include <libzeth/snarks_alias.hpp>
-#include <libzeth/util.hpp>
-#include <libzeth/util_api.hpp>
-#include <libzeth/zeth.h>
-
 #include <boost/program_options.hpp>
 #include <fstream>
 #include <grpc/grpc.h>
@@ -17,6 +10,12 @@
 #include <grpcpp/server_builder.h>
 #include <grpcpp/server_context.h>
 #include <iostream>
+#include <libzeth/circuit_types.hpp>
+#include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
+#include <libzeth/snarks_alias.hpp>
+#include <libzeth/util.hpp>
+#include <libzeth/util_api.hpp>
+#include <libzeth/zeth.h>
 #include <memory>
 #include <stdio.h>
 #include <string>
@@ -31,9 +30,9 @@
 #pragma GCC diagnostic pop
 
 // Include the API for the given SNARK
-#include <libzeth/snarks_api_imports.hpp>
-
 #include "zecaleConfig.h"
+
+#include <libzeth/snarks_api_imports.hpp>
 
 namespace proto = google::protobuf;
 namespace po = boost::program_options;
@@ -44,10 +43,7 @@ namespace po = boost::program_options;
 class aggregator_server final : public aggregator_proto::Aggregator::Service
 {
 private:
-    libzecale::aggregator_wrapper<
-        CurveA,
-        CurveB,
-        ZETH_NUM_PROOFS> aggregator;
+    libzecale::aggregator_wrapper<CurveA, CurveB, ZETH_NUM_PROOFS> aggregator;
 
     // The keypair is the result of the setup for the aggregation circuit
     keyPairT<ppT> keypair;
@@ -57,10 +53,8 @@ private:
 
 public:
     explicit aggregator_server(
-        libzecale::aggregate_circuit_wrapper<
-            CurveA,
-            CurveB,
-            ZETH_NUM_PROOFS> &aggregator,
+        libzecale::aggregate_circuit_wrapper<CurveA, CurveB, ZETH_NUM_PROOFS>
+            &aggregator,
         keyPairT<ppT> &keypair,
         verificationKeyT<ppT> nested_vk)
         : aggregator(aggregator), keypair(keypair), nested_vk(nested_vk)
@@ -95,39 +89,44 @@ public:
         const proto::Empty *,
         aggregator_proto::ExtendedProof *proof) override
     {
-        std::cout << "[ACK] Received the request to generate an aggregation proof"
-                  << std::endl;
+        std::cout
+            << "[ACK] Received the request to generate an aggregation proof"
+            << std::endl;
 
-            std::cout << "[DEBUG] Pop batch from the pool..." << std::endl;
+        std::cout << "[DEBUG] Pop batch from the pool..." << std::endl;
+        // TODO
+
+        std::cout << "[DEBUG] Parse batch and generate inputs..." << std::endl;
+        // TODO
+
+        std::cout << "[DEBUG] Generating the proof..." << std::endl;
+        extended_proof<ppT> ext_proof = this->aggregator.prove(
             // TODO
+        );
 
-            std::cout << "[DEBUG] Parse batch and generate inputs..." << std::endl;
-            // TODO
+        std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
+        ext_proof.dump_proof();
+        ext_proof.dump_primary_inputs();
 
-            std::cout << "[DEBUG] Generating the proof..." << std::endl;
-            extended_proof<ppT> ext_proof = this->aggregator.prove(
-                // TODO
-            );
-
-            std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
-            ext_proof.dump_proof();
-            ext_proof.dump_primary_inputs();
-
-            std::cout << "[DEBUG] Preparing response..." << std::endl;
-            prepare_proof_response<ppT>(ext_proof, proof);
-
-        } catch (const std::exception &e) {
-            std::cout << "[ERROR] " << e.what() << std::endl;
-            return grpc::Status(
-                grpc::StatusCode::INVALID_ARGUMENT, grpc::string(e.what()));
-        } catch (...) {
-            std::cout << "[ERROR] In catch all" << std::endl;
-            return grpc::Status(grpc::StatusCode::UNKNOWN, "");
-        }
-
-        return grpc::Status::OK;
+        std::cout << "[DEBUG] Preparing response..." << std::endl;
+        prepare_proof_response<ppT>(ext_proof, proof);
     }
-};
+    catch (const std::exception &e)
+    {
+        std::cout << "[ERROR] " << e.what() << std::endl;
+        return grpc::Status(
+            grpc::StatusCode::INVALID_ARGUMENT, grpc::string(e.what()));
+    }
+    catch (...)
+    {
+        std::cout << "[ERROR] In catch all" << std::endl;
+        return grpc::Status(grpc::StatusCode::UNKNOWN, "");
+    }
+
+    return grpc::Status::OK;
+}
+}
+;
 
 std::string get_server_version()
 {
@@ -135,7 +134,11 @@ std::string get_server_version()
     int n;
     // Defined in the zethConfig file
     n = snprintf(
-        buffer, 100, "Version %d.%d", ZECALE_VERSION_MAJOR, ZECALE_VERSION_MINOR);
+        buffer,
+        100,
+        "Version %d.%d",
+        ZECALE_VERSION_MAJOR,
+        ZECALE_VERSION_MINOR);
     if (n < 0) {
         return "Version <Not specified>";
     }
@@ -148,8 +151,8 @@ void display_server_start_message()
     std::string copyright =
         "Copyright (c) 2015-2020 Clearmatics Technologies Ltd";
     std::string license = "SPDX-License-Identifier: LGPL-3.0+";
-    std::string project =
-        "R&D Department: PoC for a privacy preserving scalability solution on Ethereum";
+    std::string project = "R&D Department: PoC for a privacy preserving "
+                          "scalability solution on Ethereum";
     std::string version = get_server_version();
     std::string warning = "**WARNING:** This code is a research-quality proof "
                           "of concept, DO NOT use in production!";
@@ -165,10 +168,7 @@ void display_server_start_message()
 }
 
 static void RunServer(
-    libzecale::aggregator_wrapper<
-        CurveA,
-        CurveB,
-        ZETH_NUM_PROOFS> &aggregator,
+    libzecale::aggregator_wrapper<CurveA, CurveB, ZETH_NUM_PROOFS> &aggregator,
     keyPairT<ppT> &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50052
@@ -258,11 +258,7 @@ int main(int argc, char **argv)
     CurveA::init_public_params();
     CurveB::init_public_params();
 
-    libzecale::aggregator_wrapper<
-        CurveA,
-        CurveB,
-        ZETH_NUM_PROOFS>
-        aggregator;
+    libzecale::aggregator_wrapper<CurveA, CurveB, ZETH_NUM_PROOFS> aggregator;
     keyPairT<ppT> keypair = [&keypair_file, &aggregator]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16
