@@ -24,9 +24,8 @@ TEST(MainTests, AddAndRetrieveTransactions)
     const size_t BATCH_SIZE = 2;
     application_pool<ppT, BATCH_SIZE> pool(dummy_app_name, dummy_vk);
 
-    // Get size of the pool
-    size_t size_init = pool.tx_pool_size();
-    ASSERT_EQ(size_init, (size_t)0);
+    // Get size of the pool before any addition
+    ASSERT_EQ(pool.tx_pool_size(), (size_t)0);
 
     // Create a dummy extended proof to build the set of transactions to aggregate
     libsnark::r1cs_ppzksnark_proof<ppT> dummy_proof(
@@ -58,16 +57,18 @@ TEST(MainTests, AddAndRetrieveTransactions)
     pool.add_tx(tx_e);
 
     // Get size of the pool after insertion
-    size_t size_1 = pool.tx_pool_size();
-    ASSERT_EQ(size_1, (size_t)5);
+    ASSERT_EQ(pool.tx_pool_size(), (size_t)5);
 
     // 2. Retrieve a batch
     auto batch = pool.get_next_batch();
     ASSERT_EQ(batch.size(), BATCH_SIZE);
 
-    for (size_t i=0; i<batch.size(); i++){
+    for (size_t i = 0; i < batch.size(); i++){
         std::cout << "i: " << i << " val: " << batch[i] << std::endl;
     }
+
+    // Get size of the pool after batch retrieval
+    ASSERT_EQ(pool.tx_pool_size(), (size_t)5-BATCH_SIZE);
 }
 
 } // namespace
