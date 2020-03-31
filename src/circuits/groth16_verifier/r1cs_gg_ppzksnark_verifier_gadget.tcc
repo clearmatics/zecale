@@ -1,3 +1,6 @@
+// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
 
 
 #ifndef __ZECALE_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_TCC__
@@ -324,16 +327,16 @@ r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::r1cs_gg_ppzksnark_online_verifier
     
     // 3. Carry out the pairing checks to check QAP equation
     QAP_valid.allocate(pb, FMT(annotation_prefix, " QAP_valid"));
-    check_QAP_valid.reset(new check_e_equals_e_gadget<ppT>(
+    check_QAP_valid.reset(new check_e_equals_eee_gadget<ppT>(
         pb,
-        *proof_g_A_precomp,
-        *proof_g_B_precomp,
         *(pvk.vk_alpha_g1_precomp),
         *(pvk.vk_beta_g1_precomp),
         *(acc_precomp),
         *(pvk.vk_generator_g2_precomp),
         *(proof_g_C_precomp),
         *(pvk.vk_delta_g2_precomp),
+        *proof_g_A_precomp, // LHS
+        *proof_g_B_precomp, // LHS
         QAP_valid,
         FMT(annotation_prefix, " check_QAP_valid")));
 }
