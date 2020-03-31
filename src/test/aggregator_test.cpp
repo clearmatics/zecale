@@ -46,7 +46,7 @@ typedef libff::Fr<AggregateProofCurve> ScalarFieldAggregatorT;
 // why they are instantiated from the `ScalarFieldZethT` scalar field
 typedef BLAKE2s_256_comp<ScalarFieldZethT> HashT;
 typedef MiMC_mp_gadget<ScalarFieldZethT> HashTreeT;
-static const size_t TreeDepth = 2;
+static const size_t TreeDepth = 4;
 
 using namespace libzecale;
 
@@ -56,7 +56,7 @@ namespace
 // This function generates one zeth proof, with the associated primary inputs.
 // It also returns the nested verification key which will be used by the aggregator
 // to verify the nested proof
-std::array<libzeth::extended_proof<ZethProofCurve>, 1> GenerateOneZethProof(
+std::array<libzeth::extended_proof<ZethProofCurve>, 2> GenerateTwoZethProofs(
     circuit_wrapper<
         ScalarFieldZethT,
         HashT,
@@ -241,20 +241,20 @@ std::array<libzeth::extended_proof<ZethProofCurve>, 1> GenerateOneZethProof(
     std::cout << "Zeth Res value: " << res << std::endl;
 
     // Return the extended proof to build the inputs of the aggregator circuit
-    std::array<libzeth::extended_proof<ZethProofCurve>, 1> result = {ext_proof};
+    std::array<libzeth::extended_proof<ZethProofCurve>, 2> result = {ext_proof, ext_proof};
     return result;
 }
 
 // Test aggregation of a single Zeth proof
-bool TestValidAggregationOneZethProof(
+bool TestValidAggregationTwoZethProofs(
     aggregator_circuit_wrapper<
         ZethProofCurve,
         AggregateProofCurve,
-        1
+        2
     > &aggregator_prover,
     libsnark::r1cs_ppzksnark_keypair<AggregateProofCurve> aggregator_keypair,
     libsnark::r1cs_ppzksnark_keypair<ZethProofCurve> zeth_keypair,
-    std::array<libzeth::extended_proof<ZethProofCurve>, 1> nested_proofs
+    std::array<libzeth::extended_proof<ZethProofCurve>, 2> nested_proofs
 ) {
     libff::enter_block("Generate Aggregate proof", true);
         extended_proof<AggregateProofCurve> ext_proof = aggregator_prover.prove(
@@ -271,9 +271,9 @@ bool TestValidAggregationOneZethProof(
     libff::leave_block("Verify Aggregate proof", true);
 
     std::cout << "[DEBUG] Displaying the Aggregate extended proof" << std::endl;
-    //ext_proof.dump_proof();
+    ext_proof.dump_proof();
     std::cout << "[DEBUG] Displaying the Aggregate primary inputs" << std::endl;
-    //ext_proof.dump_primary_inputs();
+    ext_proof.dump_primary_inputs();
 
     return res;
 }
@@ -301,19 +301,20 @@ TEST(MainTests, AggregatorTest)
 
     // Test to aggregate a single proof (i.e. generate a proof for the verification of the proof)
     std::cout << "Before gen Zeth proof" << std::endl;
-    std::array<libzeth::extended_proof<ZethProofCurve>, 1> nested_proofs = GenerateOneZethProof(zeth_prover, zeth_keypair);
+    std::array<libzeth::extended_proof<ZethProofCurve>, 2> nested_proofs = GenerateTwoZethProofs(zeth_prover, zeth_keypair);
     // Make sure that the number of primary inputs matches the one we set in the `aggregator_prover` circuit
     std::cout << "[DEBUG ] nested_proofs[0].get_primary_input().size(): " << nested_proofs[0].get_primary_input().size() << std::endl;
+    // Make sure that we have the right amount of primary inputs
     assert(nested_proofs[0].get_primary_input().size() == 9);
 
     std::cout << "[DEBUG - 1] Before creation of the Aggregator prover" << std::endl;
-    aggregator_circuit_wrapper<ZethProofCurve, AggregateProofCurve, 1> aggregator_prover;
+    aggregator_circuit_wrapper<ZethProofCurve, AggregateProofCurve, 2> aggregator_prover;
     std::cout << "[DEBUG - 2] Before gen Aggregator setup" << std::endl;
     libsnark::r1cs_ppzksnark_keypair<AggregateProofCurve> aggregator_keypair = aggregator_prover.generate_trusted_setup();
 
     std::cout << "Before first test" << std::endl;
     bool res = false;
-    res = TestValidAggregationOneZethProof(
+    res = TestValidAggregationTwoZethProofs(
         aggregator_prover,
         aggregator_keypair,
         zeth_keypair,
