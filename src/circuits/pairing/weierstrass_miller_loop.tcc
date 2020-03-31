@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef WEIERSTRASS_MILLER_LOOP_TCC_
-#define WEIERSTRASS_MILLER_LOOP_TCC_
+#ifndef __ZECALE_WEIERSTRASS_MILLER_LOOP_CIRCUIT_TCC__
+#define __ZECALE_WEIERSTRASS_MILLER_LOOP_CIRCUIT_TCC__
 
 #include <libff/algebra/scalar_multiplication/wnaf.hpp>
 
@@ -378,4 +378,4 @@ void test_mnt_e_times_e_times_e_over_e_miller_loop(const std::string &annotation
 
 } // libzecale
 
-#endif // WEIERSTRASS_MILLER_LOOP_TCC_
+#endif // __ZECALE_WEIERSTRASS_MILLER_LOOP_CIRCUIT_TCC__

@@ -1,5 +1,5 @@
-#ifndef __ZECALE_CIRCUITS_AGGREGATOR_TCC__
-#define __ZECALE_CIRCUITS_AGGREGATOR_TCC__
+#ifndef __ZECALE_AGGREGATOR_CIRCUIT_TCC__
+#define __ZECALE_AGGREGATOR_CIRCUIT_TCC__
 
 // Contains the circuits for the notes
 #include <libzeth/circuits/notes/note.hpp>
@@ -143,7 +143,6 @@ public:
         const std::string &annotation_prefix = "aggregator_gadget")
         : libsnark::gadget<ScalarFieldAggregatorT>(pb, annotation_prefix)
     {
-        std::cout << "[aggregator_gadget -- aggregator_gadget()] DEBUG-1" << std::endl;
         // Block dedicated to generate the verifier inputs
         // The verifier inputs, are values asociated to wires in the arithmetic circuit
         // and thus are all elements of the scalar field `ScalarFieldAggregatorT`
@@ -155,7 +154,6 @@ public:
         // As such, we can use the packed primary inputs associated with the Zeth proofs
         // directly as elements of `ScalarFieldAggregatorT`
         {
-            std::cout << "[aggregator_gadget -- aggregator_gadget()] DEBUG-2" << std::endl;
             // == The # of primary inputs for Zeth proofs is 9 ==
             // since the primary inputs are:
             // [Root, NullifierS (2), CommitmentS (2), h_sig, h_iS (2), Residual Field Element]
@@ -175,7 +173,6 @@ public:
                 );
             }
             
-            std::cout << "[aggregator_gadget -- aggregator_gadget()] DEBUG-3" << std::endl;
             // The primary inputs are:
             // - The Zeth PrimaryInputs associated to the Zeth proofs in the auxiliary inputs
             // - Each verification result corresponding to each Zeth proofs and the associated primary inputs
@@ -205,7 +202,6 @@ public:
             // - The VK to use to verify the Zeth proofs - Note, to avoid proofs generated with malicious keypair (one for which the trapdoor is known)
             // we will need to add the "hash to the vk" as part of the primary inputs
             // - The Zeth proofs
-            std::cout << "[aggregator_gadget -- aggregator_gadget()] DEBUG-4" << std::endl;
             ZERO_ScalarFieldAggregator.allocate(pb, FMT(this->annotation_prefix, " ZERO_ScalarFieldAggregator"));
             // == The nested vk ==
             // Bit size of the nested VK
@@ -213,13 +209,9 @@ public:
             // We pass `nb_zeth_inputs` to the function below as it corresponds to the # of primary inputs
             // of the zeth circuit, which is used to determine the size of the zeth VK
             // which is the one we manipulate below.
-            std::cout << "[aggregator_gadget -- aggregator_gadget()] DEBUG-5" << std::endl;
             const size_t vk_size_in_bits = libsnark::r1cs_ppzksnark_verification_key_variable<AggregateProofCurve>::size_in_bits(nb_zeth_inputs);
-            std::cout << "[aggregator_gadget -- aggregator_gadget()] DEBUG-5-1" << std::endl;
             libsnark::pb_variable_array<ScalarFieldAggregatorT> nested_vk_bits;
-            std::cout << "[aggregator_gadget -- aggregator_gadget()] DEBUG-5-2" << std::endl;
             nested_vk_bits.allocate(pb, vk_size_in_bits, FMT(this->annotation_prefix, " vk_size_in_bits"));
-            std::cout << "[aggregator_gadget -- aggregator_gadget()] DEBUG-5-3" << std::endl;
             nested_vk.reset(new libsnark::r1cs_ppzksnark_verification_key_variable<AggregateProofCurve>(
                 pb,
                 nested_vk_bits,
@@ -227,7 +219,6 @@ public:
                 FMT(this->annotation_prefix, " nested_vk")
             ));
 
-            std::cout << "[aggregator_gadget -- aggregator_gadget()] DEBUG-6" << std::endl;
             // Initialize the proof variable gadgets. The protoboard allocation
             // is done in the constructor `r1cs_ppzksnark_proof_variable()`
             for (size_t i = 0; i < NumProofs; i++) {
@@ -241,17 +232,6 @@ public:
         }
 
         // Initialize the verifier gadgets
-        //
-        /*
-            r1cs_ppzksnark_verifier_gadget(protoboard<FieldT> &pb,
-                                   const r1cs_ppzksnark_verification_key_variable<ppT> &vk,
-                                   const pb_variable_array<FieldT> &input,
-                                   const size_t elt_size,
-                                   const r1cs_ppzksnark_proof_variable<ppT> &proof,
-                                   const pb_variable<FieldT> &result,
-                                   const std::string &annotation_prefix);
-        */
-       std::cout << "[aggregator_gadget -- aggregator_gadget()] DEBUG-7" << std::endl;
         for (size_t i = 0; i < NumProofs; i++) {
             verifiers[i].reset(
                 new libsnark::r1cs_ppzksnark_verifier_gadget<AggregateProofCurve>(
@@ -274,7 +254,6 @@ public:
     // - Generate the constraints for the verifiers
     void generate_r1cs_constraints()
     {
-        std::cout << "[aggregator.tcc -- generate_r1cs_constraints] DEBUG1" << std::endl;
         // Constrain `ZERO_ScalarFieldAggregator`
         // Make sure that the ZERO_ScalarFieldAggregator variable is the zero of the field
         libsnark::generate_r1cs_equals_const_constraint<ScalarFieldAggregatorT>(
@@ -283,23 +262,17 @@ public:
             ScalarFieldAggregatorT::zero(),
             FMT(this->annotation_prefix, " ZERO_ScalarFieldAggregator"));
 
-        std::cout << "[aggregator.tcc -- generate_r1cs_constraints] DEBUG2" << std::endl;
         // Generate constraints for the verification key
         nested_vk->generate_r1cs_constraints(true); // ensure bitness
 
-        std::cout << "[aggregator.tcc -- generate_r1cs_constraints] DEBUG3" << std::endl;
         // Generate constraints...
         for (size_t i = 0; i < NumProofs; i++) {
-            std::cout << "[aggregator.tcc -- generate_r1cs_constraints] DEBUG3.1.i" << std::endl;
             // ... For the nested_proofs
             nested_proofs[i]->generate_r1cs_constraints();
 
-            std::cout << "[aggregator.tcc -- generate_r1cs_constraints] DEBUG3.2.i" << std::endl;
             // ... For the verifiers
             verifiers[i]->generate_r1cs_constraints();
-            std::cout << "[aggregator.tcc -- generate_r1cs_constraints] DEBUG3.3.i" << std::endl;
         }
-        std::cout << "[aggregator.tcc -- generate_r1cs_constraints] DEBUG4" << std::endl;
     }
 
     // In the witness we manipulate elements defined over the "other curve"
@@ -342,4 +315,4 @@ public:
 
 } // namespace libzecale
 
-#endif // __ZECALE_CIRCUITS_AGGREGATOR_TCC__
+#endif // __ZECALE_AGGREGATOR_CIRCUIT_TCC__

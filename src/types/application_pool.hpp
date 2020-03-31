@@ -27,14 +27,7 @@ class application_pool
 private:
     // Name/Identifier of the application (E.g. "zeth")
     std::string _name;
-
     std::shared_ptr<libsnark::r1cs_ppzksnark_verification_key<ppT>> _verification_key;
-    // For now we just use a basic FIFO structure to consume the proofs
-    // However, we can be more sophisticated and define an ordering policy
-    // to order the proofs received and consume them.
-    //
-    // TODO: Switch to a pool with an "order_by" policy
-    // something like std::priority_queue for eg.
     std::priority_queue<transaction_to_aggregate<ppT>, std::vector<transaction_to_aggregate<ppT>>> _tx_pool;
 
 public:

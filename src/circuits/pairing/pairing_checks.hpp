@@ -1,5 +1,9 @@
-#ifndef __ZECALE_PAIRING_CHECKS_HPP__
-#define __ZECALE_PAIRING_CHECKS_HPP__
+// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
+#ifndef __ZECALE_PAIRING_CHECKS_CIRCUIT_HPP__
+#define __ZECALE_PAIRING_CHECKS_CIRCUIT_HPP__
 
 #include <memory>
 
@@ -12,9 +16,9 @@
 
 namespace libzecale {
 
-// This gadget is necessary to implement the Groth16 verifier
-// as per the [BGM17] paper, where we need to do:
-// e(\pi.A, \pi.B) = e([\alpha]_1, [\beta]_2) * e(acc, g2) * e(\pi.C, [\delta]_2)
+/// This gadget is necessary to implement the Groth16 verifier
+/// as per the [BGM17] paper, where we need to do:
+/// e(\pi.A, \pi.B) = e([\alpha]_1, [\beta]_2) * e(acc, g2) * e(\pi.C, [\delta]_2)
 template<typename ppT>
 class check_e_equals_eee_gadget : public gadget<libff::Fr<ppT> > {
 public:
@@ -36,7 +40,7 @@ public:
 
     libsnark::pb_variable<FieldT> result;
 
-    check_e_equals_eee_gadget(protoboard<FieldT> &pb,
+    check_e_equals_eee_gadget(libsnark::protoboard<FieldT> &pb,
                             const libsnark::G1_precomputation<ppT> &lhs_G1,
                             const libsnark::G2_precomputation<ppT> &lhs_G2,
                             const libsnark::G1_precomputation<ppT> &rhs1_G1,
@@ -49,7 +53,6 @@ public:
                             const std::string &annotation_prefix);
 
     void generate_r1cs_constraints();
-
     void generate_r1cs_witness();
 };
 
@@ -57,4 +60,4 @@ public:
 
 #include "pairing_checks.tcc"
 
-#endif // __ZECALE_PAIRING_CHECKS_HPP__
+#endif // __ZECALE_PAIRING_CHECKS_CIRCUIT_HPP__

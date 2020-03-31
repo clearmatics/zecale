@@ -4,10 +4,6 @@
 #include <libzeth/snarks_alias.hpp>
 #include <libzeth/zeth.h>
 
-// Not stricly required since the .tcc is already included
-// in the .hpp, but this additional include fixes IDE complaints
-//#include "aggregator_circuit_wrapper.hpp"
-
 using namespace libzeth;
 
 namespace libzecale
