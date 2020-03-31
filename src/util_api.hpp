@@ -7,14 +7,14 @@
 
 #include "api/aggregator.pb.h"
 #include "api/util.pb.h"
-
 #include "types/transaction_to_aggregate.hpp"
 
 namespace libzecale
 {
 
 template<typename ppT>
-transaction_to_aggregate<ppT> parse_transaction_to_aggregate(const aggregator_proto::TransactionToAggregate &transaction);
+transaction_to_aggregate<ppT> parse_transaction_to_aggregate(
+    const aggregator_proto::TransactionToAggregate &transaction);
 
 template<typename ppT>
 aggregator_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(

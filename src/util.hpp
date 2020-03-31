@@ -5,11 +5,10 @@
 #ifndef __ZECALE_UTIL_HPP__
 #define __ZECALE_UTIL_HPP__
 
-#include <string>
-#include <string.h>
-
 #include <cstring>
 #include <libff/algebra/curves/public_params.hpp>
+#include <string.h>
+#include <string>
 
 namespace libzecale
 {

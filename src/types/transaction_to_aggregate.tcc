@@ -15,13 +15,16 @@ template<typename ppT>
 transaction_to_aggregate<ppT>::transaction_to_aggregate(
     std::string application_name,
     const libzeth::extended_proof<ppT> &extended_proof,
-    uint32_t fee_wei) : _application_name(application_name), _fee_wei(fee_wei)
+    uint32_t fee_wei)
+    : _application_name(application_name), _fee_wei(fee_wei)
 {
-    this->_extended_proof = std::make_shared<libzeth::extended_proof<ppT>>(extended_proof);
+    this->_extended_proof =
+        std::make_shared<libzeth::extended_proof<ppT>>(extended_proof);
 }
 
 template<typename ppT>
-std::ostream& operator<<(std::ostream& os, const transaction_to_aggregate<ppT>& tx)
+std::ostream &operator<<(
+    std::ostream &os, const transaction_to_aggregate<ppT> &tx)
 {
     os << "app-name:" << tx.application_name() << ", fee-wei" << tx.fee_wei();
     return os;
