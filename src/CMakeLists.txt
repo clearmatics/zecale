@@ -62,6 +62,7 @@ file(
   ZECALE_SOURCE
   circuits/**.?pp circuits/**.tcc
   aggregator_circuit_wrapper.???
+  util.?pp util.tcc
   zecale.h
 )
 add_library(zecale ${ZECALE_SOURCE} ${PROTO_SRCS})
@@ -69,7 +70,6 @@ target_include_directories(
   zecale
 
   PUBLIC
-  .
   ${DEPENDS_DIR}/zeth
   ${DEPENDS_DIR}/zeth/depends/libsnark
   ${DEPENDS_DIR}/zeth/depends/libsnark/depends/libff
@@ -120,8 +120,21 @@ function(zecale_test TEST_NAME)
   endif()
 endfunction(zecale_test)
 
-zecale_test(test_aggregator SOURCE test/aggregator_test.cpp FAST)
+zecale_test(util_test SOURCE test/util_test.cpp FAST)
+zecale_test(application_pool_test SOURCE test/application_pool_test.cpp FAST)
 
+zecale_test(util_api_test SOURCE test/util_api_test.cpp FAST)
+target_link_libraries(
+  util_api_test
+
+  zecale
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
+  gRPC::grpc++_reflection
+  protobuf::libprotobuf
+)
+
+zecale_test(test_aggregator SOURCE test/aggregator_test.cpp FAST)
 # aggregator test has extra dependencies
 target_link_libraries(
   test_aggregator

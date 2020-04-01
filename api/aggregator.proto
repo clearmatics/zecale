@@ -4,9 +4,6 @@ package aggregator_proto;
 
 import "google/protobuf/empty.proto";
 
-// Useful to have the formats for the verification keys
-//  - It will be necessary to deposit the nested VK to the aggregator for the proof of verification
-//  - It will be necessary to fetch the VK of the aggregator to be able to verify the proof on-chain
 import "api/groth16_messages.proto";
 import "api/pghr13_messages.proto";
 import "api/util.proto";
@@ -14,36 +11,33 @@ import "api/util.proto";
 service Aggregator {
     // Fetch the verification key from the aggregator service to be able to verify the proofs
     // on-chain (instantiate the verifier contract)
+    //
+    // This verification key corresponds to the aggregator statement (this statement
+    // is basically multiple calls to the SNARK verification routine)
     rpc GetVerificationKey(google.protobuf.Empty) returns (VerificationKey) {}
 
     // Set nested verification key
     // Returns "true" if the key is succesfully set
     // Returns "false" if the key is not succesfully set
+    //
+    // Depositing a new verification key can be assimilated to supporting a new
+    // application on the aggregation service
+    //
+    // Not sure we want to have an endpoint for this, so it's commented for now
+    //
     //rpc SetNestedVerificationKey(VerificationKey) returns (bool) {}
 
-    // Request a proof to verify a batch of zeth proofs
-    // Doesn't take any argument since the proofs are already in the Zeth tx pool
-    // of the aggregator, so they don't need to be passed as arguments here
+    // Request a proof that verifies a batch of zeth proofs
+    // Doesn't take any argument since the proofs to batch are already in the aggregator tx pool,
+    // so they don't need to be passed as arguments here.
     // The function returns the proof of CI for the validity of the batch of proofs
+    //
+    // This endpoint won't necessarily be useful in practice, but this is useful
+    // for some manual triggering for now.
     rpc GenerateAggregateProof(google.protobuf.Empty) returns (ExtendedProof) {}
 
-    // Function to submit the Zeth transaction to be batched verify later on
-    //rpc SubmitZethTx(ExtendedProof) returns (bool) {}
-}
-
-// Inputs of the Prove function of the Prover service
-message ProofInputs {
-    string mk_root = 1;
-    // List of inputs to the Joinsplit
-    repeated JoinsplitInput js_inputs = 2;
-    // List of output to the Joinsplit
-    repeated ZethNote js_outputs = 3;
-    // Hexadecimal string representing a uint64 value
-    string pub_in_value = 4;
-    // Hexadecimal string representing a uint64 value
-    string pub_out_value = 5;
-    string h_sig = 6;
-    string phi = 7;
+    // Function to submit a transaction to aggregate
+    rpc SubmitTransaction(TransactionToAggregate) returns (google.protobuf.Empty) {}
 }
 
 message VerificationKey {
@@ -58,4 +52,15 @@ message ExtendedProof {
         ExtendedProofPGHR13 pghr13_extended_proof = 1;
         ExtendedProofGROTH16 groth16_extended_proof = 2;
     }
+}
+
+// A Zeth transaction is a "TransactionToAggregate"
+// where `application_name` is set to "zeth" (the application name/ID of zeth)
+message TransactionToAggregate {
+    // Using the application name avoids to pass the verification key.
+    // This is more bandwidth efficient.
+    string application_name = 1;
+    ExtendedProof extended_proof = 2;
+    // Only if an incentive structure is in place and fees are supported
+    int32 fee_in_wei = 3;
 }
