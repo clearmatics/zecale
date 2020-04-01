@@ -1,12 +1,12 @@
+// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
+
 #ifndef __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
 #define __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
 
 #include <libzeth/snarks_alias.hpp>
 #include <libzeth/zeth.h>
-
-// Not stricly required since the .tcc is already included
-// in the .hpp, but this additional include fixes IDE complaints
-//#include "aggregator_circuit_wrapper.hpp"
 
 using namespace libzeth;
 
@@ -14,36 +14,49 @@ namespace libzecale
 {
 
 template<
-    typename ZethProofCurve, // Curve over which we "prove" Zeth state transitions => E/Fq
-    typename AggregateProofCurve, // Curve over which we "prove" succesfull verication of the nested proofs batch => E/Fr
+    typename ZethProofCurve,      // Curve over which we "prove" Zeth state
+                                  // transitions => E/Fq
+    typename AggregateProofCurve, // Curve over which we "prove" succesfull
+                                  // verication of the nested proofs batch =>
+                                  // E/Fr
     size_t NumProofs>
 keyPairT<AggregateProofCurve> aggregator_circuit_wrapper<
     ZethProofCurve,
     AggregateProofCurve,
     NumProofs>::generate_trusted_setup() const
 {
-    std::cout << "[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG1" << std::endl;
+    std::cout << "[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG1"
+              << std::endl;
     libsnark::protoboard<ScalarFieldAggregatorT> pb;
 
-    std::cout << "[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG2" << std::endl;
+    std::cout << "[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG2"
+              << std::endl;
     aggregator_gadget<ZethProofCurve, AggregateProofCurve, NumProofs> g(pb);
-    std::cout << "[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG2.1" << std::endl;
+    std::cout
+        << "[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG2.1"
+        << std::endl;
     g.generate_r1cs_constraints();
 
     // Generate a verification and proving key (trusted setup)
     // and write them in a file
-    std::cout << "[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG3" << std::endl;
-    keyPairT<AggregateProofCurve> keypair = gen_trusted_setup<AggregateProofCurve>(pb);
-    // TODO: the function below only works with `libff::alt_bn128_G1` so it is commented out to make the build pass wiht the MNT curves
-    //write_setup<AggregateProofCurve>(keypair, this->setup_path);
+    std::cout << "[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG3"
+              << std::endl;
+    keyPairT<AggregateProofCurve> keypair =
+        gen_trusted_setup<AggregateProofCurve>(pb);
+    // TODO: the function below only works with `libff::alt_bn128_G1` so it is
+    // commented out to make the build pass wiht the MNT curves
+    // write_setup<AggregateProofCurve>(keypair, this->setup_path);
 
     return keypair;
 }
 
 #ifdef DEBUG
 template<
-    typename ZethProofCurve, // Curve over which we "prove" Zeth state transitions => E/Fq
-    typename AggregateProofCurve, // Curve over which we "prove" succesfull verication of the nested proofs batch => E/Fr
+    typename ZethProofCurve,      // Curve over which we "prove" Zeth state
+                                  // transitions => E/Fq
+    typename AggregateProofCurve, // Curve over which we "prove" succesfull
+                                  // verication of the nested proofs batch =>
+                                  // E/Fr
     size_t NumProofs>
 void aggregator_circuit_wrapper<
     ZethProofCurve,
@@ -60,8 +73,11 @@ void aggregator_circuit_wrapper<
 #endif
 
 template<
-    typename ZethProofCurve, // Curve over which we "prove" Zeth state transitions => E/Fq
-    typename AggregateProofCurve, // Curve over which we "prove" succesfull verication of the nested proofs batch => E/Fr
+    typename ZethProofCurve,      // Curve over which we "prove" Zeth state
+                                  // transitions => E/Fq
+    typename AggregateProofCurve, // Curve over which we "prove" succesfull
+                                  // verication of the nested proofs batch =>
+                                  // E/Fr
     size_t NumProofs>
 extended_proof<AggregateProofCurve> aggregator_circuit_wrapper<
     ZethProofCurve,
@@ -69,7 +85,8 @@ extended_proof<AggregateProofCurve> aggregator_circuit_wrapper<
     NumProofs>::
     prove(
         libsnark::r1cs_ppzksnark_verification_key<ZethProofCurve> nested_vk,
-        std::array<libzeth::extended_proof<ZethProofCurve>, NumProofs> extended_proofs,
+        std::array<libzeth::extended_proof<ZethProofCurve>, NumProofs>
+            extended_proofs,
         const provingKeyT<AggregateProofCurve> &aggregator_proving_key) const
 {
     libsnark::protoboard<ScalarFieldAggregatorT> pb;
@@ -86,17 +103,21 @@ extended_proof<AggregateProofCurve> aggregator_circuit_wrapper<
     std::cout << "******* [DEBUG] Satisfiability result: " << is_valid_witness
               << " *******" << std::endl;
 
-    proofT<AggregateProofCurve> proof = libzeth::gen_proof<AggregateProofCurve>(pb, aggregator_proving_key);
-    libsnark::r1cs_primary_input<libff::Fr<AggregateProofCurve>> primary_input = pb.primary_input();
+    proofT<AggregateProofCurve> proof =
+        libzeth::gen_proof<AggregateProofCurve>(pb, aggregator_proving_key);
+    libsnark::r1cs_primary_input<libff::Fr<AggregateProofCurve>> primary_input =
+        pb.primary_input();
 
     // Instantiate an extended_proof from the proof we generated and the given
     // primary_input
-    extended_proof<AggregateProofCurve> ext_proof = extended_proof<AggregateProofCurve>(proof, primary_input);
+    extended_proof<AggregateProofCurve> ext_proof =
+        extended_proof<AggregateProofCurve>(proof, primary_input);
 
     // Write the extended proof in a file (Default path is taken if not
     // specified)
-    // TODO: the function below only works for `libff::alt_bn128_G1` so it is commented out to make the build pass with the mnt curves
-    //ext_proof.write_extended_proof();
+    // TODO: the function below only works for `libff::alt_bn128_G1` so it is
+    // commented out to make the build pass with the mnt curves
+    // ext_proof.write_extended_proof();
 
     return ext_proof;
 }

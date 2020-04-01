@@ -2,13 +2,6 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include <libzeth/circuit_types.hpp>
-#include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
-#include <libzeth/snarks_alias.hpp>
-#include <libzeth/util.hpp>
-#include <libzeth/util_api.hpp>
-#include <libzeth/zeth.h>
-
 #include <boost/program_options.hpp>
 #include <fstream>
 #include <grpc/grpc.h>
@@ -17,6 +10,12 @@
 #include <grpcpp/server_builder.h>
 #include <grpcpp/server_context.h>
 #include <iostream>
+#include <libzeth/circuit_types.hpp>
+#include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
+#include <libzeth/snarks_alias.hpp>
+#include <libzeth/util.hpp>
+#include <libzeth/util_api.hpp>
+#include <libzeth/zeth.h>
 #include <memory>
 #include <stdio.h>
 #include <string>
@@ -31,9 +30,9 @@
 #pragma GCC diagnostic pop
 
 // Include the API for the given SNARK
-#include <libzeth/snarks_api_imports.hpp>
-
 #include "zecaleConfig.h"
+
+#include <libzeth/snarks_api_imports.hpp>
 
 namespace proto = google::protobuf;
 namespace po = boost::program_options;
@@ -44,18 +43,7 @@ namespace po = boost::program_options;
 class aggregator_server final : public aggregator_proto::Aggregator::Service
 {
 private:
-    // TODO:
-    // Modify the line below to create an aggregator
-    //
-    // libzeth::circuit_wrapper<
-    //    FieldT,
-    //    HashT,
-    //    HashTreeT,
-    //    ppT,
-    //    ZETH_NUM_JS_INPUTS,
-    //    ZETH_NUM_JS_OUTPUTS,
-    //    ZETH_MERKLE_TREE_DEPTH>
-    //    prover;
+    libzecale::aggregator_wrapper<CurveA, CurveB, ZETH_NUM_PROOFS> aggregator;
 
     // The keypair is the result of the setup for the aggregation circuit
     keyPairT<ppT> keypair;
@@ -64,11 +52,9 @@ private:
     verificationKeyT<ppT> nested_vk;
 
 public:
-    explicit prover_server(
-        libzeth::aggregate_circuit_wrapper<
-            FieldT,
-            ppT,
-            ZETH_NUM_PROOFS> &aggregator,
+    explicit aggregator_server(
+        libzecale::aggregate_circuit_wrapper<CurveA, CurveB, ZETH_NUM_PROOFS>
+            &aggregator,
         keyPairT<ppT> &keypair,
         verificationKeyT<ppT> nested_vk)
         : aggregator(aggregator), keypair(keypair), nested_vk(nested_vk)
@@ -78,7 +64,7 @@ public:
     grpc::Status GetVerificationKey(
         grpc::ServerContext *,
         const proto::Empty *,
-        prover_proto::VerificationKey *response) override
+        aggregator_proto::VerificationKey *response) override
     {
         std::cout << "[ACK] Received the request to get the verification key"
                   << std::endl;
@@ -98,97 +84,49 @@ public:
         return grpc::Status::OK;
     }
 
-    grpc::Status Prove(
+    grpc::Status GenerateAggregateProof(
         grpc::ServerContext *,
-        const prover_proto::ProofInputs *proof_inputs,
-        prover_proto::ExtendedProof *proof) override
+        const proto::Empty *,
+        aggregator_proto::ExtendedProof *proof) override
     {
-        std::cout << "[ACK] Received the request to generate a proof"
-                  << std::endl;
-        std::cout << "[DEBUG] Parse received message to compute proof..."
-                  << std::endl;
+        std::cout
+            << "[ACK] Received the request to generate an aggregation proof"
+            << std::endl;
 
-        // Parse received message to feed to the prover
-        try {
-            FieldT root =
-                libzeth::string_to_field<FieldT>(proof_inputs->mk_root());
-            libzeth::bits64 vpub_in =
-                libzeth::hex_value_to_bits64(proof_inputs->pub_in_value());
-            libzeth::bits64 vpub_out =
-                libzeth::hex_value_to_bits64(proof_inputs->pub_out_value());
-            libzeth::bits256 h_sig_in =
-                libzeth::hex_digest_to_bits256(proof_inputs->h_sig());
-            libzeth::bits256 phi_in =
-                libzeth::hex_digest_to_bits256(proof_inputs->phi());
+        std::cout << "[DEBUG] Pop batch from the pool..." << std::endl;
+        // TODO
 
-            if (ZETH_NUM_JS_INPUTS != proof_inputs->js_inputs_size()) {
-                throw std::invalid_argument("Invalid number of JS inputs");
-            }
-            if (ZETH_NUM_JS_OUTPUTS != proof_inputs->js_outputs_size()) {
-                throw std::invalid_argument("Invalid number of JS outputs");
-            }
+        std::cout << "[DEBUG] Parse batch and generate inputs..." << std::endl;
+        // TODO
 
-            std::cout << "[DEBUG] Process all inputs of the JoinSplit"
-                      << std::endl;
-            std::array<
-                libzeth::joinsplit_input<FieldT, ZETH_MERKLE_TREE_DEPTH>,
-                ZETH_NUM_JS_INPUTS>
-                joinsplit_inputs;
-            for (size_t i = 0; i < ZETH_NUM_JS_INPUTS; i++) {
-                printf("\r  input (%zu / %zu)\n", i, ZETH_NUM_JS_INPUTS);
-                prover_proto::JoinsplitInput received_input =
-                    proof_inputs->js_inputs(i);
-                libzeth::joinsplit_input<FieldT, ZETH_MERKLE_TREE_DEPTH>
-                    parsed_input =
-                        parse_joinsplit_input<FieldT, ZETH_MERKLE_TREE_DEPTH>(
-                            received_input);
-                joinsplit_inputs[i] = parsed_input;
-            }
+        std::cout << "[DEBUG] Generating the proof..." << std::endl;
+        extended_proof<ppT> ext_proof = this->aggregator.prove(
+            // TODO
+        );
 
-            std::cout << "[DEBUG] Process all outputs of the JoinSplit"
-                      << std::endl;
-            std::array<libzeth::zeth_note, ZETH_NUM_JS_OUTPUTS>
-                joinsplit_outputs;
-            for (size_t i = 0; i < ZETH_NUM_JS_OUTPUTS; i++) {
-                printf("\r  output (%zu / %zu)\n", i, ZETH_NUM_JS_OUTPUTS);
-                prover_proto::ZethNote received_output =
-                    proof_inputs->js_outputs(i);
-                libzeth::zeth_note parsed_output =
-                    parse_zeth_note(received_output);
-                joinsplit_outputs[i] = parsed_output;
-            }
+        std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
+        ext_proof.dump_proof();
+        ext_proof.dump_primary_inputs();
 
-            std::cout << "[DEBUG] Data parsed successfully" << std::endl;
-            std::cout << "[DEBUG] Generating the proof..." << std::endl;
-            extended_proof<ppT> ext_proof = this->prover.prove(
-                root,
-                joinsplit_inputs,
-                joinsplit_outputs,
-                vpub_in,
-                vpub_out,
-                h_sig_in,
-                phi_in,
-                this->keypair.pk);
-
-            std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
-            ext_proof.dump_proof();
-            ext_proof.dump_primary_inputs();
-
-            std::cout << "[DEBUG] Preparing response..." << std::endl;
-            prepare_proof_response<ppT>(ext_proof, proof);
-
-        } catch (const std::exception &e) {
-            std::cout << "[ERROR] " << e.what() << std::endl;
-            return grpc::Status(
-                grpc::StatusCode::INVALID_ARGUMENT, grpc::string(e.what()));
-        } catch (...) {
-            std::cout << "[ERROR] In catch all" << std::endl;
-            return grpc::Status(grpc::StatusCode::UNKNOWN, "");
-        }
-
-        return grpc::Status::OK;
+        std::cout << "[DEBUG] Preparing response..." << std::endl;
+        prepare_proof_response<ppT>(ext_proof, proof);
     }
-};
+    catch (const std::exception &e)
+    {
+        std::cout << "[ERROR] " << e.what() << std::endl;
+        return grpc::Status(
+            grpc::StatusCode::INVALID_ARGUMENT, grpc::string(e.what()));
+    }
+    catch (...)
+    {
+        std::cout << "[ERROR] In catch all" << std::endl;
+        return grpc::Status(grpc::StatusCode::UNKNOWN, "");
+    }
+
+    return grpc::Status::OK;
+}
+}
+;
 
 std::string get_server_version()
 {
@@ -196,7 +134,11 @@ std::string get_server_version()
     int n;
     // Defined in the zethConfig file
     n = snprintf(
-        buffer, 100, "Version %d.%d", ZECALE_VERSION_MAJOR, ZECALE_VERSION_MINOR);
+        buffer,
+        100,
+        "Version %d.%d",
+        ZECALE_VERSION_MAJOR,
+        ZECALE_VERSION_MINOR);
     if (n < 0) {
         return "Version <Not specified>";
     }
@@ -209,8 +151,8 @@ void display_server_start_message()
     std::string copyright =
         "Copyright (c) 2015-2020 Clearmatics Technologies Ltd";
     std::string license = "SPDX-License-Identifier: LGPL-3.0+";
-    std::string project =
-        "R&D Department: PoC for Zerocash on Ethereum/Autonity";
+    std::string project = "R&D Department: PoC for a privacy preserving "
+                          "scalability solution on Ethereum";
     std::string version = get_server_version();
     std::string warning = "**WARNING:** This code is a research-quality proof "
                           "of concept, DO NOT use in production!";
@@ -226,20 +168,13 @@ void display_server_start_message()
 }
 
 static void RunServer(
-    libzeth::circuit_wrapper<
-        FieldT,
-        HashT,
-        HashTreeT,
-        ppT,
-        ZETH_NUM_JS_INPUTS,
-        ZETH_NUM_JS_OUTPUTS,
-        ZETH_MERKLE_TREE_DEPTH> &prover,
+    libzecale::aggregator_wrapper<CurveA, CurveB, ZETH_NUM_PROOFS> &aggregator,
     keyPairT<ppT> &keypair)
 {
-    // Listen for incoming connections on 0.0.0.0:50051
-    std::string server_address("0.0.0.0:50051");
+    // Listen for incoming connections on 0.0.0.0:50052
+    std::string server_address("0.0.0.0:50052");
 
-    prover_server service(prover, keypair);
+    aggregator_server service(aggregator, keypair);
 
     grpc::ServerBuilder builder;
 
@@ -319,19 +254,12 @@ int main(int argc, char **argv)
     }
 
     // We inititalize the curve parameters here
-    std::cout << "[INFO] Init params" << std::endl;
-    ppT::init_public_params();
+    std::cout << "[INFO] Init params of both curves" << std::endl;
+    CurveA::init_public_params();
+    CurveB::init_public_params();
 
-    libzeth::circuit_wrapper<
-        FieldT,
-        HashT,
-        HashTreeT,
-        ppT,
-        ZETH_NUM_JS_INPUTS,
-        ZETH_NUM_JS_OUTPUTS,
-        ZETH_MERKLE_TREE_DEPTH>
-        prover;
-    keyPairT<ppT> keypair = [&keypair_file, &prover]() {
+    libzecale::aggregator_wrapper<CurveA, CurveB, ZETH_NUM_PROOFS> aggregator;
+    keyPairT<ppT> keypair = [&keypair_file, &aggregator]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16
             std::cout << "[INFO] Loading keypair: " << keypair_file
@@ -345,18 +273,18 @@ int main(int argc, char **argv)
         }
 
         std::cout << "[INFO] Generate new keypair" << std::endl;
-        return prover.generate_trusted_setup();
+        return aggregator.generate_trusted_setup();
     }();
 
 #ifdef DEBUG
     // Run only if the flag is set
     if (jr1cs_file != "") {
         std::cout << "[DEBUG] Dump R1CS to json file" << std::endl;
-        prover.dump_constraint_system(jr1cs_file);
+        aggregator.dump_constraint_system(jr1cs_file);
     }
 #endif
 
     std::cout << "[INFO] Setup successful, starting the server..." << std::endl;
-    RunServer(prover, keypair);
+    RunServer(aggregator, keypair);
     return 0;
 }
