@@ -11,19 +11,19 @@
 #ifndef __ZECALE_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_HPP__
 #define __ZECALE_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_HPP__
 
-#include "pairing_checks.hpp"
+#include "src/circuits/pairing/pairing_checks.hpp"
+#include "src/circuits/pairing/pairing_params.hpp"
 
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/curves/weierstrass_g1_gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/curves/weierstrass_g2_gadget.hpp>
-#include <libsnark/gadgetlib1/gadgets/pairing/pairing_params.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 
 namespace libzecale
 {
 
 template<typename ppT>
-class r1cs_gg_ppzksnark_proof_variable : public gadget<libff::Fr<ppT>>
+class r1cs_gg_ppzksnark_proof_variable : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     typedef libff::Fr<ppT> FieldT;
@@ -51,7 +51,7 @@ public:
 
 template<typename ppT>
 class r1cs_gg_ppzksnark_verification_key_variable
-    : public gadget<libff::Fr<ppT>>
+    : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     typedef libff::Fr<ppT> FieldT;
@@ -122,7 +122,7 @@ public:
 
 template<typename ppT>
 class r1cs_gg_ppzksnark_verifier_process_vk_gadget
-    : public gadget<libff::Fr<ppT>>
+    : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     typedef libff::Fr<ppT> FieldT;
@@ -152,7 +152,7 @@ public:
 };
 
 template<typename ppT>
-class r1cs_gg_ppzksnark_online_verifier_gadget : public gadget<libff::Fr<ppT>>
+class r1cs_gg_ppzksnark_online_verifier_gadget : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     typedef libff::Fr<ppT> FieldT;
@@ -201,7 +201,7 @@ public:
 };
 
 template<typename ppT>
-class r1cs_gg_ppzksnark_verifier_gadget : public gadget<libff::Fr<ppT>>
+class r1cs_gg_ppzksnark_verifier_gadget : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     typedef libff::Fr<ppT> FieldT;

@@ -13,7 +13,7 @@ namespace libzecale
 template<typename ppT>
 r1cs_gg_ppzksnark_proof_variable<ppT>::r1cs_gg_ppzksnark_proof_variable(
     libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix)
-    : gadget<FieldT>(pb, annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
     const size_t num_G1 = 2; // g_A, g_C
     const size_t num_G2 = 1; // g_B
