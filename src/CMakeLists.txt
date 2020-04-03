@@ -135,10 +135,10 @@ target_link_libraries(
   protobuf::libprotobuf
 )
 
-zecale_test(test_aggregator SOURCE test/aggregator_test.cpp FAST)
+zecale_test(aggregator_test SOURCE test/aggregator_test.cpp FAST)
 # aggregator test has extra dependencies
 target_link_libraries(
-  test_aggregator
+  aggregator_test
 
   zecale
   ${Boost_SYSTEM_LIBRARY}
