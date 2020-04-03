@@ -5,10 +5,10 @@
 #ifndef __ZECALE_PAIRING_CHECKS_CIRCUIT_HPP__
 #define __ZECALE_PAIRING_CHECKS_CIRCUIT_HPP__
 
-#include "weierstrass_miller_loop.hpp"
+#include "src/circuits/pairing/pairing_params.hpp"
+#include "src/circuits/pairing/weierstrass_miller_loop.hpp"
 
 #include <libsnark/gadgetlib1/gadgets/pairing/pairing_checks.hpp>
-#include <libsnark/gadgetlib1/gadgets/pairing/pairing_params.hpp>
 #include <libsnark/gadgetlib1/gadgets/pairing/weierstrass_final_exponentiation.hpp>
 #include <libsnark/gadgetlib1/gadgets/pairing/weierstrass_miller_loop.hpp>
 #include <memory>
@@ -21,7 +21,7 @@ namespace libzecale
 /// e(\pi.A, \pi.B) = e([\alpha]_1, [\beta]_2) * e(acc, g2) * e(\pi.C,
 /// [\delta]_2)
 template<typename ppT>
-class check_e_equals_eee_gadget : public gadget<libff::Fr<ppT>>
+class check_e_equals_eee_gadget : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     typedef libff::Fr<ppT> FieldT;
@@ -59,8 +59,21 @@ public:
     void generate_r1cs_witness();
 };
 
+template<typename ppT>
+bool test_check_e_equals_eee_gadget(
+    libff::G1<other_curve<ppT>> scalar1,
+    libff::G2<other_curve<ppT>> scalar2,
+    libff::G1<other_curve<ppT>> scalar3,
+    libff::G2<other_curve<ppT>> scalar4,
+    libff::G1<other_curve<ppT>> scalar5,
+    libff::G2<other_curve<ppT>> scalar6,
+    libff::G1<other_curve<ppT>> scalar7,
+    libff::G2<other_curve<ppT>> scalar8,
+    libff::Fr<ppT> expected_result,
+    const std::string &annotation_prefix);
+
 } // namespace libzecale
 
-#include "pairing_checks.tcc"
+#include "src/circuits/pairing/pairing_checks.tcc"
 
 #endif // __ZECALE_PAIRING_CHECKS_CIRCUIT_HPP__
