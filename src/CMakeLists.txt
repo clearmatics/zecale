@@ -122,6 +122,7 @@ endfunction(zecale_test)
 
 zecale_test(util_test SOURCE test/util_test.cpp FAST)
 zecale_test(application_pool_test SOURCE test/application_pool_test.cpp FAST)
+zecale_test(pairing_circuits_test SOURCE test/pairing_circuits_test.cpp FAST)
 
 zecale_test(util_api_test SOURCE test/util_api_test.cpp FAST)
 target_link_libraries(
