@@ -36,8 +36,9 @@ r1cs_gg_ppzksnark_proof_variable<ppT>::r1cs_gg_ppzksnark_proof_variable(
             *all_G1_vars[i],
             FMT(annotation_prefix, " all_G1_checkers_%zu", i)));
     }
+
     G2_checker.reset(new libsnark::G2_checker_gadget<ppT>(
-        pb, *g_B_g, FMT(annotation_prefix, " G2_checker")));
+        pb, *g_B, FMT(annotation_prefix, " G2_checker")));
 
     assert(all_G1_vars.size() == num_G1);
     assert(all_G2_vars.size() == num_G2);
@@ -55,7 +56,7 @@ void r1cs_gg_ppzksnark_proof_variable<ppT>::generate_r1cs_constraints()
 
 template<typename ppT>
 void r1cs_gg_ppzksnark_proof_variable<ppT>::generate_r1cs_witness(
-    const r1cs_gg_ppzksnark_proof<other_curve<ppT>> &proof)
+    const libsnark::r1cs_gg_ppzksnark_proof<other_curve<ppT>> &proof)
 {
     std::vector<libff::G1<other_curve<ppT>>> G1_elems;
     std::vector<libff::G2<other_curve<ppT>>> G2_elems;
@@ -97,7 +98,7 @@ r1cs_gg_ppzksnark_verification_key_variable<ppT>::
         const libsnark::pb_variable_array<FieldT> &all_bits,
         const size_t input_size,
         const std::string &annotation_prefix)
-    : gadget<FieldT>(pb, annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
     , all_bits(all_bits)
     , input_size(input_size)
 {
@@ -166,7 +167,7 @@ void r1cs_gg_ppzksnark_verification_key_variable<
 
 template<typename ppT>
 void r1cs_gg_ppzksnark_verification_key_variable<ppT>::generate_r1cs_witness(
-    const r1cs_gg_ppzksnark_verification_key<other_curve<ppT>> &vk)
+    const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>> &vk)
 {
     std::vector<libff::G1<other_curve<ppT>>> G1_elems;
     std::vector<libff::G2<other_curve<ppT>>> G2_elems;
@@ -233,7 +234,7 @@ size_t r1cs_gg_ppzksnark_verification_key_variable<ppT>::size_in_bits(
 template<typename ppT>
 libff::bit_vector r1cs_gg_ppzksnark_verification_key_variable<ppT>::
     get_verification_key_bits(
-        const r1cs_gg_ppzksnark_verification_key<other_curve<ppT>> &r1cs_vk)
+        const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>> &r1cs_vk)
 {
     typedef libff::Fr<ppT> FieldT;
 
@@ -265,7 +266,7 @@ r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
     ppT>::
     r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable(
         libsnark::protoboard<FieldT> &pb,
-        const r1cs_gg_ppzksnark_verification_key<other_curve<ppT>> &r1cs_vk,
+        const r1cs_gg_ppzksnark_verification_key_variable<other_curve<ppT>> &r1cs_vk,
         const std::string &annotation_prefix)
 {
     encoded_ABC_base.reset(new libsnark::G1_variable<ppT>(
@@ -300,10 +301,10 @@ r1cs_gg_ppzksnark_verifier_process_vk_gadget<ppT>::
         r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
             ppT> &pvk,
         const std::string &annotation_prefix)
-    : gadget<FieldT>(pb, annotation_prefix), vk(vk), pvk(pvk)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix), vk(vk), pvk(pvk)
 {
-    pvk.encoded_ABC_base = vk.encoded_IC_base;
-    pvk.ABC_g1 = vk.encoded_IC_query;
+    pvk.encoded_ABC_base = vk.encoded_ABC_base;
+    pvk.ABC_g1 = vk.ABC_g1;
 
     pvk.vk_alpha_g1_precomp.reset(new libsnark::G1_precomputation<ppT>());
 
@@ -363,7 +364,7 @@ r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::
         const r1cs_gg_ppzksnark_proof_variable<ppT> &proof,
         const libsnark::pb_variable<FieldT> &result,
         const std::string &annotation_prefix)
-    : gadget<FieldT>(pb, annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
     , pvk(pvk)
     , input(input)
     , elt_size(elt_size)
@@ -404,7 +405,7 @@ r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::
         *(proof.g_A),
         *proof_g_A_precomp,
         FMT(annotation_prefix, " compute_proof_g_A_precomp")));
-    compute_proof_g_B_precomp.reset(new libsnark::precompute_G1_gadget<ppT>(
+    compute_proof_g_B_precomp.reset(new libsnark::precompute_G2_gadget<ppT>(
         pb,
         *(proof.g_B),
         *proof_g_B_precomp,
@@ -424,14 +425,17 @@ r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::
     QAP_valid.allocate(pb, FMT(annotation_prefix, " QAP_valid"));
     check_QAP_valid.reset(new check_e_equals_eee_gadget<ppT>(
         pb,
+        // LHS
+        *proof_g_A_precomp,
+        *proof_g_B_precomp,
+        // RHS
         *(pvk.vk_alpha_g1_precomp),
-        *(pvk.vk_beta_g1_precomp),
+        *(pvk.vk_beta_g2_precomp),
         *(acc_precomp),
         *(pvk.vk_generator_g2_precomp),
         *(proof_g_C_precomp),
         *(pvk.vk_delta_g2_precomp),
-        *proof_g_A_precomp, // LHS
-        *proof_g_B_precomp, // LHS
+        // Result of pairing check
         QAP_valid,
         FMT(annotation_prefix, " check_QAP_valid")));
 }
@@ -439,6 +443,9 @@ r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::
 template<typename ppT>
 void r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::generate_r1cs_constraints()
 {
+    // For the macros below
+    using namespace libsnark;
+
     PROFILE_CONSTRAINTS(this->pb, "accumulate verifier input")
     {
         libff::print_indent();
@@ -481,7 +488,7 @@ r1cs_gg_ppzksnark_verifier_gadget<ppT>::r1cs_gg_ppzksnark_verifier_gadget(
     const r1cs_gg_ppzksnark_proof_variable<ppT> &proof,
     const libsnark::pb_variable<FieldT> &result,
     const std::string &annotation_prefix)
-    : gadget<FieldT>(pb, annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
     pvk.reset(
         new r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
@@ -501,6 +508,9 @@ r1cs_gg_ppzksnark_verifier_gadget<ppT>::r1cs_gg_ppzksnark_verifier_gadget(
 template<typename ppT>
 void r1cs_gg_ppzksnark_verifier_gadget<ppT>::generate_r1cs_constraints()
 {
+    // For the macros below
+    using namespace libsnark;
+
     PROFILE_CONSTRAINTS(this->pb, "precompute pvk")
     {
         compute_pvk->generate_r1cs_constraints();
