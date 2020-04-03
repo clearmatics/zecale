@@ -73,11 +73,11 @@ void aggregator_circuit_wrapper<
 #endif
 
 template<
-    typename ZethProofCurve,      // Curve over which we "prove" Zeth state
-                                  // transitions => E/Fq
-    typename AggregateProofCurve, // Curve over which we "prove" succesfull
-                                  // verication of the nested proofs batch =>
-                                  // E/Fr
+    // Curve over which we "prove" Zeth state transitions => E/Fq
+    typename ZethProofCurve,
+    // Curve over which we "prove" succesfull verication of the
+    // nested proofs batch => E/Fr
+    typename AggregateProofCurve,
     size_t NumProofs>
 extended_proof<AggregateProofCurve> aggregator_circuit_wrapper<
     ZethProofCurve,

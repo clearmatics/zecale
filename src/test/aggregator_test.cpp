@@ -220,9 +220,9 @@ bool TestValidAggregationTwoZethProofs(
 {
     libff::enter_block("Generate Aggregate proof", true);
     extended_proof<AggregateProofCurve> ext_proof = aggregator_prover.prove(
-        zeth_keypair
-            .vk, // This should cause a crash because the primary inputs are
-                 // packed in Zeth and are processed as unpacked here.
+        // This should cause a crash because the primary inputs are
+        // packed in Zeth and are processed as unpacked here.
+        zeth_keypair.vk,
         nested_proofs,
         aggregator_keypair.pk);
     libff::leave_block("Generate Aggregate proof", true);
