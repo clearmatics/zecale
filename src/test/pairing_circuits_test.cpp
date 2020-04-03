@@ -6,25 +6,16 @@
 
 #include "src/circuits/pairing/weierstrass_miller_loop.hpp"
 #include "src/circuits/pairing/pairing_checks.hpp"
-//#include <libsnark/gadgetlib1/gadgets/pairing/weierstrass_miller_loop.hpp>
-
-#include <libsnark/gadgetlib1/gadgets/pairing/pairing_checks.tcc>
 
 // Instantiation of the templates for the tests
 typedef libff::mnt4_pp curve_mnt4;
 typedef libff::mnt6_pp curve_mnt6;
 
 using namespace libzecale;
-//using namespace libsnark;
 
 namespace
 {
 
-/*
- * This test passes:
- * TODO:
- * Uncomment when test below is fixed
- * 
 TEST(MainTests, TestMntEEEoverEmillerLoop)
 {
     bool res = false;
@@ -35,63 +26,73 @@ TEST(MainTests, TestMntEEEoverEmillerLoop)
     res = test_mnt_e_times_e_times_e_over_e_miller_loop<curve_mnt6>(" test_eee_over_e_miller_loop_mnt6");
     ASSERT_TRUE(res);
 }
-*/
 
-TEST(MainTests, TestValidCheckEequalsEEEgadget)
+/// Create VALID test case by instantiating points from G1 and G2
+/// (over `other_curve<ppT>`) that will be fed into the pairing check
+/// carried out inside the circuit, and so, over Fr<ppT>
+///
+/// As such, `ppT` represents the curve we use to encode the arithmetic
+/// circuit wire. In other words, the pairing check gadget called here
+/// will be instantiated from `libff::Fr<ppT>`.
+template<typename ppT>
+void test_valid_pairing_check_e_equals_eee_gadget()
 {
-    // Valid test
-    const libff::G1<curve_mnt4> G1_base = libff::G1<curve_mnt4>::one();
-    const libff::G2<curve_mnt4> G2_base = libff::G2<curve_mnt4>::one();
+    const libff::G1<other_curve<ppT>> G1_base = libff::G1<other_curve<ppT>>::one();
+    const libff::G2<other_curve<ppT>> G2_base = libff::G2<other_curve<ppT>>::one();
 
-    const libff::Fr<curve_mnt4> rhs_scalar1 = libff::Fr<curve_mnt4>::random_element();
-    const libff::Fr<curve_mnt4> rhs_scalar2 = libff::Fr<curve_mnt4>::random_element();
-    const libff::Fr<curve_mnt4> rhs_scalar3 = libff::Fr<curve_mnt4>::random_element();
-    const libff::Fr<curve_mnt4> rhs_scalar4 = libff::Fr<curve_mnt4>::random_element();
-    const libff::Fr<curve_mnt4> rhs_scalar5 = libff::Fr<curve_mnt4>::random_element();
-    const libff::Fr<curve_mnt4> rhs_scalar6 = libff::Fr<curve_mnt4>::random_element();
+    const libff::Fr<other_curve<ppT>> rhs_scalar1 = libff::Fr<other_curve<ppT>>::random_element();
+    const libff::Fr<other_curve<ppT>> rhs_scalar2 = libff::Fr<other_curve<ppT>>::random_element();
+    const libff::Fr<other_curve<ppT>> rhs_scalar3 = libff::Fr<other_curve<ppT>>::random_element();
+    const libff::Fr<other_curve<ppT>> rhs_scalar4 = libff::Fr<other_curve<ppT>>::random_element();
+    const libff::Fr<other_curve<ppT>> rhs_scalar5 = libff::Fr<other_curve<ppT>>::random_element();
+    const libff::Fr<other_curve<ppT>> rhs_scalar6 = libff::Fr<other_curve<ppT>>::random_element();
 
-    const libff::G1<curve_mnt4> rhs_pairing1_P = rhs_scalar1 * G1_base;
-    const libff::G2<curve_mnt4> rhs_pairing1_Q = rhs_scalar2 * G2_base;
-    const libff::G1<curve_mnt4> rhs_pairing2_P = rhs_scalar3 * G1_base;
-    const libff::G2<curve_mnt4> rhs_pairing2_Q = rhs_scalar4 * G2_base;
-    const libff::G1<curve_mnt4> rhs_pairing3_P = rhs_scalar5 * G1_base;
-    const libff::G2<curve_mnt4> rhs_pairing3_Q = rhs_scalar6 * G2_base;
+    const libff::G1<other_curve<ppT>> rhs_pairing1_P = rhs_scalar1 * G1_base;
+    const libff::G2<other_curve<ppT>> rhs_pairing1_Q = rhs_scalar2 * G2_base;
+    const libff::G1<other_curve<ppT>> rhs_pairing2_P = rhs_scalar3 * G1_base;
+    const libff::G2<other_curve<ppT>> rhs_pairing2_Q = rhs_scalar4 * G2_base;
+    const libff::G1<other_curve<ppT>> rhs_pairing3_P = rhs_scalar5 * G1_base;
+    const libff::G2<other_curve<ppT>> rhs_pairing3_Q = rhs_scalar6 * G2_base;
 
     // Set the LHS group elements such that the pairing check passes
-    const libff::G1<curve_mnt4> lhs_pairing_P = (rhs_scalar1 * rhs_scalar2 + rhs_scalar3 * rhs_scalar4 + rhs_scalar5 * rhs_scalar6) * G1_base;
-    const libff::G2<curve_mnt4> lhs_pairing_Q = G2_base;
+    const libff::G1<other_curve<ppT>> lhs_pairing_P = (rhs_scalar1 * rhs_scalar2 + rhs_scalar3 * rhs_scalar4 + rhs_scalar5 * rhs_scalar6) * G1_base;
+    const libff::G2<other_curve<ppT>> lhs_pairing_Q = G2_base;
 
     // Compute pairings "outside the circuit" to check the value of the LHS
     // against the value of the RHS, and see if the pairing check
     // is succesfull
-    libff::mnt4_GT expected_pairing_lhs = libff::mnt4_pp::final_exponentiation(
-        libff::mnt4_pp::miller_loop(
-        libff::mnt4_pp::precompute_G1(lhs_pairing_P),
-        libff::mnt4_pp::precompute_G2(lhs_pairing_Q)));
+    libff::GT<other_curve<ppT>> expected_pairing_lhs = other_curve<ppT>::final_exponentiation(
+        other_curve<ppT>::miller_loop(
+        other_curve<ppT>::precompute_G1(lhs_pairing_P),
+        other_curve<ppT>::precompute_G2(lhs_pairing_Q)));
 
-    libff::mnt4_GT expected_pairing_rhs1 = libff::mnt4_pp::final_exponentiation(
-        libff::mnt4_pp::miller_loop(
-            libff::mnt4_pp::precompute_G1(rhs_pairing1_P),
-            libff::mnt4_pp::precompute_G2(rhs_pairing1_Q)));
+    libff::GT<other_curve<ppT>> expected_pairing_rhs1 = other_curve<ppT>::final_exponentiation(
+        other_curve<ppT>::miller_loop(
+            other_curve<ppT>::precompute_G1(rhs_pairing1_P),
+            other_curve<ppT>::precompute_G2(rhs_pairing1_Q)));
 
-    libff::mnt4_GT expected_pairing_rhs2 = libff::mnt4_pp::final_exponentiation(
-        libff::mnt4_pp::miller_loop(
-            libff::mnt4_pp::precompute_G1(rhs_pairing2_P),
-            libff::mnt4_pp::precompute_G2(rhs_pairing2_Q)));
+    libff::GT<other_curve<ppT>> expected_pairing_rhs2 = other_curve<ppT>::final_exponentiation(
+        other_curve<ppT>::miller_loop(
+            other_curve<ppT>::precompute_G1(rhs_pairing2_P),
+            other_curve<ppT>::precompute_G2(rhs_pairing2_Q)));
 
-    libff::mnt4_GT expected_pairing_rhs3 = libff::mnt4_pp::final_exponentiation(
-        libff::mnt4_pp::miller_loop(
-            libff::mnt4_pp::precompute_G1(rhs_pairing3_P),
-            libff::mnt4_pp::precompute_G2(rhs_pairing3_Q)));
+    libff::GT<other_curve<ppT>> expected_pairing_rhs3 = other_curve<ppT>::final_exponentiation(
+        other_curve<ppT>::miller_loop(
+            other_curve<ppT>::precompute_G1(rhs_pairing3_P),
+            other_curve<ppT>::precompute_G2(rhs_pairing3_Q)));
 
     bool check_result = (expected_pairing_lhs == expected_pairing_rhs1 * expected_pairing_rhs2 * expected_pairing_rhs3);
-    libff::Fr<curve_mnt6> expected_result = check_result ? libff::Fr<curve_mnt6>::one() : libff::Fr<curve_mnt6>::zero();
 
-    // Make sure that the pairing check succeeds
+    // Set the value of the expected value of the "output wire"
+    // of the pairing check gadget.
+    libff::Fr<ppT> expected_result = check_result ? libff::Fr<ppT>::one() : libff::Fr<ppT>::zero();
+
+    // Make sure that the pairing check succeeds and the gadget is tested
+    // with the right expected value
     ASSERT_TRUE(check_result);
-    ASSERT_EQ(expected_result, libff::Fr<curve_mnt6>::one());
+    ASSERT_EQ(expected_result, libff::Fr<ppT>::one());
 
-    bool res = test_check_e_equals_eee_gadget<curve_mnt6>(
+    bool res = test_check_e_equals_eee_gadget<ppT>(
         lhs_pairing_P, lhs_pairing_Q,
         rhs_pairing1_P, rhs_pairing1_Q,
         rhs_pairing2_P, rhs_pairing2_Q,
@@ -104,18 +105,25 @@ TEST(MainTests, TestValidCheckEequalsEEEgadget)
     ASSERT_TRUE(res);
 }
 
-TEST(MainTests, TestInvalidCheckEequalsEEEgadget)
+/// Create INVALID test case by instantiating points from G1 and G2
+/// (over `other_curve<ppT>`) that will be fed into the pairing check
+/// carried out inside the circuit, and so, over Fr<ppT>
+///
+/// As such, `ppT` represents the curve we use to encode the arithmetic
+/// circuit wire. In other words, the pairing check gadget called here
+/// will be instantiated from `libff::Fr<ppT>`.
+template<typename ppT>
+void test_invalid_pairing_check_e_equals_eee_gadget()
 {
-    // Valid test
-    const libff::G1<curve_mnt4> G1_base = libff::G1<curve_mnt4>::one();
-    const libff::G2<curve_mnt4> G2_base = libff::G2<curve_mnt4>::one();
+    const libff::G1<other_curve<ppT>> G1_base = libff::G1<other_curve<ppT>>::one();
+    const libff::G2<other_curve<ppT>> G2_base = libff::G2<other_curve<ppT>>::one();
 
-    const libff::G1<curve_mnt4> rhs_pairing1_P = libff::Fr<curve_mnt4>(2l) * G1_base;
-    const libff::G2<curve_mnt4> rhs_pairing1_Q = libff::Fr<curve_mnt4>(3l) * G2_base;
-    const libff::G1<curve_mnt4> rhs_pairing2_P = libff::Fr<curve_mnt4>(4l) * G1_base;
-    const libff::G2<curve_mnt4> rhs_pairing2_Q = libff::Fr<curve_mnt4>(5l) * G2_base;
-    const libff::G1<curve_mnt4> rhs_pairing3_P = libff::Fr<curve_mnt4>(6l) * G1_base;
-    const libff::G2<curve_mnt4> rhs_pairing3_Q = libff::Fr<curve_mnt4>(7l) * G2_base;
+    const libff::G1<other_curve<ppT>> rhs_pairing1_P = libff::Fr<other_curve<ppT>>(2l) * G1_base;
+    const libff::G2<other_curve<ppT>> rhs_pairing1_Q = libff::Fr<other_curve<ppT>>(3l) * G2_base;
+    const libff::G1<other_curve<ppT>> rhs_pairing2_P = libff::Fr<other_curve<ppT>>(4l) * G1_base;
+    const libff::G2<other_curve<ppT>> rhs_pairing2_Q = libff::Fr<other_curve<ppT>>(5l) * G2_base;
+    const libff::G1<other_curve<ppT>> rhs_pairing3_P = libff::Fr<other_curve<ppT>>(6l) * G1_base;
+    const libff::G2<other_curve<ppT>> rhs_pairing3_Q = libff::Fr<other_curve<ppT>>(7l) * G2_base;
 
     // Set the LHS group elements such that the pairing check should not pass
     // On the RHS, we have: e(g1, g2)^(2*3) * e(g1, g2)^(4*5) * e(g1, g2)^(6*7)
@@ -124,40 +132,43 @@ TEST(MainTests, TestInvalidCheckEequalsEEEgadget)
     //
     // Here we set the LHS to e(g1, g2)^(35*27) where the scalars are choosen
     // arbritarily at the only condition that their product is =/= 68
-    const libff::G1<curve_mnt4> lhs_pairing_P = libff::Fr<curve_mnt4>(35l) * G1_base;
-    const libff::G2<curve_mnt4> lhs_pairing_Q = libff::Fr<curve_mnt4>(27l) * G2_base;
+    const libff::G1<other_curve<ppT>> lhs_pairing_P = libff::Fr<other_curve<ppT>>(35l) * G1_base;
+    const libff::G2<other_curve<ppT>> lhs_pairing_Q = libff::Fr<other_curve<ppT>>(27l) * G2_base;
 
     // Compute pairings "outside the circuit" to check the value of the LHS
     // against the value of the RHS, and see if the pairing check
     // is succesfull
-    libff::mnt4_GT expected_pairing_lhs = libff::mnt4_pp::final_exponentiation(
-        libff::mnt4_pp::miller_loop(
-        libff::mnt4_pp::precompute_G1(lhs_pairing_P),
-        libff::mnt4_pp::precompute_G2(lhs_pairing_Q)));
+    libff::GT<other_curve<ppT>> expected_pairing_lhs = other_curve<ppT>::final_exponentiation(
+        other_curve<ppT>::miller_loop(
+        other_curve<ppT>::precompute_G1(lhs_pairing_P),
+        other_curve<ppT>::precompute_G2(lhs_pairing_Q)));
 
-    libff::mnt4_GT expected_pairing_rhs1 = libff::mnt4_pp::final_exponentiation(
-        libff::mnt4_pp::miller_loop(
-            libff::mnt4_pp::precompute_G1(rhs_pairing1_P),
-            libff::mnt4_pp::precompute_G2(rhs_pairing1_Q)));
+    libff::GT<other_curve<ppT>> expected_pairing_rhs1 = other_curve<ppT>::final_exponentiation(
+        other_curve<ppT>::miller_loop(
+            other_curve<ppT>::precompute_G1(rhs_pairing1_P),
+            other_curve<ppT>::precompute_G2(rhs_pairing1_Q)));
 
-    libff::mnt4_GT expected_pairing_rhs2 = libff::mnt4_pp::final_exponentiation(
-        libff::mnt4_pp::miller_loop(
-            libff::mnt4_pp::precompute_G1(rhs_pairing2_P),
-            libff::mnt4_pp::precompute_G2(rhs_pairing2_Q)));
+    libff::GT<other_curve<ppT>> expected_pairing_rhs2 = other_curve<ppT>::final_exponentiation(
+        other_curve<ppT>::miller_loop(
+            other_curve<ppT>::precompute_G1(rhs_pairing2_P),
+            other_curve<ppT>::precompute_G2(rhs_pairing2_Q)));
 
-    libff::mnt4_GT expected_pairing_rhs3 = libff::mnt4_pp::final_exponentiation(
-        libff::mnt4_pp::miller_loop(
-            libff::mnt4_pp::precompute_G1(rhs_pairing3_P),
-            libff::mnt4_pp::precompute_G2(rhs_pairing3_Q)));
+    libff::GT<other_curve<ppT>> expected_pairing_rhs3 = other_curve<ppT>::final_exponentiation(
+        other_curve<ppT>::miller_loop(
+            other_curve<ppT>::precompute_G1(rhs_pairing3_P),
+            other_curve<ppT>::precompute_G2(rhs_pairing3_Q)));
 
     bool check_result = (expected_pairing_lhs == expected_pairing_rhs1 * expected_pairing_rhs2 * expected_pairing_rhs3);
-    libff::Fr<curve_mnt6> expected_result = check_result ? libff::Fr<curve_mnt6>::one() : libff::Fr<curve_mnt6>::zero();
+
+    // Set the value of the expected value of the "output wire"
+    // of the pairing check gadget.
+    libff::Fr<ppT> expected_result = check_result ? libff::Fr<ppT>::one() : libff::Fr<ppT>::zero();
 
     // Make sure that the pairing check fails
     ASSERT_FALSE(check_result);
-    ASSERT_EQ(expected_result, libff::Fr<curve_mnt6>::zero());
+    ASSERT_EQ(expected_result, libff::Fr<ppT>::zero());
 
-    bool res = test_check_e_equals_eee_gadget<curve_mnt6>(
+    bool res = test_check_e_equals_eee_gadget<ppT>(
         lhs_pairing_P, lhs_pairing_Q,
         rhs_pairing1_P, rhs_pairing1_Q,
         rhs_pairing2_P, rhs_pairing2_Q,
@@ -168,6 +179,18 @@ TEST(MainTests, TestInvalidCheckEequalsEEEgadget)
     // Check that the pairing check circuit returns the same result as
     // the one carried out "outside" the circuit (see above)
     ASSERT_TRUE(res);
+}
+
+TEST(MainTests, TestValidCheckEequalsEEEgadget)
+{
+    test_valid_pairing_check_e_equals_eee_gadget<curve_mnt4>();
+    test_valid_pairing_check_e_equals_eee_gadget<curve_mnt6>();
+}
+
+TEST(MainTests, TestInvalidCheckEequalsEEEgadget)
+{
+    test_invalid_pairing_check_e_equals_eee_gadget<curve_mnt4>();
+    test_invalid_pairing_check_e_equals_eee_gadget<curve_mnt6>();
 }
 
 } // namespace
