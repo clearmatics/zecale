@@ -338,6 +338,9 @@ template<typename ppT>
 bool test_mnt_e_times_e_times_e_over_e_miller_loop(
     const std::string &annotation)
 {
+    // This `using` directive is used to avoid
+    // any trouble with the use the of libsnark macros
+    // in this function.
     using namespace libsnark;
 
     libsnark::protoboard<libff::Fr<ppT>> pb;
