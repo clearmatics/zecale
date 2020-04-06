@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-// Reference
-// \[BGM17]:
-//  "Scalable Multi-party Computation for zk-SNARK Parameters in the Random
-//  Beacon Model" Sean Bowe and Ariel Gabizon and Ian Miers, IACR Cryptology
-//  ePrint Archive 2017, <http://eprint.iacr.org/2017/1050>
+/// Reference
+/// \[BGM17]:
+///  "Scalable Multi-party Computation for zk-SNARK Parameters in the Random
+///  Beacon Model" Sean Bowe and Ariel Gabizon and Ian Miers, IACR Cryptology
+///  ePrint Archive 2017, <http://eprint.iacr.org/2017/1050>
 
 #ifndef __ZECALE_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_HPP__
 #define __ZECALE_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_HPP__
@@ -139,7 +139,7 @@ public:
 
     r1cs_gg_ppzksnark_verification_key_variable<ppT> vk;
     r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
-        ppT> &pvk; // important to have a reference here
+        ppT> &pvk;
 
     r1cs_gg_ppzksnark_verifier_process_vk_gadget(
         libsnark::protoboard<FieldT> &pb,
@@ -164,6 +164,7 @@ public:
     libsnark::pb_variable_array<FieldT> input;
     size_t elt_size;
     r1cs_gg_ppzksnark_proof_variable<ppT> proof;
+    // The `result` variable should be allocated outside of this circuit
     libsnark::pb_variable<FieldT> result;
     const size_t input_len;
 
@@ -184,8 +185,6 @@ public:
     std::shared_ptr<libsnark::precompute_G1_gadget<ppT>> compute_acc_precomp;
 
     std::shared_ptr<check_e_equals_eee_gadget<ppT>> check_QAP_valid;
-
-    //libsnark::pb_variable<FieldT> QAP_valid;
 
     r1cs_gg_ppzksnark_online_verifier_gadget(
         libsnark::protoboard<FieldT> &pb,
