@@ -247,9 +247,9 @@ libff::bit_vector r1cs_gg_ppzksnark_verification_key_variable<ppT>::
 
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable_array<FieldT> vk_bits;
-    vk_bits.allocate(pb, vk_size_in_bits, " vk_size_in_bits");
+    vk_bits.allocate(pb, vk_size_in_bits, FMT(annotation_prefix, " vk_size_in_bits"));
     r1cs_gg_ppzksnark_verification_key_variable<ppT> vk(
-        pb, vk_bits, input_size_in_elts, " translation_step_vk");
+        pb, vk_bits, input_size_in_elts, FMT(annotation_prefix, " translation_step_vk"));
     vk.generate_r1cs_witness(r1cs_vk);
 
     return vk.get_bits();
@@ -424,8 +424,6 @@ r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::
         FMT(annotation_prefix, " compute_acc_precomp")));
 
     // 3. Carry out the pairing checks to check QAP equation
-    // Allocated outside
-    //QAP_valid.allocate(pb, FMT(annotation_prefix, " QAP_valid"));
     check_QAP_valid.reset(new check_e_equals_eee_gadget<ppT>(
         pb,
         // LHS
@@ -438,7 +436,7 @@ r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::
         *(pvk.vk_generator_g2_precomp),
         *(proof_g_C_precomp),
         *(pvk.vk_delta_g2_precomp),
-        // Result of pairing check
+        // Result of pairing check (allocated outside of this circuit)
         result,
         FMT(annotation_prefix, " check_QAP_valid")));
 }
@@ -480,13 +478,6 @@ void r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::generate_r1cs_witness()
     compute_acc_precomp->generate_r1cs_witness();
 
     check_QAP_valid->generate_r1cs_witness();
-
-    std::cout << "==============================================" << std::endl;
-    std::cout << "==============================================" << std::endl;
-    std::cout << "[generate_r1cs_witness] result value: " << std::endl;
-    this->pb.val(result).as_bigint().print_hex();
-    std::cout << "==============================================" << std::endl;
-    std::cout << "==============================================" << std::endl;
 }
 
 template<typename ppT>
