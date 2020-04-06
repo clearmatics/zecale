@@ -185,7 +185,7 @@ public:
 
     std::shared_ptr<check_e_equals_eee_gadget<ppT>> check_QAP_valid;
 
-    libsnark::pb_variable<FieldT> QAP_valid;
+    //libsnark::pb_variable<FieldT> QAP_valid;
 
     r1cs_gg_ppzksnark_online_verifier_gadget(
         libsnark::protoboard<FieldT> &pb,
@@ -194,7 +194,7 @@ public:
         const libsnark::pb_variable_array<FieldT> &input,
         const size_t elt_size,
         const r1cs_gg_ppzksnark_proof_variable<ppT> &proof,
-        const libsnark::pb_variable<FieldT> &result,
+        const libsnark::pb_variable<FieldT> &result_QAP_valid,
         const std::string &annotation_prefix);
     void generate_r1cs_constraints();
     void generate_r1cs_witness();

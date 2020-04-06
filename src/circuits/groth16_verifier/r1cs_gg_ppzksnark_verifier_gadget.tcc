@@ -15,8 +15,10 @@ r1cs_gg_ppzksnark_proof_variable<ppT>::r1cs_gg_ppzksnark_proof_variable(
     libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
-    const size_t num_G1 = 2; // g_A, g_C
-    const size_t num_G2 = 1; // g_B
+    // g_A, g_C
+    const size_t num_G1 = 2;
+    // g_B
+    const size_t num_G2 = 1;
 
     g_A.reset(
         new libsnark::G1_variable<ppT>(pb, FMT(annotation_prefix, " g_A")));
@@ -245,9 +247,9 @@ libff::bit_vector r1cs_gg_ppzksnark_verification_key_variable<ppT>::
 
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable_array<FieldT> vk_bits;
-    vk_bits.allocate(pb, vk_size_in_bits, "vk_bits");
+    vk_bits.allocate(pb, vk_size_in_bits, " vk_size_in_bits");
     r1cs_gg_ppzksnark_verification_key_variable<ppT> vk(
-        pb, vk_bits, input_size_in_elts, "translation_step_vk");
+        pb, vk_bits, input_size_in_elts, " translation_step_vk");
     vk.generate_r1cs_witness(r1cs_vk);
 
     return vk.get_bits();
@@ -362,14 +364,14 @@ r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::
         const libsnark::pb_variable_array<FieldT> &input,
         const size_t elt_size,
         const r1cs_gg_ppzksnark_proof_variable<ppT> &proof,
-        const libsnark::pb_variable<FieldT> &result,
+        const libsnark::pb_variable<FieldT> &result_QAP_valid,
         const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
     , pvk(pvk)
     , input(input)
     , elt_size(elt_size)
     , proof(proof)
-    , result(result)
+    , result(result_QAP_valid)
     , input_len(input.size())
 {
     // 1. Accumulate input and store base in acc
@@ -422,7 +424,8 @@ r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::
         FMT(annotation_prefix, " compute_acc_precomp")));
 
     // 3. Carry out the pairing checks to check QAP equation
-    QAP_valid.allocate(pb, FMT(annotation_prefix, " QAP_valid"));
+    // Allocated outside
+    //QAP_valid.allocate(pb, FMT(annotation_prefix, " QAP_valid"));
     check_QAP_valid.reset(new check_e_equals_eee_gadget<ppT>(
         pb,
         // LHS
@@ -436,7 +439,7 @@ r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::
         *(proof_g_C_precomp),
         *(pvk.vk_delta_g2_precomp),
         // Result of pairing check
-        QAP_valid,
+        result,
         FMT(annotation_prefix, " check_QAP_valid")));
 }
 
@@ -477,6 +480,13 @@ void r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::generate_r1cs_witness()
     compute_acc_precomp->generate_r1cs_witness();
 
     check_QAP_valid->generate_r1cs_witness();
+
+    std::cout << "==============================================" << std::endl;
+    std::cout << "==============================================" << std::endl;
+    std::cout << "[generate_r1cs_witness] result value: " << std::endl;
+    this->pb.val(result).as_bigint().print_hex();
+    std::cout << "==============================================" << std::endl;
+    std::cout << "==============================================" << std::endl;
 }
 
 template<typename ppT>
