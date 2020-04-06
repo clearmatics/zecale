@@ -268,7 +268,7 @@ r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
     ppT>::
     r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable(
         libsnark::protoboard<FieldT> &pb,
-        const r1cs_gg_ppzksnark_verification_key_variable<other_curve<ppT>> &r1cs_vk,
+        const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>> &r1cs_vk,
         const std::string &annotation_prefix)
 {
     encoded_ABC_base.reset(new libsnark::G1_variable<ppT>(
