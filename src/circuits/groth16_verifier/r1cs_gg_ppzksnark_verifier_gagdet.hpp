@@ -2,28 +2,28 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-// Reference
-// \[BGM17]:
-//  "Scalable Multi-party Computation for zk-SNARK Parameters in the Random
-//  Beacon Model" Sean Bowe and Ariel Gabizon and Ian Miers, IACR Cryptology
-//  ePrint Archive 2017, <http://eprint.iacr.org/2017/1050>
+/// Reference
+/// \[BGM17]:
+///  "Scalable Multi-party Computation for zk-SNARK Parameters in the Random
+///  Beacon Model" Sean Bowe and Ariel Gabizon and Ian Miers, IACR Cryptology
+///  ePrint Archive 2017, <http://eprint.iacr.org/2017/1050>
 
 #ifndef __ZECALE_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_HPP__
 #define __ZECALE_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_HPP__
 
-#include "pairing_checks.hpp"
+#include "src/circuits/pairing/pairing_checks.hpp"
+#include "src/circuits/pairing/pairing_params.hpp"
 
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/curves/weierstrass_g1_gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/curves/weierstrass_g2_gadget.hpp>
-#include <libsnark/gadgetlib1/gadgets/pairing/pairing_params.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 
 namespace libzecale
 {
 
 template<typename ppT>
-class r1cs_gg_ppzksnark_proof_variable : public gadget<libff::Fr<ppT>>
+class r1cs_gg_ppzksnark_proof_variable : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     typedef libff::Fr<ppT> FieldT;
@@ -45,13 +45,13 @@ public:
         libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix);
     void generate_r1cs_constraints();
     void generate_r1cs_witness(
-        const r1cs_gg_ppzksnark_proof<other_curve<ppT>> &proof);
+        const libsnark::r1cs_gg_ppzksnark_proof<other_curve<ppT>> &proof);
     static size_t size();
 };
 
 template<typename ppT>
 class r1cs_gg_ppzksnark_verification_key_variable
-    : public gadget<libff::Fr<ppT>>
+    : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     typedef libff::Fr<ppT> FieldT;
@@ -89,13 +89,15 @@ public:
         const std::string &annotation_prefix);
     void generate_r1cs_constraints(const bool enforce_bitness);
     void generate_r1cs_witness(
-        const r1cs_gg_ppzksnark_verification_key<other_curve<ppT>> &vk);
+        const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
+            &vk);
     void generate_r1cs_witness(const libff::bit_vector &vk_bits);
     libff::bit_vector get_bits() const;
     static size_t __attribute__((noinline))
     size_in_bits(const size_t input_size);
     static libff::bit_vector get_verification_key_bits(
-        const r1cs_gg_ppzksnark_verification_key<other_curve<ppT>> &r1cs_vk);
+        const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
+            &r1cs_vk);
 };
 
 template<typename ppT>
@@ -115,14 +117,14 @@ public:
     r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable();
     r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable(
         libsnark::protoboard<FieldT> &pb,
-        const r1cs_gg_ppzksnark_verification_key_variable<other_curve<ppT>>
+        const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
             &r1cs_vk,
         const std::string &annotation_prefix);
 };
 
 template<typename ppT>
 class r1cs_gg_ppzksnark_verifier_process_vk_gadget
-    : public gadget<libff::Fr<ppT>>
+    : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     typedef libff::Fr<ppT> FieldT;
@@ -139,7 +141,7 @@ public:
 
     r1cs_gg_ppzksnark_verification_key_variable<ppT> vk;
     r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
-        ppT> &pvk; // important to have a reference here
+        ppT> &pvk;
 
     r1cs_gg_ppzksnark_verifier_process_vk_gadget(
         libsnark::protoboard<FieldT> &pb,
@@ -152,7 +154,8 @@ public:
 };
 
 template<typename ppT>
-class r1cs_gg_ppzksnark_online_verifier_gadget : public gadget<libff::Fr<ppT>>
+class r1cs_gg_ppzksnark_online_verifier_gadget
+    : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     typedef libff::Fr<ppT> FieldT;
@@ -164,6 +167,7 @@ public:
     libsnark::pb_variable_array<FieldT> input;
     size_t elt_size;
     r1cs_gg_ppzksnark_proof_variable<ppT> proof;
+    // The `result` variable should be allocated outside of this circuit
     libsnark::pb_variable<FieldT> result;
     const size_t input_len;
 
@@ -177,15 +181,13 @@ public:
 
     std::shared_ptr<libsnark::precompute_G1_gadget<ppT>>
         compute_proof_g_A_precomp;
-    std::shared_ptr<libsnark::precompute_G1_gadget<ppT>>
+    std::shared_ptr<libsnark::precompute_G2_gadget<ppT>>
         compute_proof_g_B_precomp;
     std::shared_ptr<libsnark::precompute_G1_gadget<ppT>>
         compute_proof_g_C_precomp;
     std::shared_ptr<libsnark::precompute_G1_gadget<ppT>> compute_acc_precomp;
 
     std::shared_ptr<check_e_equals_eee_gadget<ppT>> check_QAP_valid;
-
-    libsnark::pb_variable<FieldT> QAP_valid;
 
     r1cs_gg_ppzksnark_online_verifier_gadget(
         libsnark::protoboard<FieldT> &pb,
@@ -194,14 +196,15 @@ public:
         const libsnark::pb_variable_array<FieldT> &input,
         const size_t elt_size,
         const r1cs_gg_ppzksnark_proof_variable<ppT> &proof,
-        const libsnark::pb_variable<FieldT> &result,
+        const libsnark::pb_variable<FieldT> &result_QAP_valid,
         const std::string &annotation_prefix);
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
 };
 
 template<typename ppT>
-class r1cs_gg_ppzksnark_verifier_gadget : public gadget<libff::Fr<ppT>>
+class r1cs_gg_ppzksnark_verifier_gadget
+    : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     typedef libff::Fr<ppT> FieldT;

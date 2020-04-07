@@ -11,6 +11,9 @@
 #include <queue>
 #include <vector>
 
+// zkSNARK templates instantiation
+#include <libzeth/snarks_alias.hpp>
+
 namespace libzecale
 {
 
@@ -25,16 +28,14 @@ template<typename ppT, size_t NumProofs> class application_pool
 private:
     // Name/Identifier of the application (E.g. "zeth")
     std::string _name;
-    std::shared_ptr<libsnark::r1cs_ppzksnark_verification_key<ppT>>
-        _verification_key;
+    std::shared_ptr<libzeth::verificationKeyT<ppT>> _verification_key;
     std::priority_queue<
         transaction_to_aggregate<ppT>,
         std::vector<transaction_to_aggregate<ppT>>>
         _tx_pool;
 
 public:
-    application_pool(
-        std::string name, libsnark::r1cs_ppzksnark_verification_key<ppT> vk);
+    application_pool(std::string name, libzeth::verificationKeyT<ppT> vk);
     virtual ~application_pool(){};
 
     inline std::string name() const { return this->_name; };
@@ -42,8 +43,7 @@ public:
     // Function that returns the verification key associated with this
     // application. This constitutes part of the witness of the aggregator
     // circuit.
-    inline libsnark::r1cs_ppzksnark_verification_key<ppT> verification_key()
-        const
+    inline libzeth::verificationKeyT<ppT> verification_key() const
     {
         return *(this->_verification_key);
     };

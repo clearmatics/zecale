@@ -20,7 +20,7 @@ template<
                                   // verication of the nested proofs batch =>
                                   // E/Fr
     size_t NumProofs>
-keyPairT<AggregateProofCurve> aggregator_circuit_wrapper<
+libzeth::keyPairT<AggregateProofCurve> aggregator_circuit_wrapper<
     ZethProofCurve,
     AggregateProofCurve,
     NumProofs>::generate_trusted_setup() const
@@ -41,7 +41,7 @@ keyPairT<AggregateProofCurve> aggregator_circuit_wrapper<
     // and write them in a file
     std::cout << "[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG3"
               << std::endl;
-    keyPairT<AggregateProofCurve> keypair =
+    libzeth::keyPairT<AggregateProofCurve> keypair =
         gen_trusted_setup<AggregateProofCurve>(pb);
     // TODO: the function below only works with `libff::alt_bn128_G1` so it is
     // commented out to make the build pass wiht the MNT curves
@@ -73,21 +73,22 @@ void aggregator_circuit_wrapper<
 #endif
 
 template<
-    typename ZethProofCurve,      // Curve over which we "prove" Zeth state
-                                  // transitions => E/Fq
-    typename AggregateProofCurve, // Curve over which we "prove" succesfull
-                                  // verication of the nested proofs batch =>
-                                  // E/Fr
+    // Curve over which we "prove" Zeth state transitions => E/Fq
+    typename ZethProofCurve,
+    // Curve over which we "prove" succesfull verication of the
+    // nested proofs batch => E/Fr
+    typename AggregateProofCurve,
     size_t NumProofs>
 extended_proof<AggregateProofCurve> aggregator_circuit_wrapper<
     ZethProofCurve,
     AggregateProofCurve,
     NumProofs>::
     prove(
-        libsnark::r1cs_ppzksnark_verification_key<ZethProofCurve> nested_vk,
+        libzeth::verificationKeyT<ZethProofCurve> nested_vk,
         std::array<libzeth::extended_proof<ZethProofCurve>, NumProofs>
             extended_proofs,
-        const provingKeyT<AggregateProofCurve> &aggregator_proving_key) const
+        const libzeth::provingKeyT<AggregateProofCurve> &aggregator_proving_key)
+        const
 {
     libsnark::protoboard<ScalarFieldAggregatorT> pb;
 
