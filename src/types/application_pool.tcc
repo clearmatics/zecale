@@ -18,7 +18,8 @@ application_pool<ppT, NumProofs>::application_pool(
     std::string name, libzeth::verificationKeyT<ppT> vk)
     : _name(name), _tx_pool()
 {
-    this->_verification_key = std::make_shared<libzeth::verificationKeyT<ppT>>(vk);
+    this->_verification_key =
+        std::make_shared<libzeth::verificationKeyT<ppT>>(vk);
 }
 
 template<typename ppT, size_t NumProofs>

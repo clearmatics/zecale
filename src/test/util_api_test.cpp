@@ -12,7 +12,6 @@
 #include <libsnark/knowledge_commitment/knowledge_commitment.hpp>
 #include <libsnark/relations/constraint_satisfaction_problems/r1cs/r1cs.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
-
 #include <libzeth/libsnark_helpers/debug_helpers.hpp>
 #include <libzeth/libsnark_helpers/extended_proof.hpp>
 #include <stdio.h>

@@ -17,7 +17,8 @@ using verifierGadgetT = libsnark::r1cs_ppzksnark_verifier_gadget<ppT>;
 template<typename ppT>
 using proofVariableGadgetT = libsnark::r1cs_ppzksnark_proof_variable<ppT>;
 template<typename ppT>
-using verificationKeyVariableGadgetT = libsnark::r1cs_ppzksnark_verification_key_variable<ppT>;
+using verificationKeyVariableGadgetT =
+    libsnark::r1cs_ppzksnark_verification_key_variable<ppT>;
 } // namespace libzecale
 #endif
 
@@ -31,7 +32,8 @@ using verifierGadgetT = r1cs_gg_ppzksnark_verifier_gadget<ppT>;
 template<typename ppT>
 using proofVariableGadgetT = r1cs_gg_ppzksnark_proof_variable<ppT>;
 template<typename ppT>
-using verificationKeyVariableGadgetT = r1cs_gg_ppzksnark_verification_key_variable<ppT>;
+using verificationKeyVariableGadgetT =
+    r1cs_gg_ppzksnark_verification_key_variable<ppT>;
 } // namespace libzecale
 #endif
 

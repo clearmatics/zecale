@@ -14,13 +14,14 @@
 #include <libzeth/zeth.h>
 
 // Include the verifier gadgets
-#include <libff/algebra/fields/field_utils.hpp>
 #include "src/circuits/verifier_gagdet_imports.hpp"
+
+#include <libff/algebra/fields/field_utils.hpp>
 
 // Include the core files and template instantiations corresponding
 // to the proof system used
-#include <libzeth/snarks_core_imports.hpp>
 #include <libzeth/snarks_alias.hpp>
+#include <libzeth/snarks_core_imports.hpp>
 
 using namespace libzeth;
 
@@ -93,9 +94,7 @@ private:
     // circuit of the Aggregator, and so, these verifiers do arithmetic over
     // `ScalarFieldAggregatorT = BaseFieldZethT` That is to say, they do
     // arithmetic over the curve `ZethProofCurve`
-    std::array<
-        std::shared_ptr<verifierGadgetT<AggregateProofCurve>>,
-        NumProofs>
+    std::array<std::shared_ptr<verifierGadgetT<AggregateProofCurve>>, NumProofs>
         verifiers;
 
     libsnark::pb_variable<ScalarFieldAggregatorT> ZERO_ScalarFieldAggregator;
@@ -143,7 +142,8 @@ private:
     // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp#L55
     //
     std::array<
-        std::shared_ptr<proofVariableGadgetT<AggregateProofCurve>>, NumProofs>
+        std::shared_ptr<proofVariableGadgetT<AggregateProofCurve>>,
+        NumProofs>
         nested_proofs;
     // Likewise, this is not strictly necessary, but we do not need to pass the
     // VK to the contract everytime as such we move it to the auxiliary inputs
@@ -153,7 +153,8 @@ private:
     // again, makes sense because elements of `ZethProofCurve` are defined over
     // `E/BaseFieldZethT`, and `BaseFieldZethT` is `ScalarFieldAggregatorT`
     // which is where we do arithmetic here
-    std::shared_ptr<verificationKeyVariableGadgetT<AggregateProofCurve>> nested_vk;
+    std::shared_ptr<verificationKeyVariableGadgetT<AggregateProofCurve>>
+        nested_vk;
 
 public:
     // Make sure that we do not exceed the number of proofs
@@ -249,7 +250,8 @@ public:
             // to the # of primary inputs of the zeth circuit, which is used to
             // determine the size of the zeth VK which is the one we manipulate
             // below.
-            const size_t vk_size_in_bits = verificationKeyVariableGadgetT<AggregateProofCurve>::size_in_bits(nb_zeth_inputs);
+            const size_t vk_size_in_bits = verificationKeyVariableGadgetT<
+                AggregateProofCurve>::size_in_bits(nb_zeth_inputs);
             libsnark::pb_variable_array<ScalarFieldAggregatorT> nested_vk_bits;
             nested_vk_bits.allocate(
                 pb,

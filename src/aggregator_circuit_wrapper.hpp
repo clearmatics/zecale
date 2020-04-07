@@ -11,8 +11,8 @@
 #include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
 
 // zkSNARK specific imports, and templates instantiation
-#include <libzeth/snarks_core_imports.hpp>
 #include <libzeth/snarks_alias.hpp>
+#include <libzeth/snarks_core_imports.hpp>
 
 using namespace libzeth;
 
@@ -40,8 +40,7 @@ public:
         : setup_path(setup_path){};
 
     // Generate the trusted setup
-    libzeth::keyPairT<AggregateProofCurve> generate_trusted_setup()
-        const;
+    libzeth::keyPairT<AggregateProofCurve> generate_trusted_setup() const;
 
 #ifdef DEBUG
     // Used to debug the constraint system
@@ -54,8 +53,8 @@ public:
         libzeth::verificationKeyT<ZethProofCurve> nested_vk,
         std::array<libzeth::extended_proof<ZethProofCurve>, NumProofs>
             extended_proofs,
-        const libzeth::provingKeyT<AggregateProofCurve>
-            &aggregator_proving_key) const;
+        const libzeth::provingKeyT<AggregateProofCurve> &aggregator_proving_key)
+        const;
 };
 
 } // namespace libzecale

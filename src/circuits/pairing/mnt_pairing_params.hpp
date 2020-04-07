@@ -8,7 +8,8 @@
  See pairing_params.hpp .
 
  *****************************************************************************
- * @author     This file is taken and modified from libsnark, developed by SCIPR Lab
+ * @author     This file is taken and modified from libsnark, developed by SCIPR
+ Lab
  *             and contributors (see AUTHORS).
  * @copyright  MIT license (see LICENSE file)
  *****************************************************************************/
@@ -16,38 +17,33 @@
 #ifndef __ZECALE_MNT_PAIRING_PARAMS_HPP__
 #define __ZECALE_MNT_PAIRING_PARAMS_HPP__
 
+#include "src/circuits/pairing/pairing_params.hpp"
+#include "src/circuits/pairing/weierstrass_miller_loop.hpp"
+
 #include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
 #include <libff/algebra/curves/mnt/mnt6/mnt6_pp.hpp>
-
 #include <libsnark/gadgetlib1/gadgets/fields/fp2_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/fields/fp3_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/fields/fp4_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/fields/fp6_gadgets.hpp>
 
-#include "src/circuits/pairing/pairing_params.hpp"
-#include "src/circuits/pairing/weierstrass_miller_loop.hpp"
+namespace libzecale
+{
 
-namespace libzecale {
+template<typename ppT> class mnt_e_over_e_miller_loop_gadget;
 
-template<typename ppT>
-class mnt_e_over_e_miller_loop_gadget;
+template<typename ppT> class mnt_e_times_e_over_e_miller_loop_gadget;
 
-template<typename ppT>
-class mnt_e_times_e_over_e_miller_loop_gadget;
+template<typename ppT> class mnt_e_times_e_times_e_over_e_miller_loop_gadget;
 
-template<typename ppT>
-class mnt_e_times_e_times_e_over_e_miller_loop_gadget;
+template<typename ppT> class mnt4_final_exp_gadget;
 
-template<typename ppT>
-class mnt4_final_exp_gadget;
-
-template<typename ppT>
-class mnt6_final_exp_gadget;
+template<typename ppT> class mnt6_final_exp_gadget;
 
 // Specialization for MNT4.
-// 
-template<>
-class pairing_selector<libff::mnt4_pp> {
+//
+template<> class pairing_selector<libff::mnt4_pp>
+{
 public:
     typedef libff::Fr<libff::mnt4_pp> FieldT;
     typedef libff::Fqe<libff::mnt6_pp> FqeT;
@@ -65,19 +61,23 @@ public:
 
     typedef libff::mnt6_pp other_curve_type;
 
-    typedef mnt_e_over_e_miller_loop_gadget<libff::mnt4_pp> e_over_e_miller_loop_gadget_type;
-    typedef mnt_e_times_e_over_e_miller_loop_gadget<libff::mnt4_pp> e_times_e_over_e_miller_loop_gadget_type;
+    typedef mnt_e_over_e_miller_loop_gadget<libff::mnt4_pp>
+        e_over_e_miller_loop_gadget_type;
+    typedef mnt_e_times_e_over_e_miller_loop_gadget<libff::mnt4_pp>
+        e_times_e_over_e_miller_loop_gadget_type;
     // Add typedef for the `e_times_e_times_e_over_e_miller_loop_gadget` gadget
-    typedef mnt_e_times_e_times_e_over_e_miller_loop_gadget<libff::mnt4_pp> e_times_e_times_e_over_e_miller_loop_gadget_type;
+    typedef mnt_e_times_e_times_e_over_e_miller_loop_gadget<libff::mnt4_pp>
+        e_times_e_times_e_over_e_miller_loop_gadget_type;
     typedef mnt4_final_exp_gadget<libff::mnt4_pp> final_exp_gadget_type;
 
-    static const constexpr libff::bigint<libff::mnt6_Fr::num_limbs> &pairing_loop_count = libff::mnt6_ate_loop_count;
+    static const constexpr libff::bigint<libff::mnt6_Fr::num_limbs>
+        &pairing_loop_count = libff::mnt6_ate_loop_count;
 };
 
 // Specialization for MNT6.
-// 
-template<>
-class pairing_selector<libff::mnt6_pp> {
+//
+template<> class pairing_selector<libff::mnt6_pp>
+{
 public:
     typedef libff::Fr<libff::mnt6_pp> FieldT;
 
@@ -96,15 +96,19 @@ public:
 
     typedef libff::mnt4_pp other_curve_type;
 
-    typedef mnt_e_over_e_miller_loop_gadget<libff::mnt6_pp> e_over_e_miller_loop_gadget_type;
-    typedef mnt_e_times_e_over_e_miller_loop_gadget<libff::mnt6_pp> e_times_e_over_e_miller_loop_gadget_type;
+    typedef mnt_e_over_e_miller_loop_gadget<libff::mnt6_pp>
+        e_over_e_miller_loop_gadget_type;
+    typedef mnt_e_times_e_over_e_miller_loop_gadget<libff::mnt6_pp>
+        e_times_e_over_e_miller_loop_gadget_type;
     // Add typedef for the `e_times_e_times_e_over_e_miller_loop_gadget` gadget
-    typedef mnt_e_times_e_times_e_over_e_miller_loop_gadget<libff::mnt6_pp> e_times_e_times_e_over_e_miller_loop_gadget_type;
+    typedef mnt_e_times_e_times_e_over_e_miller_loop_gadget<libff::mnt6_pp>
+        e_times_e_times_e_over_e_miller_loop_gadget_type;
     typedef mnt6_final_exp_gadget<libff::mnt6_pp> final_exp_gadget_type;
 
-    static const constexpr libff::bigint<libff::mnt4_Fr::num_limbs> &pairing_loop_count = libff::mnt4_ate_loop_count;
+    static const constexpr libff::bigint<libff::mnt4_Fr::num_limbs>
+        &pairing_loop_count = libff::mnt4_ate_loop_count;
 };
 
-} // libzecale
+} // namespace libzecale
 
 #endif // __ZECALE_MNT_PAIRING_PARAMS_HPP__

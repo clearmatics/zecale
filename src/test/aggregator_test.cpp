@@ -8,7 +8,6 @@
 #include <libff/algebra/fields/field_utils.hpp>
 #include <libff/common/default_types/ec_pp.hpp>
 
-
 // Header to use the merkle tree data structure to keep a local merkle tree
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
@@ -18,9 +17,8 @@
 #include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
 // Include the core files and template instantiations corresponding
 // to the proof system used
-#include <libzeth/snarks_core_imports.hpp>
 #include <libzeth/snarks_alias.hpp>
-
+#include <libzeth/snarks_core_imports.hpp>
 #include <libzeth/util.hpp>
 
 // Header to access the snark aliases
@@ -141,7 +139,8 @@ libzeth::extended_proof<ZethProofCurve> generate_valid_zeth_proof(
         note_dummy_input,
         a_sk_bits256,
         nf_bits256);
-    std::array<joinsplit_input<ScalarFieldZethT, TreeDepth>, InputsNumber> inputs;
+    std::array<joinsplit_input<ScalarFieldZethT, TreeDepth>, InputsNumber>
+        inputs;
     inputs[0] = input;
     inputs[1] = input_dummy;
     libff::leave_block("Create joinsplit_input", true);
@@ -188,14 +187,13 @@ libzeth::extended_proof<ZethProofCurve> generate_valid_zeth_proof(
     libff::leave_block("Generate Zeth proof", true);
 
     libff::enter_block("Verify Zeth proof", true);
-    libzeth::verificationKeyT<ZethProofCurve> vk =
-        zeth_keypair.vk;
+    libzeth::verificationKeyT<ZethProofCurve> vk = zeth_keypair.vk;
     bool bit = libzeth::verify(ext_proof, vk);
 
     /*
      * // The proof should be valid, so we assert it
      * //ASSERT_EQ(bit, true);
-    **/
+     **/
     libff::leave_block("Verify Zeth proof", true);
 
     /*
@@ -205,7 +203,7 @@ libzeth::extended_proof<ZethProofCurve> generate_valid_zeth_proof(
      * ext_proof.dump_proof();
      * std::cout << "[DEBUG] Displaying the Zeth primary inputs" << std::endl;
      * ext_proof.dump_primary_inputs();
-    **/
+     **/
 
     // Return the extended proof to build the inputs of the aggregator circuit
     return ext_proof;
@@ -234,18 +232,16 @@ bool test_valid_aggregation_batch_proofs(
     libff::leave_block("Generate Aggregate proof", true);
 
     libff::enter_block("Verify Aggregate proof", true);
-    libzeth::verificationKeyT<AggregateProofCurve> vk =
-        aggregator_keypair.vk;
+    libzeth::verificationKeyT<AggregateProofCurve> vk = aggregator_keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
     std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("Verify Aggregate proof", true);
 
     /*
-     * std::cout << "[DEBUG] Displaying the Aggregate extended proof" << std::endl;
-     * ext_proof.dump_proof();
-     * std::cout << "[DEBUG] Displaying the Aggregate primary inputs" << std::endl;
-     * ext_proof.dump_primary_inputs();
-    **/
+     * std::cout << "[DEBUG] Displaying the Aggregate extended proof" <<
+     *std::endl; ext_proof.dump_proof(); std::cout << "[DEBUG] Displaying the
+     *Aggregate primary inputs" << std::endl; ext_proof.dump_primary_inputs();
+     **/
 
     return res;
 }
@@ -277,15 +273,17 @@ TEST(MainTests, AggregatorTest)
     // Test to aggregate a single proof (i.e. generate a proof for the
     // verification of the proof)
     std::cout << "[DEBUG] Before gen Zeth proof" << std::endl;
-    libzeth::extended_proof<ZethProofCurve> valid_proof = generate_valid_zeth_proof(zeth_prover, zeth_keypair);
+    libzeth::extended_proof<ZethProofCurve> valid_proof =
+        generate_valid_zeth_proof(zeth_prover, zeth_keypair);
 
     /*
      * // Generate an invalid proof
      * libzeth::extended_proof<ZethProofCurve> invalid_proof = valid_proof;
      * invalid_proof.get_primary_input
-    **/
+     **/
 
-    std::array<libzeth::extended_proof<ZethProofCurve>, BatchSize> batch = {valid_proof};
+    std::array<libzeth::extended_proof<ZethProofCurve>, BatchSize> batch = {
+        valid_proof};
     // Make sure that the number of primary inputs matches the one we set in the
     // `aggregator_prover` circuit
     std::cout << "[DEBUG] nested_proofs[0].get_primary_input().size(): "
@@ -293,7 +291,8 @@ TEST(MainTests, AggregatorTest)
     // Make sure that we have the right amount of primary inputs
     ASSERT_EQ(batch[0].get_primary_input().size(), 9);
 
-    std::cout << "[DEBUG] Before creation of the Aggregator prover" << std::endl;
+    std::cout << "[DEBUG] Before creation of the Aggregator prover"
+              << std::endl;
     aggregator_circuit_wrapper<ZethProofCurve, AggregateProofCurve, BatchSize>
         aggregator_prover;
     std::cout << "[DEBUG] Before gen Aggregator setup" << std::endl;
