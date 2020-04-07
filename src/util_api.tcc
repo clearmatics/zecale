@@ -134,21 +134,15 @@ libzeth::extended_proof<ppT> parse_groth16_extended_proof(
     // G1
     libff::G1<ppT> c = parse_hexPointBaseGroup1Affine<ppT>(e_proof.c());
 
-    std::vector<libff::Fr<ppT>> inputs =
-        parse_str_inputs<ppT>(e_proof.inputs());
+    std::vector<libff::Fr<ppT>> inputs = libsnark::r1cs_primary_input<libff::Fr<ppT>>(
+        parse_str_inputs<ppT>(e_proof.inputs()));
 
-    // See:
-    // libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp
-    //
-    // r1cs_ppzksnark_proof(knowledge_commitment<libff::G1<ppT>, libff::G1<ppT>
-    // > &&g_A,
-    //      knowledge_commitment<libff::G2<ppT>, libff::G1<ppT> > &&g_B,
-    //      knowledge_commitment<libff::G1<ppT>, libff::G1<ppT> > &&g_C,
-    //      libff::G1<ppT> &&g_H,
-    //      libff::G1<ppT> &&g_K)
-    libsnark::r1cs_gg_ppzksnark_proof<ppT> proof(a, b, c);
+    libsnark::r1cs_gg_ppzksnark_proof<ppT> proof(
+        std::move(a),
+        std::move(b),
+        std::move(c));
     libzeth::extended_proof<ppT> res(
-        proof, libsnark::r1cs_primary_input<libff::Fr<ppT>>(inputs));
+        proof, inputs);
 
     return res;
 }
