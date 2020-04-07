@@ -87,7 +87,8 @@ extended_proof<AggregateProofCurve> aggregator_circuit_wrapper<
         libzeth::verificationKeyT<ZethProofCurve> nested_vk,
         std::array<libzeth::extended_proof<ZethProofCurve>, NumProofs>
             extended_proofs,
-        const libzeth::provingKeyT<AggregateProofCurve> &aggregator_proving_key) const
+        const libzeth::provingKeyT<AggregateProofCurve> &aggregator_proving_key)
+        const
 {
     libsnark::protoboard<ScalarFieldAggregatorT> pb;
 

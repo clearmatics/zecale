@@ -89,13 +89,15 @@ public:
         const std::string &annotation_prefix);
     void generate_r1cs_constraints(const bool enforce_bitness);
     void generate_r1cs_witness(
-        const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>> &vk);
+        const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
+            &vk);
     void generate_r1cs_witness(const libff::bit_vector &vk_bits);
     libff::bit_vector get_bits() const;
     static size_t __attribute__((noinline))
     size_in_bits(const size_t input_size);
     static libff::bit_vector get_verification_key_bits(
-        const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>> &r1cs_vk);
+        const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
+            &r1cs_vk);
 };
 
 template<typename ppT>
@@ -152,7 +154,8 @@ public:
 };
 
 template<typename ppT>
-class r1cs_gg_ppzksnark_online_verifier_gadget : public libsnark::gadget<libff::Fr<ppT>>
+class r1cs_gg_ppzksnark_online_verifier_gadget
+    : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     typedef libff::Fr<ppT> FieldT;
@@ -200,7 +203,8 @@ public:
 };
 
 template<typename ppT>
-class r1cs_gg_ppzksnark_verifier_gadget : public libsnark::gadget<libff::Fr<ppT>>
+class r1cs_gg_ppzksnark_verifier_gadget
+    : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     typedef libff::Fr<ppT> FieldT;

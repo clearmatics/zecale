@@ -50,17 +50,17 @@ aggregator_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     libff::G2<ppT> aff = point;
     aff.to_affine_coordinates();
     std::string x_c1_coord =
-        "0x" + libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(
-                   aff.X.c1.as_bigint());
+        "0x" +
+        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.X.c1.as_bigint());
     std::string x_c0_coord =
-        "0x" + libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(
-                   aff.X.c0.as_bigint());
+        "0x" +
+        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.X.c0.as_bigint());
     std::string y_c1_coord =
-        "0x" + libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(
-                   aff.Y.c1.as_bigint());
+        "0x" +
+        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.Y.c1.as_bigint());
     std::string y_c0_coord =
-        "0x" + libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(
-                   aff.Y.c0.as_bigint());
+        "0x" +
+        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.Y.c0.as_bigint());
 
     aggregator_proto::HexPointBaseGroup2Affine res;
     res.set_x_c0_coord(x_c0_coord);
@@ -134,15 +134,13 @@ libzeth::extended_proof<ppT> parse_groth16_extended_proof(
     // G1
     libff::G1<ppT> c = parse_hexPointBaseGroup1Affine<ppT>(e_proof.c());
 
-    std::vector<libff::Fr<ppT>> inputs = libsnark::r1cs_primary_input<libff::Fr<ppT>>(
-        parse_str_inputs<ppT>(e_proof.inputs()));
+    std::vector<libff::Fr<ppT>> inputs =
+        libsnark::r1cs_primary_input<libff::Fr<ppT>>(
+            parse_str_inputs<ppT>(e_proof.inputs()));
 
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof(
-        std::move(a),
-        std::move(b),
-        std::move(c));
-    libzeth::extended_proof<ppT> res(
-        proof, inputs);
+        std::move(a), std::move(b), std::move(c));
+    libzeth::extended_proof<ppT> res(proof, inputs);
 
     return res;
 }

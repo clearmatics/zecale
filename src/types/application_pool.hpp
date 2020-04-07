@@ -35,8 +35,7 @@ private:
         _tx_pool;
 
 public:
-    application_pool(
-        std::string name, libzeth::verificationKeyT<ppT> vk);
+    application_pool(std::string name, libzeth::verificationKeyT<ppT> vk);
     virtual ~application_pool(){};
 
     inline std::string name() const { return this->_name; };
@@ -44,8 +43,7 @@ public:
     // Function that returns the verification key associated with this
     // application. This constitutes part of the witness of the aggregator
     // circuit.
-    inline libzeth::verificationKeyT<ppT> verification_key()
-        const
+    inline libzeth::verificationKeyT<ppT> verification_key() const
     {
         return *(this->_verification_key);
     };

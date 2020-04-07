@@ -57,22 +57,14 @@ public:
         doubling_steps4;
 
     std::vector<std::shared_ptr<Fqk_sqr_gadget<ppT>>> dbl_sqrs;
-    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>>
-        dbl_muls1;
-    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>>
-        add_muls1;
-    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>>
-        dbl_muls2;
-    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>>
-        add_muls2;
-    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>>
-        dbl_muls3;
-    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>>
-        add_muls3;
-    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>>
-        dbl_muls4;
-    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>>
-        add_muls4;
+    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>> dbl_muls1;
+    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>> add_muls1;
+    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>> dbl_muls2;
+    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>> add_muls2;
+    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>> dbl_muls3;
+    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>> add_muls3;
+    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>> dbl_muls4;
+    std::vector<std::shared_ptr<Fqk_special_mul_gadget<ppT>>> add_muls4;
 
     size_t f_count;
     size_t add_count;

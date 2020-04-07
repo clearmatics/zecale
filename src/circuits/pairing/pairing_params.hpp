@@ -4,7 +4,8 @@
  Declaration of selector for the pairing gadget.
 
  *****************************************************************************
- * @author     This file is taken and modified from libsnark, developed by SCIPR Lab
+ * @author     This file is taken and modified from libsnark, developed by SCIPR
+ Lab
  *             and contributors (see AUTHORS).
  * @copyright  MIT license (see LICENSE file)
  *****************************************************************************/
@@ -12,7 +13,8 @@
 #ifndef __ZECALE_PAIRING_PARAMS_HPP__
 #define __ZECALE_PAIRING_PARAMS_HPP__
 
-namespace libzecale {
+namespace libzecale
+{
 
 /**
  * The interfaces of pairing gadgets are templatized via the parameter
@@ -61,10 +63,12 @@ namespace libzecale {
  *       typedef my_Fqk_special_mul_gadget_type Fqk_special_mul_gadget_type;
  *       typedef my_Fqk_sqr_gadget_type Fqk_sqr_gadget_type;
  *       typedef my_other_curve_type other_curve_type;
- *       typedef my_e_over_e_miller_loop_gadget_type e_over_e_miller_loop_gadget_type;
- *       typedef my_e_times_e_over_e_miller_loop_gadget_type e_times_e_over_e_miller_loop_gadget_type;
- *       typedef my_final_exp_gadget_type final_exp_gadget_type;
- *       static const constexpr libff::bigint<...> &pairing_loop_count = ...;
+ *       typedef my_e_over_e_miller_loop_gadget_type
+ * e_over_e_miller_loop_gadget_type; typedef
+ * my_e_times_e_over_e_miller_loop_gadget_type
+ * e_times_e_over_e_miller_loop_gadget_type; typedef my_final_exp_gadget_type
+ * final_exp_gadget_type; static const constexpr libff::bigint<...>
+ * &pairing_loop_count = ...;
  *   };
  *
  * Having done the above, my_ec_pp can be used as a template parameter.
@@ -73,22 +77,23 @@ namespace libzecale {
  * ec_ppT to "MNT4" and "MNT6".
  *
  */
-template<typename ppT>
-class pairing_selector;
+template<typename ppT> class pairing_selector;
 
 /**
  * Below are various template aliases (used for convenience).
  */
 
 template<typename ppT>
-using FqkT = typename pairing_selector<ppT>::FqkT; // TODO: better name when stable
+using FqkT =
+    typename pairing_selector<ppT>::FqkT; // TODO: better name when stable
 
 template<typename ppT>
 using Fqe_variable = typename pairing_selector<ppT>::Fqe_variable_type;
 template<typename ppT>
 using Fqe_mul_gadget = typename pairing_selector<ppT>::Fqe_mul_gadget_type;
 template<typename ppT>
-using Fqe_mul_by_lc_gadget = typename pairing_selector<ppT>::Fqe_mul_by_lc_gadget_type;
+using Fqe_mul_by_lc_gadget =
+    typename pairing_selector<ppT>::Fqe_mul_by_lc_gadget_type;
 template<typename ppT>
 using Fqe_sqr_gadget = typename pairing_selector<ppT>::Fqe_sqr_gadget_type;
 
@@ -97,7 +102,8 @@ using Fqk_variable = typename pairing_selector<ppT>::Fqk_variable_type;
 template<typename ppT>
 using Fqk_mul_gadget = typename pairing_selector<ppT>::Fqk_mul_gadget_type;
 template<typename ppT>
-using Fqk_special_mul_gadget = typename pairing_selector<ppT>::Fqk_special_mul_gadget_type;
+using Fqk_special_mul_gadget =
+    typename pairing_selector<ppT>::Fqk_special_mul_gadget_type;
 template<typename ppT>
 using Fqk_sqr_gadget = typename pairing_selector<ppT>::Fqk_sqr_gadget_type;
 
@@ -105,15 +111,19 @@ template<typename ppT>
 using other_curve = typename pairing_selector<ppT>::other_curve_type;
 
 template<typename ppT>
-using e_over_e_miller_loop_gadget = typename pairing_selector<ppT>::e_over_e_miller_loop_gadget_type;
+using e_over_e_miller_loop_gadget =
+    typename pairing_selector<ppT>::e_over_e_miller_loop_gadget_type;
 template<typename ppT>
-using e_times_e_over_e_miller_loop_gadget = typename pairing_selector<ppT>::e_times_e_over_e_miller_loop_gadget_type;
-// Add the `using` directive for the `e_times_e_times_e_over_e_miller_loop_gadget` gadget
+using e_times_e_over_e_miller_loop_gadget =
+    typename pairing_selector<ppT>::e_times_e_over_e_miller_loop_gadget_type;
+// Add the `using` directive for the
+// `e_times_e_times_e_over_e_miller_loop_gadget` gadget
 template<typename ppT>
-using e_times_e_times_e_over_e_miller_loop_gadget = typename pairing_selector<ppT>::e_times_e_times_e_over_e_miller_loop_gadget_type;
+using e_times_e_times_e_over_e_miller_loop_gadget = typename pairing_selector<
+    ppT>::e_times_e_times_e_over_e_miller_loop_gadget_type;
 template<typename ppT>
 using final_exp_gadget = typename pairing_selector<ppT>::final_exp_gadget_type;
 
-} // libzecale
+} // namespace libzecale
 
 #endif // __ZECALE_PAIRING_PARAMS_HPP__

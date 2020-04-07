@@ -6,7 +6,6 @@
 #define __ZECALE_PAIRING_CHECKS_CIRCUIT_TCC__
 
 #include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
-#include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
 
 namespace libzecale
 {
@@ -66,8 +65,8 @@ void check_e_equals_eee_gadget<ppT>::generate_r1cs_witness()
     check_finexp->generate_r1cs_witness();
 }
 
-/// In this test we carry out - via a circuit defined over Fr<ppT> - a pairing check
-/// between elements of G1 and G2 defined over other_curve<ppT>
+/// In this test we carry out - via a circuit defined over Fr<ppT> - a pairing
+/// check between elements of G1 and G2 defined over other_curve<ppT>
 template<typename ppT>
 bool test_check_e_equals_eee_gadget(
     // Points of the "other curve" that are fed in the pairing check
@@ -79,7 +78,8 @@ bool test_check_e_equals_eee_gadget(
     libff::G2<other_curve<ppT>> rhs_pairing2_Q,
     libff::G1<other_curve<ppT>> rhs_pairing3_P,
     libff::G2<other_curve<ppT>> rhs_pairing3_Q,
-    // Result of the pairing check (in Fr<ppT> which is the scalar field over which we define the circuit)
+    // Result of the pairing check (in Fr<ppT> which is the scalar field over
+    // which we define the circuit)
     libff::Fr<ppT> expected_result,
     const std::string &annotation_prefix)
 {
@@ -88,11 +88,13 @@ bool test_check_e_equals_eee_gadget(
 
     // We verify the pairing check over Fr<ppT> a pairing check
     // of group elements defined over libff::Fr<other_curve<ppT>>
-    // i.e. we use one curve to verify a pairing check defined over the "other curve"
+    // i.e. we use one curve to verify a pairing check defined over the "other
+    // curve"
     libsnark::protoboard<libff::Fr<ppT>> pb;
 
-    //bool scalar_check = (scalar7 * scalar8 == scalar1 * scalar2 + scalar3 * scalar4 + scalar5 * scalar6);
-    //std::cout << "[DEBUG] ======= scalar_check: " << scalar_check << std::endl;
+    // bool scalar_check = (scalar7 * scalar8 == scalar1 * scalar2 + scalar3 *
+    // scalar4 + scalar5 * scalar6); std::cout << "[DEBUG] ======= scalar_check:
+    // " << scalar_check << std::endl;
 
     libsnark::G1_variable<ppT> lhs_P(pb, FMT(annotation_prefix, " lhs_P"));
     libsnark::G2_variable<ppT> lhs_Q(pb, FMT(annotation_prefix, " lhs_Q"));
@@ -108,38 +110,60 @@ bool test_check_e_equals_eee_gadget(
         pb, lhs_P, lhs_prec_P, FMT(annotation_prefix, " compute_lhs_prec_P"));
     libsnark::G2_precomputation<ppT> lhs_prec_Q;
     libsnark::precompute_G2_gadget<ppT> compute_lhs_prec_Q(
-        pb, lhs_Q, lhs_prec_Q, FMT(annotation_prefix," compute_lhs_prec_Q"));
+        pb, lhs_Q, lhs_prec_Q, FMT(annotation_prefix, " compute_lhs_prec_Q"));
 
     libsnark::G1_precomputation<ppT> rhs_prec1_P;
     libsnark::precompute_G1_gadget<ppT> compute_rhs_prec1_P(
-        pb, rhs_P1, rhs_prec1_P, FMT(annotation_prefix, " compute_rhs_prec1_P"));
+        pb,
+        rhs_P1,
+        rhs_prec1_P,
+        FMT(annotation_prefix, " compute_rhs_prec1_P"));
     libsnark::G2_precomputation<ppT> rhs_prec1_Q;
     libsnark::precompute_G2_gadget<ppT> compute_rhs_prec1_Q(
-        pb, rhs_Q1, rhs_prec1_Q, FMT(annotation_prefix, " compute_rhs_prec1_Q"));
+        pb,
+        rhs_Q1,
+        rhs_prec1_Q,
+        FMT(annotation_prefix, " compute_rhs_prec1_Q"));
 
     libsnark::G1_precomputation<ppT> rhs_prec2_P;
     libsnark::precompute_G1_gadget<ppT> compute_rhs_prec2_P(
-        pb, rhs_P2, rhs_prec2_P, FMT(annotation_prefix, " compute_rhs_prec2_P"));
+        pb,
+        rhs_P2,
+        rhs_prec2_P,
+        FMT(annotation_prefix, " compute_rhs_prec2_P"));
     libsnark::G2_precomputation<ppT> rhs_prec2_Q;
     libsnark::precompute_G2_gadget<ppT> compute_rhs_prec2_Q(
-        pb, rhs_Q2, rhs_prec2_Q, FMT(annotation_prefix, " compute_rhs_prec2_Q"));
+        pb,
+        rhs_Q2,
+        rhs_prec2_Q,
+        FMT(annotation_prefix, " compute_rhs_prec2_Q"));
 
     libsnark::G1_precomputation<ppT> rhs_prec3_P;
     libsnark::precompute_G1_gadget<ppT> compute_rhs_prec3_P(
-        pb, rhs_P3, rhs_prec3_P, FMT(annotation_prefix, " compute_rhs_prec3_P"));
-    libsnark::G2_precomputation<ppT> rhs_prec3_Q;    
+        pb,
+        rhs_P3,
+        rhs_prec3_P,
+        FMT(annotation_prefix, " compute_rhs_prec3_P"));
+    libsnark::G2_precomputation<ppT> rhs_prec3_Q;
     libsnark::precompute_G2_gadget<ppT> compute_rhs_prec3_Q(
-        pb, rhs_Q3, rhs_prec3_Q, FMT(annotation_prefix, " compute_rhs_prec3_Q"));
+        pb,
+        rhs_Q3,
+        rhs_prec3_Q,
+        FMT(annotation_prefix, " compute_rhs_prec3_Q"));
 
     libsnark::pb_variable<libff::Fr<ppT>> result;
     result.allocate(pb, FMT(annotation_prefix, " result"));
 
     check_e_equals_eee_gadget<ppT> pairing_check(
         pb,
-        lhs_prec_P, lhs_prec_Q,
-        rhs_prec1_P, rhs_prec1_Q,
-        rhs_prec2_P, rhs_prec2_Q,
-        rhs_prec3_P, rhs_prec3_Q,
+        lhs_prec_P,
+        lhs_prec_Q,
+        rhs_prec1_P,
+        rhs_prec1_Q,
+        rhs_prec2_P,
+        rhs_prec2_Q,
+        rhs_prec3_P,
+        rhs_prec3_Q,
         result,
         FMT(annotation_prefix, " pairing_check"));
 
@@ -166,10 +190,7 @@ bool test_check_e_equals_eee_gadget(
     PRINT_CONSTRAINT_PROFILING();
 
     libsnark::generate_r1cs_equals_const_constraint<libff::Fr<ppT>>(
-        pb,
-        result,
-        expected_result,
-        FMT(annotation_prefix, " result"));
+        pb, result, expected_result, FMT(annotation_prefix, " result"));
 
     lhs_P.generate_r1cs_witness(lhs_pairing_P);
     compute_lhs_prec_P.generate_r1cs_witness();

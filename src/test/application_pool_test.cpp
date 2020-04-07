@@ -20,7 +20,8 @@ namespace
 {
 
 #ifdef ZKSNARK_PGHR13
-libsnark::r1cs_ppzksnark_proof<ppT> get_dummy_proof(){
+libsnark::r1cs_ppzksnark_proof<ppT> get_dummy_proof()
+{
     libsnark::r1cs_ppzksnark_proof<ppT> dummy_proof(
         libsnark::knowledge_commitment<libff::G1<ppT>, libff::G1<ppT>>(
             libff::G1<ppT>::random_element(), libff::G1<ppT>::random_element()),
@@ -34,13 +35,17 @@ libsnark::r1cs_ppzksnark_proof<ppT> get_dummy_proof(){
     return dummy_proof;
 }
 
-libsnark::r1cs_ppzksnark_verification_key<ppT> get_dummy_verification_key(size_t input_size){
-    return libsnark::r1cs_ppzksnark_verification_key<ppT>::dummy_verification_key(input_size);
+libsnark::r1cs_ppzksnark_verification_key<ppT> get_dummy_verification_key(
+    size_t input_size)
+{
+    return libsnark::r1cs_ppzksnark_verification_key<
+        ppT>::dummy_verification_key(input_size);
 }
 #endif
 
 #ifdef ZKSNARK_GROTH16
-libsnark::r1cs_gg_ppzksnark_proof<ppT> get_dummy_proof(){
+libsnark::r1cs_gg_ppzksnark_proof<ppT> get_dummy_proof()
+{
     libsnark::r1cs_gg_ppzksnark_proof<ppT> dummy_proof(
         libff::G1<ppT>::random_element(),
         libff::G2<ppT>::random_element(),
@@ -48,8 +53,11 @@ libsnark::r1cs_gg_ppzksnark_proof<ppT> get_dummy_proof(){
 
     return dummy_proof;
 }
-libsnark::r1cs_gg_ppzksnark_verification_key<ppT> get_dummy_verification_key(size_t input_size){
-    return libsnark::r1cs_gg_ppzksnark_verification_key<ppT>::dummy_verification_key(input_size);
+libsnark::r1cs_gg_ppzksnark_verification_key<ppT> get_dummy_verification_key(
+    size_t input_size)
+{
+    return libsnark::r1cs_gg_ppzksnark_verification_key<
+        ppT>::dummy_verification_key(input_size);
 }
 #endif
 

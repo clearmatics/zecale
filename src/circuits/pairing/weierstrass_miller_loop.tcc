@@ -9,8 +9,6 @@
 #include <libsnark/gadgetlib1/constraint_profiling.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
 
-#include <libsnark/gadgetlib1/constraint_profiling.hpp>
-
 namespace libzecale
 {
 
@@ -80,8 +78,8 @@ mnt_e_times_e_times_e_over_e_miller_loop_gadget<ppT>::
     g_RQ_at_P4s.resize(add_count);
 
     for (size_t i = 0; i < f_count; ++i) {
-        fs[i].reset(new Fqk_variable<ppT>(
-            pb, FMT(annotation_prefix, " fs_%zu", i)));
+        fs[i].reset(
+            new Fqk_variable<ppT>(pb, FMT(annotation_prefix, " fs_%zu", i)));
     }
 
     dbl_sqrs.resize(dbl_count);
@@ -107,30 +105,34 @@ mnt_e_times_e_times_e_over_e_miller_loop_gadget<ppT>::
             continue;
         }
 
-        doubling_steps1[dbl_id].reset(new libsnark::mnt_miller_loop_dbl_line_eval<ppT>(
-            pb,
-            prec_P1,
-            *prec_Q1.coeffs[prec_id],
-            g_RR_at_P1s[dbl_id],
-            FMT(annotation_prefix, " doubling_steps1_%zu", dbl_id)));
-        doubling_steps2[dbl_id].reset(new libsnark::mnt_miller_loop_dbl_line_eval<ppT>(
-            pb,
-            prec_P2,
-            *prec_Q2.coeffs[prec_id],
-            g_RR_at_P2s[dbl_id],
-            FMT(annotation_prefix, " doubling_steps2_%zu", dbl_id)));
-        doubling_steps3[dbl_id].reset(new libsnark::mnt_miller_loop_dbl_line_eval<ppT>(
-            pb,
-            prec_P3,
-            *prec_Q3.coeffs[prec_id],
-            g_RR_at_P3s[dbl_id],
-            FMT(annotation_prefix, " doubling_steps3_%zu", dbl_id)));
-        doubling_steps4[dbl_id].reset(new libsnark::mnt_miller_loop_dbl_line_eval<ppT>(
-            pb,
-            prec_P4,
-            *prec_Q4.coeffs[prec_id],
-            g_RR_at_P4s[dbl_id],
-            FMT(annotation_prefix, " doubling_steps4_%zu", dbl_id)));
+        doubling_steps1[dbl_id].reset(
+            new libsnark::mnt_miller_loop_dbl_line_eval<ppT>(
+                pb,
+                prec_P1,
+                *prec_Q1.coeffs[prec_id],
+                g_RR_at_P1s[dbl_id],
+                FMT(annotation_prefix, " doubling_steps1_%zu", dbl_id)));
+        doubling_steps2[dbl_id].reset(
+            new libsnark::mnt_miller_loop_dbl_line_eval<ppT>(
+                pb,
+                prec_P2,
+                *prec_Q2.coeffs[prec_id],
+                g_RR_at_P2s[dbl_id],
+                FMT(annotation_prefix, " doubling_steps2_%zu", dbl_id)));
+        doubling_steps3[dbl_id].reset(
+            new libsnark::mnt_miller_loop_dbl_line_eval<ppT>(
+                pb,
+                prec_P3,
+                *prec_Q3.coeffs[prec_id],
+                g_RR_at_P3s[dbl_id],
+                FMT(annotation_prefix, " doubling_steps3_%zu", dbl_id)));
+        doubling_steps4[dbl_id].reset(
+            new libsnark::mnt_miller_loop_dbl_line_eval<ppT>(
+                pb,
+                prec_P4,
+                *prec_Q4.coeffs[prec_id],
+                g_RR_at_P4s[dbl_id],
+                FMT(annotation_prefix, " doubling_steps4_%zu", dbl_id)));
         ++prec_id;
 
         dbl_sqrs[dbl_id].reset(new Fqk_sqr_gadget<ppT>(
@@ -280,8 +282,7 @@ void mnt_e_times_e_times_e_over_e_miller_loop_gadget<
     size_t dbl_id = 0;
     size_t f_id = 0;
 
-    const auto &loop_count =
-        pairing_selector<ppT>::pairing_loop_count;
+    const auto &loop_count = pairing_selector<ppT>::pairing_loop_count;
 
     bool found_nonzero = false;
     std::vector<long> NAF = find_wnaf(1, loop_count);
