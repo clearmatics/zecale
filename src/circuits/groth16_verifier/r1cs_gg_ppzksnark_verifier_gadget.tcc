@@ -247,9 +247,9 @@ libff::bit_vector r1cs_gg_ppzksnark_verification_key_variable<ppT>::
 
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable_array<FieldT> vk_bits;
-    vk_bits.allocate(pb, vk_size_in_bits, FMT(annotation_prefix, " vk_size_in_bits"));
+    vk_bits.allocate(pb, vk_size_in_bits, " vk_size_in_bits");
     r1cs_gg_ppzksnark_verification_key_variable<ppT> vk(
-        pb, vk_bits, input_size_in_elts, FMT(annotation_prefix, " translation_step_vk"));
+        pb, vk_bits, input_size_in_elts, " translation_step_vk");
     vk.generate_r1cs_witness(r1cs_vk);
 
     return vk.get_bits();
