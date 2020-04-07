@@ -30,10 +30,10 @@ aggregator_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
     aff.to_affine_coordinates();
     std::string x_coord =
         "0x" +
-        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.X().as_bigint());
+        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.X.as_bigint());
     std::string y_coord =
         "0x" +
-        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.Y().as_bigint());
+        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.Y.as_bigint());
 
     aggregator_proto::HexPointBaseGroup1Affine res;
     res.set_x_coord(x_coord);
@@ -51,16 +51,16 @@ aggregator_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     aff.to_affine_coordinates();
     std::string x_c1_coord =
         "0x" + libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(
-                   aff.X().c1.as_bigint());
+                   aff.X.c1.as_bigint());
     std::string x_c0_coord =
         "0x" + libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(
-                   aff.X().c0.as_bigint());
+                   aff.X.c0.as_bigint());
     std::string y_c1_coord =
         "0x" + libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(
-                   aff.Y().c1.as_bigint());
+                   aff.Y.c1.as_bigint());
     std::string y_c0_coord =
         "0x" + libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(
-                   aff.Y().c0.as_bigint());
+                   aff.Y.c0.as_bigint());
 
     aggregator_proto::HexPointBaseGroup2Affine res;
     res.set_x_c0_coord(x_c0_coord);
