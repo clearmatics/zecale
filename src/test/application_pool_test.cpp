@@ -9,6 +9,9 @@
 #include <libzeth/libsnark_helpers/debug_helpers.hpp>
 #include <stdio.h>
 
+// zkSNARK templates instantiation
+#include <libzeth/snarks_alias.hpp>
+
 typedef libff::mnt4_pp ppT;
 
 using namespace libzecale;
@@ -16,24 +19,9 @@ using namespace libzecale;
 namespace
 {
 
-TEST(MainTests, AddAndRetrieveTransactions)
+#ifdef ZKSNARK_PGHR13
+libsnark::r1cs_ppzksnark_proof<ppT> get_dummy_proof()
 {
-    // Create an application pool with a dummy verification key (set with
-    // arbitrary number of inputs)
-    std::string dummy_app_name = std::string("test_application");
-    libsnark::r1cs_ppzksnark_verification_key<ppT> dummy_vk =
-        libsnark::r1cs_ppzksnark_verification_key<ppT>::dummy_verification_key(
-            7);
-
-    // We create a pool with a batch size of 2 here
-    const size_t BATCH_SIZE = 2;
-    application_pool<ppT, BATCH_SIZE> pool(dummy_app_name, dummy_vk);
-
-    // Get size of the pool before any addition
-    ASSERT_EQ(pool.tx_pool_size(), (size_t)0);
-
-    // Create a dummy extended proof to build the set of transactions to
-    // aggregate
     libsnark::r1cs_ppzksnark_proof<ppT> dummy_proof(
         libsnark::knowledge_commitment<libff::G1<ppT>, libff::G1<ppT>>(
             libff::G1<ppT>::random_element(), libff::G1<ppT>::random_element()),
@@ -44,6 +32,50 @@ TEST(MainTests, AddAndRetrieveTransactions)
         libff::G1<ppT>::random_element(),
         libff::G1<ppT>::random_element());
 
+    return dummy_proof;
+}
+
+libsnark::r1cs_ppzksnark_verification_key<ppT> get_dummy_verification_key(
+    size_t input_size)
+{
+    return libsnark::r1cs_ppzksnark_verification_key<
+        ppT>::dummy_verification_key(input_size);
+}
+#endif
+
+#ifdef ZKSNARK_GROTH16
+libsnark::r1cs_gg_ppzksnark_proof<ppT> get_dummy_proof()
+{
+    libsnark::r1cs_gg_ppzksnark_proof<ppT> dummy_proof(
+        libff::G1<ppT>::random_element(),
+        libff::G2<ppT>::random_element(),
+        libff::G1<ppT>::random_element());
+
+    return dummy_proof;
+}
+libsnark::r1cs_gg_ppzksnark_verification_key<ppT> get_dummy_verification_key(
+    size_t input_size)
+{
+    return libsnark::r1cs_gg_ppzksnark_verification_key<
+        ppT>::dummy_verification_key(input_size);
+}
+#endif
+
+TEST(MainTests, AddAndRetrieveTransactions)
+{
+    // Create an application pool with a dummy verification key
+    // (set with arbitrary number of inputs)
+    const size_t BATCH_SIZE = 2;
+    std::string dummy_app_name = std::string("test_application");
+    libzeth::verificationKeyT<ppT> vk = get_dummy_verification_key(42);
+    application_pool<ppT, BATCH_SIZE> pool(dummy_app_name, vk);
+
+    // Get size of the pool before any addition
+    ASSERT_EQ(pool.tx_pool_size(), (size_t)0);
+
+    // Create a dummy extended proof to build the set of transactions to
+    // aggregate
+    libzeth::proofT<ppT> proof = get_dummy_proof();
     std::vector<libff::Fr<ppT>> dummy_inputs;
     dummy_inputs.push_back(libff::Fr<ppT>::random_element());
     dummy_inputs.push_back(libff::Fr<ppT>::random_element());
@@ -51,8 +83,7 @@ TEST(MainTests, AddAndRetrieveTransactions)
     libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_inputs =
         libsnark::r1cs_primary_input<libff::Fr<ppT>>(dummy_inputs);
 
-    libzeth::extended_proof<ppT> dummy_extended_proof(
-        dummy_proof, dummy_inputs);
+    libzeth::extended_proof<ppT> dummy_extended_proof(proof, dummy_inputs);
 
     // Add transactions in the pool
     transaction_to_aggregate<ppT> tx_a =

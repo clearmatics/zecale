@@ -30,10 +30,10 @@ aggregator_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
     aff.to_affine_coordinates();
     std::string x_coord =
         "0x" +
-        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.X().as_bigint());
+        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.X.as_bigint());
     std::string y_coord =
         "0x" +
-        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.Y().as_bigint());
+        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.Y.as_bigint());
 
     aggregator_proto::HexPointBaseGroup1Affine res;
     res.set_x_coord(x_coord);
@@ -50,17 +50,17 @@ aggregator_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     libff::G2<ppT> aff = point;
     aff.to_affine_coordinates();
     std::string x_c1_coord =
-        "0x" + libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(
-                   aff.X().c1.as_bigint());
+        "0x" +
+        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.X.c1.as_bigint());
     std::string x_c0_coord =
-        "0x" + libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(
-                   aff.X().c0.as_bigint());
+        "0x" +
+        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.X.c0.as_bigint());
     std::string y_c1_coord =
-        "0x" + libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(
-                   aff.Y().c1.as_bigint());
+        "0x" +
+        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.Y.c1.as_bigint());
     std::string y_c0_coord =
-        "0x" + libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(
-                   aff.Y().c0.as_bigint());
+        "0x" +
+        libzeth::hex_from_libsnark_bigint<libff::Fq<ppT>>(aff.Y.c0.as_bigint());
 
     aggregator_proto::HexPointBaseGroup2Affine res;
     res.set_x_c0_coord(x_c0_coord);
@@ -135,20 +135,12 @@ libzeth::extended_proof<ppT> parse_groth16_extended_proof(
     libff::G1<ppT> c = parse_hexPointBaseGroup1Affine<ppT>(e_proof.c());
 
     std::vector<libff::Fr<ppT>> inputs =
-        parse_str_inputs<ppT>(e_proof.inputs());
+        libsnark::r1cs_primary_input<libff::Fr<ppT>>(
+            parse_str_inputs<ppT>(e_proof.inputs()));
 
-    // See:
-    // libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp
-    //
-    // r1cs_ppzksnark_proof(knowledge_commitment<libff::G1<ppT>, libff::G1<ppT>
-    // > &&g_A,
-    //      knowledge_commitment<libff::G2<ppT>, libff::G1<ppT> > &&g_B,
-    //      knowledge_commitment<libff::G1<ppT>, libff::G1<ppT> > &&g_C,
-    //      libff::G1<ppT> &&g_H,
-    //      libff::G1<ppT> &&g_K)
-    libsnark::r1cs_gg_ppzksnark_proof<ppT> proof(a, b, c);
-    libzeth::extended_proof<ppT> res(
-        proof, libsnark::r1cs_primary_input<libff::Fr<ppT>>(inputs));
+    libsnark::r1cs_gg_ppzksnark_proof<ppT> proof(
+        std::move(a), std::move(b), std::move(c));
+    libzeth::extended_proof<ppT> res(proof, inputs);
 
     return res;
 }

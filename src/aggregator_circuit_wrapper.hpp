@@ -10,9 +10,8 @@
 #include <libzeth/libsnark_helpers/extended_proof.hpp>
 #include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
 
-// We directly import PGHR13 related files as we only support this SNARK for now
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
-// zkSNARK specific imports
+// zkSNARK specific imports, and templates instantiation
+#include <libzeth/snarks_alias.hpp>
 #include <libzeth/snarks_core_imports.hpp>
 
 using namespace libzeth;
@@ -41,8 +40,7 @@ public:
         : setup_path(setup_path){};
 
     // Generate the trusted setup
-    libsnark::r1cs_ppzksnark_keypair<AggregateProofCurve> generate_trusted_setup()
-        const;
+    libzeth::keyPairT<AggregateProofCurve> generate_trusted_setup() const;
 
 #ifdef DEBUG
     // Used to debug the constraint system
@@ -52,11 +50,11 @@ public:
 
     // Generate a proof and returns an extended proof
     extended_proof<AggregateProofCurve> prove(
-        libsnark::r1cs_ppzksnark_verification_key<ZethProofCurve> nested_vk,
+        libzeth::verificationKeyT<ZethProofCurve> nested_vk,
         std::array<libzeth::extended_proof<ZethProofCurve>, NumProofs>
             extended_proofs,
-        const libsnark::r1cs_ppzksnark_proving_key<AggregateProofCurve>
-            &aggregator_proving_key) const;
+        const libzeth::provingKeyT<AggregateProofCurve> &aggregator_proving_key)
+        const;
 };
 
 } // namespace libzecale

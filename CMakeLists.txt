@@ -34,7 +34,7 @@ configure_file (
 # TODO: Implement it
 set(
   ZKSNARK
-  "PGHR13"
+  "GROTH16"
   CACHE
   STRING
   "Default snark: one of PGHR13, GROTH16"

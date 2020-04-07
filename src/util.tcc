@@ -24,7 +24,13 @@ template<typename FieldT> FieldT hex_str_to_field_element(std::string field_str)
 
     char cstr[field_str.size() + 1];
     strcpy(cstr, field_str.c_str());
+
     int res = hex_str_to_bin(cstr, val);
+    if (res == 0) {
+        // TODO: Do exception throwing/catching properly
+        std::cerr << "hex_str_to_bin: No data converted" << std::endl;
+        exit(1);
+    }
 
     libff::bigint<FieldT::num_limbs> el =
         libzeth::libsnark_bigint_from_bytes<FieldT>(val);
