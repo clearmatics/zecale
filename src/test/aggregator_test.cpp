@@ -3,32 +3,28 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "gtest/gtest.h"
-#include <libff/algebra/curves/alt_bn128/alt_bn128_init.hpp>
 #include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
 #include <libff/algebra/curves/mnt/mnt6/mnt6_pp.hpp>
 #include <libff/algebra/fields/field_utils.hpp>
 #include <libff/common/default_types/ec_pp.hpp>
 
-#include <libsnark/common/default_types/r1cs_ppzksnark_pp.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
-
-#include <libsnark/common/default_types/r1cs_gg_ppzksnark_pp.hpp>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.hpp>
 
 // Header to use the merkle tree data structure to keep a local merkle tree
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
-// include the joinsplit gadget - generate the zeth proofs
+// Include the joinsplit gadget - generate the zeth proofs
 #include <libzeth/circuit_wrapper.hpp>
 #include <libzeth/circuits/blake2s/blake2s_comp.hpp>
 #include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
+// Include the core files and template instantiations corresponding
+// to the proof system used
 #include <libzeth/snarks_core_imports.hpp>
+#include <libzeth/snarks_alias.hpp>
+
 #include <libzeth/util.hpp>
 
 // Header to access the snark aliases
 #include "aggregator_circuit_wrapper.hpp"
-
-#include <libzeth/snarks_alias.hpp>
 
 using namespace libzeth;
 
@@ -74,7 +70,7 @@ libzeth::extended_proof<ZethProofCurve> generate_valid_zeth_proof(
         InputsNumber,
         OutputsNumber,
         TreeDepth> &zeth_prover,
-    libsnark::r1cs_ppzksnark_keypair<ZethProofCurve> zeth_keypair)
+    libzeth::keyPairT<ZethProofCurve> zeth_keypair)
 {
     libff::print_header("Entering generate_valid_zeth_proof");
 
@@ -192,7 +188,7 @@ libzeth::extended_proof<ZethProofCurve> generate_valid_zeth_proof(
     libff::leave_block("Generate Zeth proof", true);
 
     libff::enter_block("Verify Zeth proof", true);
-    libsnark::r1cs_ppzksnark_verification_key<ZethProofCurve> vk =
+    libzeth::verificationKeyT<ZethProofCurve> vk =
         zeth_keypair.vk;
     bool bit = libzeth::verify(ext_proof, vk);
 
@@ -216,11 +212,15 @@ libzeth::extended_proof<ZethProofCurve> generate_valid_zeth_proof(
 }
 
 /// Test aggregation of a batch of proofs
+///
+/// Here we use the same proof system to generate the "zeth proofs"
+/// and the Zecale proofs, but we could use different proofs systems.
+/// We use the same SNARK for simplicity.
 bool test_valid_aggregation_batch_proofs(
     aggregator_circuit_wrapper<ZethProofCurve, AggregateProofCurve, BatchSize>
         &aggregator_prover,
-    libsnark::r1cs_ppzksnark_keypair<AggregateProofCurve> aggregator_keypair,
-    libsnark::r1cs_ppzksnark_keypair<ZethProofCurve> zeth_keypair,
+    libzeth::keyPairT<AggregateProofCurve> aggregator_keypair,
+    libzeth::keyPairT<ZethProofCurve> zeth_keypair,
     std::array<libzeth::extended_proof<ZethProofCurve>, BatchSize>
         nested_proofs)
 {
@@ -234,7 +234,7 @@ bool test_valid_aggregation_batch_proofs(
     libff::leave_block("Generate Aggregate proof", true);
 
     libff::enter_block("Verify Aggregate proof", true);
-    libsnark::r1cs_ppzksnark_verification_key<AggregateProofCurve> vk =
+    libzeth::verificationKeyT<AggregateProofCurve> vk =
         aggregator_keypair.vk;
     bool res = libzeth::verify(ext_proof, vk);
     std::cout << "Does the proof verify? " << res << std::endl;
@@ -271,7 +271,7 @@ TEST(MainTests, AggregatorTest)
         TreeDepth>
         zeth_prover;
     std::cout << "[DEBUG] Before Zeth trusted setup" << std::endl;
-    libsnark::r1cs_ppzksnark_keypair<ZethProofCurve> zeth_keypair =
+    libzeth::keyPairT<ZethProofCurve> zeth_keypair =
         zeth_prover.generate_trusted_setup();
 
     // Test to aggregate a single proof (i.e. generate a proof for the
@@ -297,7 +297,7 @@ TEST(MainTests, AggregatorTest)
     aggregator_circuit_wrapper<ZethProofCurve, AggregateProofCurve, BatchSize>
         aggregator_prover;
     std::cout << "[DEBUG] Before gen Aggregator setup" << std::endl;
-    libsnark::r1cs_ppzksnark_keypair<AggregateProofCurve> aggregator_keypair =
+    libzeth::keyPairT<AggregateProofCurve> aggregator_keypair =
         aggregator_prover.generate_trusted_setup();
 
     std::cout << "[DEBUG] Before first test" << std::endl;

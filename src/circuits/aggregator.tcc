@@ -15,9 +15,18 @@
 
 // Include the verifier gadgets
 #include <libff/algebra/fields/field_utils.hpp>
-#include <libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp>
+#include "src/circuits/verifier_gagdet_imports.hpp"
+
+// Include the core files and template instantiations corresponding
+// to the proof system used
+#include <libzeth/snarks_core_imports.hpp>
+#include <libzeth/snarks_alias.hpp>
 
 using namespace libzeth;
+
+// TODO: Templatize this file, and use similar apparoach as in
+// Zeth to import the good includes and set the right aliases
+// and use the right gadgets for the verification key gadgets and so on.
 
 namespace libzecale
 {
@@ -49,11 +58,11 @@ namespace libzecale
 // scalar field) to define the gadgets.
 
 template<
-    typename ZethProofCurve,      // Curve over which we "prove" Zeth state
-                                  // transitions => E/Fq
-    typename AggregateProofCurve, // Curve over which we "prove" succesfull
-                                  // verication of the nested proofs batch =>
-                                  // E/Fr
+    // Curve over which we "prove" Zeth state transitions => E/Fq
+    typename ZethProofCurve,
+    // Curve over which we "prove" succesfull verication of the nested proofs
+    // batch => E/Fr
+    typename AggregateProofCurve,
     size_t NumProofs>
 class aggregator_gadget : libsnark::gadget<libff::Fr<AggregateProofCurve>>
 {
@@ -85,8 +94,7 @@ private:
     // `ScalarFieldAggregatorT = BaseFieldZethT` That is to say, they do
     // arithmetic over the curve `ZethProofCurve`
     std::array<
-        std::shared_ptr<
-            libsnark::r1cs_ppzksnark_verifier_gadget<AggregateProofCurve>>,
+        std::shared_ptr<verifierGadgetT<AggregateProofCurve>>,
         NumProofs>
         verifiers;
 
@@ -135,9 +143,7 @@ private:
     // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp#L55
     //
     std::array<
-        std::shared_ptr<
-            libsnark::r1cs_ppzksnark_proof_variable<AggregateProofCurve>>,
-        NumProofs>
+        std::shared_ptr<proofVariableGadgetT<AggregateProofCurve>>, NumProofs>
         nested_proofs;
     // Likewise, this is not strictly necessary, but we do not need to pass the
     // VK to the contract everytime as such we move it to the auxiliary inputs
@@ -147,9 +153,7 @@ private:
     // again, makes sense because elements of `ZethProofCurve` are defined over
     // `E/BaseFieldZethT`, and `BaseFieldZethT` is `ScalarFieldAggregatorT`
     // which is where we do arithmetic here
-    std::shared_ptr<
-        libsnark::r1cs_ppzksnark_verification_key_variable<AggregateProofCurve>>
-        nested_vk;
+    std::shared_ptr<verificationKeyVariableGadgetT<AggregateProofCurve>> nested_vk;
 
 public:
     // Make sure that we do not exceed the number of proofs
@@ -245,17 +249,14 @@ public:
             // to the # of primary inputs of the zeth circuit, which is used to
             // determine the size of the zeth VK which is the one we manipulate
             // below.
-            const size_t vk_size_in_bits =
-                libsnark::r1cs_ppzksnark_verification_key_variable<
-                    AggregateProofCurve>::size_in_bits(nb_zeth_inputs);
+            const size_t vk_size_in_bits = verificationKeyVariableGadgetT<AggregateProofCurve>::size_in_bits(nb_zeth_inputs);
             libsnark::pb_variable_array<ScalarFieldAggregatorT> nested_vk_bits;
             nested_vk_bits.allocate(
                 pb,
                 vk_size_in_bits,
                 FMT(this->annotation_prefix, " vk_size_in_bits"));
             nested_vk.reset(
-                new libsnark::r1cs_ppzksnark_verification_key_variable<
-                    AggregateProofCurve>(
+                new verificationKeyVariableGadgetT<AggregateProofCurve>(
                     pb,
                     nested_vk_bits,
                     nb_zeth_inputs,
@@ -265,8 +266,7 @@ public:
             // is done in the constructor `r1cs_ppzksnark_proof_variable()`
             for (size_t i = 0; i < NumProofs; i++) {
                 nested_proofs[i].reset(
-                    new libsnark::r1cs_ppzksnark_proof_variable<
-                        AggregateProofCurve>(
+                    new proofVariableGadgetT<AggregateProofCurve>(
                         pb,
                         FMT(this->annotation_prefix,
                             " nested_proofs[%zu]",
@@ -276,17 +276,13 @@ public:
 
         // Initialize the verifier gadgets
         for (size_t i = 0; i < NumProofs; i++) {
-            verifiers[i].reset(new libsnark::r1cs_ppzksnark_verifier_gadget<
-                               AggregateProofCurve>(
-                pb, // protoboard<ScalarFieldAggregatorT>
-                *nested_vk, // libsnark::r1cs_ppzksnark_verification_key_variable<AggregateProofCurve>
-                nested_primary_inputs
-                    [i], // libsnark::pb_variable_array<ScalarFieldAggregatorT>
-                ScalarFieldZethT::size_in_bits(), // size_t
-                *nested_proofs
-                    [i], // libsnark::r1cs_ppzksnark_proof_variable<AggregateProofCurve>
-                nested_proofs_results
-                    [i], // libsnark::pb_variable<ScalarFieldAggregatorT>
+            verifiers[i].reset(new verifierGadgetT<AggregateProofCurve>(
+                pb,
+                *nested_vk,
+                nested_primary_inputs[i],
+                ScalarFieldZethT::size_in_bits(),
+                *nested_proofs[i],
+                nested_proofs_results[i],
                 FMT(this->annotation_prefix, " verifiers[%zu]", i)));
         }
     }
@@ -324,7 +320,7 @@ public:
     // see:
     // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp#L98
     void generate_r1cs_witness(
-        libsnark::r1cs_ppzksnark_verification_key<ZethProofCurve> in_nested_vk,
+        libzeth::verificationKeyT<ZethProofCurve> in_nested_vk,
         std::array<libzeth::extended_proof<ZethProofCurve>, NumProofs>
             in_extended_proofs)
     {
