@@ -16,25 +16,22 @@ service Aggregator {
     // is basically multiple calls to the SNARK verification routine)
     rpc GetVerificationKey(google.protobuf.Empty) returns (VerificationKey) {}
 
-    // Set nested verification key
-    // Returns "true" if the key is succesfully set
-    // Returns "false" if the key is not succesfully set
-    //
-    // Depositing a new verification key can be assimilated to supporting a new
+    // Registering an application allows to support a new
     // application on the aggregation service
     //
-    // Not sure we want to have an endpoint for this, so it's commented for now
-    //
-    //rpc SetNestedVerificationKey(VerificationKey) returns (bool) {}
+    // Not sure we want to have an endpoint for this in the long run, but that's
+    // helpful for now, so let's keep it.
+    rpc RegisterApplication(ApplicationRegistration) returns (google.protobuf.Empty) {}
 
-    // Request a proof that verifies a batch of zeth proofs
-    // Doesn't take any argument since the proofs to batch are already in the aggregator tx pool,
-    // so they don't need to be passed as arguments here.
+    // Request a proof that verifies a batch of proofs for the given application name.
+    // The only argument of this function is the application for which we want to generate
+    // an aggregate proof. The proofs to batch should have already been deposited in the
+    // aggregator tx pool, so they don't need to be passed as arguments here.
     // The function returns the proof of CI for the validity of the batch of proofs
     //
     // This endpoint won't necessarily be useful in practice, but this is useful
     // for some manual triggering for now.
-    rpc GenerateAggregateProof(google.protobuf.Empty) returns (ExtendedProof) {}
+    rpc GenerateAggregateProof(ApplicationName) returns (ExtendedProof) {}
 
     // Function to submit a transaction to aggregate
     rpc SubmitTransaction(TransactionToAggregate) returns (google.protobuf.Empty) {}
@@ -52,6 +49,15 @@ message ExtendedProof {
         ExtendedProofPGHR13 pghr13_extended_proof = 1;
         ExtendedProofGROTH16 groth16_extended_proof = 2;
     }
+}
+
+message ApplicationName {
+    string name = 1;
+}
+
+message ApplicationRegistration {
+    string name = 1;
+    VerificationKey vk = 2;
 }
 
 // A Zeth transaction is a "TransactionToAggregate"
