@@ -4,9 +4,9 @@ package aggregator_proto;
 
 import "google/protobuf/empty.proto";
 
-import "api/groth16_messages.proto";
-import "api/pghr13_messages.proto";
-import "api/util.proto";
+import "depends/zeth/api/groth16_messages.proto";
+import "depends/zeth/api/pghr13_messages.proto";
+import "depends/zeth/api/util.proto";
 
 service Aggregator {
     // Fetch the verification key from the aggregator service to be able to verify the proofs
