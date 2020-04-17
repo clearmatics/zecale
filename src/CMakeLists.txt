@@ -27,11 +27,18 @@ set(PROTO_SRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/proto_src)
 file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
 include_directories(${PROTO_SRC_DIR})
 
-set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR})
+# TODO remove line below:
+# Add the proto files of zeth into the set of include directories
+include_directories(${PROJECT_BINARY_DIR}/depends/zeth/proto_src)
+
+set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/depends/zeth)
 set(PROTOBUF_PROTO_PATH ${PROJECT_SOURCE_DIR})
 set(PROTOBUF_APPEND_DEST_PATH "/api")
 set(PROTOBUF_GENERATE_CPP_APPEND_PATH FALSE)
 set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
+
+message( "In Zecale cmakelist file => " )
+message(${PROTOBUF_IMPORT_DIRS})
 
 # See cmake scripts in the cmake folder
 # Generate the grpc and protobuf files and set the result of the generation

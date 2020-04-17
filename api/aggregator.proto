@@ -1,12 +1,14 @@
 syntax = "proto3";
 
+// To rename: `clearmatics.zecale_proto`
+// Likewise, rename `prover_proto` to `clearmatics.zeth_proto`
 package aggregator_proto;
 
 import "google/protobuf/empty.proto";
 
+//import "depends/zeth/api/util.proto";
 import "depends/zeth/api/groth16_messages.proto";
 import "depends/zeth/api/pghr13_messages.proto";
-import "depends/zeth/api/util.proto";
 
 service Aggregator {
     // Fetch the verification key from the aggregator service to be able to verify the proofs
@@ -37,20 +39,6 @@ service Aggregator {
     rpc SubmitTransaction(TransactionToAggregate) returns (google.protobuf.Empty) {}
 }
 
-message VerificationKey {
-    oneof VK {
-        VerificationKeyPGHR13 pghr13_verification_key = 1;
-        VerificationKeyGROTH16 groth16_verification_key = 2;
-    }
-}
-
-message ExtendedProof {
-    oneof EP {
-        ExtendedProofPGHR13 pghr13_extended_proof = 1;
-        ExtendedProofGROTH16 groth16_extended_proof = 2;
-    }
-}
-
 message ApplicationName {
     string name = 1;
 }
@@ -69,4 +57,18 @@ message TransactionToAggregate {
     ExtendedProof extended_proof = 2;
     // Only if an incentive structure is in place and fees are supported
     int32 fee_in_wei = 3;
+}
+
+message VerificationKey {
+    oneof VK {
+        prover_proto.VerificationKeyPGHR13 pghr13_verification_key = 1;
+        prover_proto.VerificationKeyGROTH16 groth16_verification_key = 2;
+    }
+}
+
+message ExtendedProof {
+    oneof EP {
+        prover_proto.ExtendedProofPGHR13 pghr13_extended_proof = 1;
+        prover_proto.ExtendedProofGROTH16 groth16_extended_proof = 2;
+    }
 }
