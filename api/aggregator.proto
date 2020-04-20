@@ -6,9 +6,8 @@ package aggregator_proto;
 
 import "google/protobuf/empty.proto";
 
-//import "depends/zeth/api/util.proto";
-import "depends/zeth/api/groth16_messages.proto";
-import "depends/zeth/api/pghr13_messages.proto";
+import "api/groth16_messages.proto";
+import "api/pghr13_messages.proto";
 
 service Aggregator {
     // Fetch the verification key from the aggregator service to be able to verify the proofs
@@ -68,7 +67,7 @@ message VerificationKey {
 
 message ExtendedProof {
     oneof EP {
-        prover_proto.ExtendedProofPGHR13 pghr13_extended_proof = 1;
-        prover_proto.ExtendedProofGROTH16 groth16_extended_proof = 2;
+        prover_proto. ExtendedProofPGHR13 pghr13_extended_proof = 1;
+        prover_proto. ExtendedProofGROTH16 groth16_extended_proof = 2;
     }
 }
