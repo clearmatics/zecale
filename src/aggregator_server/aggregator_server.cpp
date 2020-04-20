@@ -125,7 +125,7 @@ public:
 
         std::cout << "[DEBUG] Pop batch from the pool..." << std::endl;
         // Select the application pool corresponding to the request
-        libzecale::application_pool app_pool = this->pools_map[app_name->name];
+        libzecale::application_pool<CurveNestedProofs, BatchSize> app_pool = this->pools_map[app_name->name];
         // Retrieve batch from the pool
         std::array<libzecale::transaction_to_aggregate<CurveNestedProofs>, BatchSize> batch = app_pool.get_next_batch();
 
@@ -178,8 +178,8 @@ public:
         try {
             // Add the application to the list of supported application on the
             // aggregator server.
-            libzecale::transaction_to_aggregate tx = libzecale::parse_transaction_to_aggregate(*transaction);
-            libzecale::application_pool app_pool = this->pools_map[registration->name];
+            libzecale::transaction_to_aggregate<CurveNestedProofs> tx = libzecale::parse_transaction_to_aggregate<CurveNestedProofs>(*transaction);
+            libzecale::application_pool<CurveNestedProofs, BatchSize> app_pool = this->pools_map[registration->name];
             app_pool.add_tx(tx);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;

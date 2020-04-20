@@ -23,22 +23,23 @@ file(
 
 # Set the target of the generated files to ${CMAKE_CURRENT_BINARY_DIR}/proto-src
 # Then create this folder and add it to the include directories
-set(PROTO_SRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/proto_src)
-file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
+set(PROTO_SRC_DIR ${CMAKE_CURRENT_BINARY_DIR})
+#file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
 include_directories(${PROTO_SRC_DIR})
 
 # TODO remove line below:
-# Add the proto files of zeth into the set of include directories
-include_directories(${PROJECT_BINARY_DIR}/depends/zeth/proto_src)
+# Add the compiled proto files of zeth into the set of include directories
+include_directories(${PROJECT_SOURCE_DIR}/build/depends/zeth)
 
-set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/depends/zeth)
+set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/depends/zeth/)
+message( "In Zecale cmakelist file: Protobuf_IMPORT_DIRS => " )
+message(${PROTOBUF_IMPORT_DIRS})
+
 set(PROTOBUF_PROTO_PATH ${PROJECT_SOURCE_DIR})
 set(PROTOBUF_APPEND_DEST_PATH "/api")
-set(PROTOBUF_GENERATE_CPP_APPEND_PATH FALSE)
-set(GRPC_GENERATE_CPP_APPEND_PATH FALSE)
-
-message( "In Zecale cmakelist file => " )
-message(${PROTOBUF_IMPORT_DIRS})
+set(PROTOBUF_GENERATE_CPP_APPEND_PATH OFF)
+set(GRPC_GENERATE_CPP_APPEND_PATH OFF)
+set(Protobuf_DEBUG ON)
 
 # See cmake scripts in the cmake folder
 # Generate the grpc and protobuf files and set the result of the generation
