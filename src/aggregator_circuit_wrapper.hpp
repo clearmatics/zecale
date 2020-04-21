@@ -20,11 +20,11 @@ namespace libzecale
 {
 
 template<
-    typename ZethProofCurve,      // Curve over which we "prove" Zeth state
-                                  // transitions => E/Fq
-    typename AggregateProofCurve, // Curve over which we "prove" succesfull
-                                  // verication of the nested proofs batch =>
-                                  // E/Fr
+    // Curve over which we "prove" Zeth state transitions => E/Fq
+    typename ZethProofCurve,
+    // Curve over which we "prove" successful
+    // verication of the nested proofs batch => E/Fr
+    typename AggregateProofCurve,
     size_t NumProofs>
 class aggregator_circuit_wrapper
 {
