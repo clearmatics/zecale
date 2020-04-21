@@ -37,10 +37,22 @@
 #include <libzeth/snarks_alias.hpp>
 #include <libzeth/snarks_api_imports.hpp>
 
+#include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
+#include <libff/algebra/curves/mnt/mnt6/mnt6_pp.hpp>
+
+#include "src/aggregator_circuit_wrapper.hpp"
+#include "src/types/application_pool.hpp"
+#include "src/util_api.tcc"
+
 namespace proto = google::protobuf;
 namespace po = boost::program_options;
 
 static const size_t BatchSize = 1;
+
+// Instantiate the templates
+using CurveNestedProofs = libff::mnt4_pp;
+using CurveAggregator = libff::mnt6_pp;
+
 
 /// The aggregator_server class inherits from the Aggregator service
 /// defined in the proto files, and provides an implementation
@@ -48,18 +60,26 @@ static const size_t BatchSize = 1;
 class aggregator_server final : public aggregator_proto::Aggregator::Service
 {
 private:
-    libzecale::aggregator_wrapper<CurveAggregator, CurveNestedProofs, ZETH_NUM_PROOFS> aggregator;
+    libzecale::aggregator_circuit_wrapper<
+        CurveNestedProofs,
+        CurveAggregator,
+        BatchSize>
+        aggregator;
 
     // The keypair is the result of the setup for the aggregation circuit
     libzeth::keyPairT<CurveAggregator> keypair;
 
     // The nested verification key is the vk used to verify the nested proofs
-    std::map<std::string, libzecale::application_pool<CurveNestedProofs, BatchSize>> pools_map;
+    std::map<std::string, libzecale::application_pool<
+        CurveNestedProofs,
+        BatchSize>> pools_map;
 
 public:
     explicit aggregator_server(
-        libzecale::aggregate_circuit_wrapper<CurveAggregator, CurveNestedProofs, ZETH_NUM_PROOFS>
-            &aggregator,
+        libzecale::aggregator_circuit_wrapper<
+            CurveNestedProofs,
+            CurveAggregator,
+            BatchSize> &aggregator,
         libzeth::keyPairT<CurveAggregator> &keypair)
         : aggregator(aggregator), keypair(keypair)
     {
@@ -69,14 +89,15 @@ public:
     grpc::Status GetVerificationKey(
         grpc::ServerContext *,
         const proto::Empty *,
-        aggregator_proto::VerificationKey *response) override
+        prover_proto::VerificationKey *response) override
     {
         std::cout << "[ACK] Received the request to get the verification key"
                   << std::endl;
         std::cout << "[DEBUG] Preparing verification key for response..."
                   << std::endl;
         try {
-            prepare_verification_key_response<CurveAggregator>(this->keypair.vk, response);
+            libzeth::prepare_verification_key_response<CurveAggregator>(
+                this->keypair.vk, response);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -100,8 +121,11 @@ public:
         try {
             // Add the application to the list of supported application on the
             // aggregator server.
-            libzecale::application_pool app_pool(registration->name, registration->vk);
-            this->pools_map[registration->name] = app_pool;
+            libzecale::application_pool<CurveNestedProofs, BatchSize> app_pool(
+                registration->name(),
+                libzecale::parse_verification_key<CurveNestedProofs>(registration->vk()));
+            this->pools_map[registration->name()] = app_pool;
+            //this->pools_map.insert({registration->name(), app_pool});
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -117,49 +141,45 @@ public:
     grpc::Status GenerateAggregateProof(
         grpc::ServerContext *,
         const aggregator_proto::ApplicationName *app_name,
-        aggregator_proto::ExtendedProof *proof) override
+        prover_proto::ExtendedProof *proof) override
     {
         std::cout
             << "[ACK] Received the request to generate an aggregation proof"
             << std::endl;
+        try {
+            std::cout << "[DEBUG] Pop batch from the pool..." << std::endl;
+            // Select the application pool corresponding to the request
+            libzecale::application_pool<CurveNestedProofs, BatchSize> app_pool = this->pools_map[app_name->name()];
+            // Retrieve batch from the pool
+            std::array<libzecale::transaction_to_aggregate<CurveNestedProofs>, BatchSize> batch = app_pool.get_next_batch();
 
-        std::cout << "[DEBUG] Pop batch from the pool..." << std::endl;
-        // Select the application pool corresponding to the request
-        libzecale::application_pool<CurveNestedProofs, BatchSize> app_pool = this->pools_map[app_name->name];
-        // Retrieve batch from the pool
-        std::array<libzecale::transaction_to_aggregate<CurveNestedProofs>, BatchSize> batch = app_pool.get_next_batch();
+            std::cout << "[DEBUG] Parse batch and generate witness..." << std::endl;
+            // Get batch of proofs to aggregate
+            std::array<libzeth::extended_proof<CurveNestedProofs>, BatchSize> extended_proofs;
+            for (size_t i = 0; i < batch.size(); i++){
+                extended_proofs[i] = batch[i].extended_proof();
+            }
 
-        std::cout << "[DEBUG] Parse batch and generate witness..." << std::endl;
-        // Get batch of proofs to aggregate
-        std::array<libzeth::extended_proof<CurveNestedProofs>, NumProofs> extended_proofs;
-        for (size_t i = 0; i < batch.size(); i++){
-            extended_proofs[i] = batch[i].extended_proof();
-        }
+            // Retrieve the application verification key for the proof aggregation
+            libzeth::verificationKeyT<CurveNestedProofs> nested_vk = app_pool.verification_key();
 
-        // Retrieve the application verification key for the proof aggregation
-        libzeth::verificationKeyT<CurveNestedProofs> nested_vk = app_pool.verification_key();
+            std::cout << "[DEBUG] Generating the proof..." << std::endl;
+            libzeth::extended_proof<CurveAggregator> wrapping_proof = this->aggregator.prove(
+                nested_vk,
+                extended_proofs,
+                this->keypair.pk);
 
-        std::cout << "[DEBUG] Generating the proof..." << std::endl;
-        libzeth::extended_proof<CurveAggregator> wrapping_proof = prove(
-            nested_vk,
-            extended_proofs,
-            this->keypair.pk;)
+            std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
+            wrapping_proof.dump_proof();
+            wrapping_proof.dump_primary_inputs();
 
-        std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
-        wrapping_proof.dump_proof();
-        wrapping_proof.dump_primary_inputs();
-
-        std::cout << "[DEBUG] Preparing response..." << std::endl;
-        libzeth::prepare_proof_response<ppT>(wrapping_proof, proof);
-
-        catch (const std::exception &e)
-        {
+            std::cout << "[DEBUG] Preparing response..." << std::endl;
+            libzeth::prepare_proof_response<ppT>(wrapping_proof, proof);
+        } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
                 grpc::StatusCode::INVALID_ARGUMENT, grpc::string(e.what()));
-        }
-        catch (...)
-        {
+        } catch (...) {
             std::cout << "[ERROR] In catch all" << std::endl;
             return grpc::Status(grpc::StatusCode::UNKNOWN, "");
         }
@@ -179,7 +199,7 @@ public:
             // Add the application to the list of supported application on the
             // aggregator server.
             libzecale::transaction_to_aggregate<CurveNestedProofs> tx = libzecale::parse_transaction_to_aggregate<CurveNestedProofs>(*transaction);
-            libzecale::application_pool<CurveNestedProofs, BatchSize> app_pool = this->pools_map[registration->name];
+            libzecale::application_pool<CurveNestedProofs, BatchSize> app_pool = this->pools_map[transaction->application_name()];
             app_pool.add_tx(tx);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
@@ -234,7 +254,10 @@ void display_server_start_message()
 }
 
 static void RunServer(
-    libzecale::aggregator_wrapper<CurveA, CurveB, ZETH_NUM_PROOFS> &aggregator,
+    libzecale::aggregator_circuit_wrapper<
+        CurveNestedProofs,
+        CurveAggregator,
+        BatchSize> &aggregator,
     libzeth::keyPairT<ppT> &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50052
@@ -322,10 +345,13 @@ int main(int argc, char **argv)
 
     // We inititalize the curve parameters here
     std::cout << "[INFO] Init params of both curves" << std::endl;
-    CurveA::init_public_params();
-    CurveB::init_public_params();
+    CurveNestedProofs::init_public_params();
+    CurveAggregator::init_public_params();
 
-    libzecale::aggregator_wrapper<CurveA, CurveB, ZETH_NUM_PROOFS> aggregator;
+    libzecale::aggregator_circuit_wrapper<
+        CurveNestedProofs,
+        CurveAggregator,
+        BatchSize> aggregator;
     libzeth::keyPairT<ppT> keypair = [&keypair_file, &aggregator]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16

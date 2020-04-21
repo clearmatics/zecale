@@ -6,8 +6,7 @@ package aggregator_proto;
 
 import "google/protobuf/empty.proto";
 
-import "api/groth16_messages.proto";
-import "api/pghr13_messages.proto";
+import "api/snark_messages.proto";
 
 service Aggregator {
     // Fetch the verification key from the aggregator service to be able to verify the proofs
@@ -15,7 +14,7 @@ service Aggregator {
     //
     // This verification key corresponds to the aggregator statement (this statement
     // is basically multiple calls to the SNARK verification routine)
-    rpc GetVerificationKey(google.protobuf.Empty) returns (VerificationKey) {}
+    rpc GetVerificationKey(google.protobuf.Empty) returns (prover_proto.VerificationKey) {}
 
     // Registering an application allows to support a new
     // application on the aggregation service
@@ -32,7 +31,7 @@ service Aggregator {
     //
     // This endpoint won't necessarily be useful in practice, but this is useful
     // for some manual triggering for now.
-    rpc GenerateAggregateProof(ApplicationName) returns (ExtendedProof) {}
+    rpc GenerateAggregateProof(ApplicationName) returns (prover_proto.ExtendedProof) {}
 
     // Function to submit a transaction to aggregate
     rpc SubmitTransaction(TransactionToAggregate) returns (google.protobuf.Empty) {}
@@ -44,7 +43,7 @@ message ApplicationName {
 
 message ApplicationRegistration {
     string name = 1;
-    VerificationKey vk = 2;
+    prover_proto.VerificationKey vk = 2;
 }
 
 // A Zeth transaction is a "TransactionToAggregate"
@@ -53,21 +52,21 @@ message TransactionToAggregate {
     // Using the application name avoids to pass the verification key.
     // This is more bandwidth efficient.
     string application_name = 1;
-    ExtendedProof extended_proof = 2;
+    prover_proto.ExtendedProof extended_proof = 2;
     // Only if an incentive structure is in place and fees are supported
     int32 fee_in_wei = 3;
 }
 
-message VerificationKey {
-    oneof VK {
-        prover_proto.VerificationKeyPGHR13 pghr13_verification_key = 1;
-        prover_proto.VerificationKeyGROTH16 groth16_verification_key = 2;
-    }
-}
-
-message ExtendedProof {
-    oneof EP {
-        prover_proto. ExtendedProofPGHR13 pghr13_extended_proof = 1;
-        prover_proto. ExtendedProofGROTH16 groth16_extended_proof = 2;
-    }
-}
+//message VerificationKey {
+//    oneof VK {
+//        prover_proto.VerificationKeyPGHR13 pghr13_verification_key = 1;
+//        prover_proto.VerificationKeyGROTH16 groth16_verification_key = 2;
+//    }
+//}
+//
+//message ExtendedProof {
+//    oneof EP {
+//        prover_proto.ExtendedProofPGHR13 pghr13_extended_proof = 1;
+//        prover_proto.ExtendedProofGROTH16 groth16_extended_proof = 2;
+//    }
+//}

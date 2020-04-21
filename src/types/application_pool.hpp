@@ -35,6 +35,7 @@ private:
         _tx_pool;
 
 public:
+    application_pool() = default;
     application_pool(std::string name, libzeth::verificationKeyT<ppT> vk);
     virtual ~application_pool(){};
 
