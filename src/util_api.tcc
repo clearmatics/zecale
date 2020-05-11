@@ -289,7 +289,7 @@ libzeth::verificationKeyT<ppT> parse_verification_key(
 
 template<typename ppT>
 transaction_to_aggregate<ppT> parse_transaction_to_aggregate(
-    const aggregator_proto::TransactionToAggregate &grpc_transaction_obj)
+    const zecale_proto::TransactionToAggregate &grpc_transaction_obj)
 {
     std::string app_name = grpc_transaction_obj.application_name();
     libzeth::extended_proof<ppT> ext_proof =

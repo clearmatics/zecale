@@ -48,22 +48,22 @@ TEST(MainTests, ParseTransactionToAggregate)
 
     libsnark::r1cs_ppzksnark_proof<ppT> proofObj =
         mock_extended_proof.get_proof();
-    aggregator_proto::HexPointBaseGroup1Affine *a =
-        new aggregator_proto::HexPointBaseGroup1Affine();
-    aggregator_proto::HexPointBaseGroup1Affine *a_p =
-        new aggregator_proto::HexPointBaseGroup1Affine();
-    aggregator_proto::HexPointBaseGroup2Affine *b =
-        new aggregator_proto::HexPointBaseGroup2Affine(); // in G2
-    aggregator_proto::HexPointBaseGroup1Affine *b_p =
-        new aggregator_proto::HexPointBaseGroup1Affine();
-    aggregator_proto::HexPointBaseGroup1Affine *c =
-        new aggregator_proto::HexPointBaseGroup1Affine();
-    aggregator_proto::HexPointBaseGroup1Affine *c_p =
-        new aggregator_proto::HexPointBaseGroup1Affine();
-    aggregator_proto::HexPointBaseGroup1Affine *h =
-        new aggregator_proto::HexPointBaseGroup1Affine();
-    aggregator_proto::HexPointBaseGroup1Affine *k =
-        new aggregator_proto::HexPointBaseGroup1Affine();
+    zecale_proto::HexPointBaseGroup1Affine *a =
+        new zecale_proto::HexPointBaseGroup1Affine();
+    zecale_proto::HexPointBaseGroup1Affine *a_p =
+        new zecale_proto::HexPointBaseGroup1Affine();
+    zecale_proto::HexPointBaseGroup2Affine *b =
+        new zecale_proto::HexPointBaseGroup2Affine(); // in G2
+    zecale_proto::HexPointBaseGroup1Affine *b_p =
+        new zecale_proto::HexPointBaseGroup1Affine();
+    zecale_proto::HexPointBaseGroup1Affine *c =
+        new zecale_proto::HexPointBaseGroup1Affine();
+    zecale_proto::HexPointBaseGroup1Affine *c_p =
+        new zecale_proto::HexPointBaseGroup1Affine();
+    zecale_proto::HexPointBaseGroup1Affine *h =
+        new zecale_proto::HexPointBaseGroup1Affine();
+    zecale_proto::HexPointBaseGroup1Affine *k =
+        new zecale_proto::HexPointBaseGroup1Affine();
 
     a->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_A.g));
     a_p->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_A.h));
@@ -92,11 +92,11 @@ TEST(MainTests, ParseTransactionToAggregate)
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
     // https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
-    aggregator_proto::ExtendedProof *ext_proof =
-        new aggregator_proto::ExtendedProof();
-    aggregator_proto::ExtendedProofPGHR13 *grpc_extended_pghr13_proof_obj =
-        new aggregator_proto::ExtendedProofPGHR13();
-    // aggregator_proto::ExtendedProofPGHR13 *grpc_extended_pghr13_proof_obj =
+    zecale_proto::ExtendedProof *ext_proof =
+        new zecale_proto::ExtendedProof();
+    zecale_proto::ExtendedProofPGHR13 *grpc_extended_pghr13_proof_obj =
+        new zecale_proto::ExtendedProofPGHR13();
+    // zecale_proto::ExtendedProofPGHR13 *grpc_extended_pghr13_proof_obj =
     // ext_proof->mutable_pghr13_extended_proof();
 
     grpc_extended_pghr13_proof_obj->set_allocated_a(a);
@@ -112,8 +112,8 @@ TEST(MainTests, ParseTransactionToAggregate)
     ext_proof->set_allocated_pghr13_extended_proof(
         grpc_extended_pghr13_proof_obj);
 
-    aggregator_proto::TransactionToAggregate *grpc_tx_to_aggregate_obj =
-        new aggregator_proto::TransactionToAggregate();
+    zecale_proto::TransactionToAggregate *grpc_tx_to_aggregate_obj =
+        new zecale_proto::TransactionToAggregate();
     grpc_tx_to_aggregate_obj->set_application_name("zeth");
     grpc_tx_to_aggregate_obj->set_fee_in_wei(12);
     grpc_tx_to_aggregate_obj->set_allocated_extended_proof(ext_proof);
@@ -131,7 +131,7 @@ TEST(MainTests, ParseTransactionToAggregate)
     ASSERT_EQ(retrieved_tx.application_name(), "zeth");
     ASSERT_EQ(retrieved_tx.fee_wei(), 12);
 
-    // The destructor of `aggregator_proto::TransactionToAggregate` should be
+    // The destructor of `zecale_proto::TransactionToAggregate` should be
     // invoked which whould free the memory allocated for the fields of this
     // message
     delete grpc_tx_to_aggregate_obj;
@@ -158,12 +158,12 @@ TEST(MainTests, ParseTransactionToAggregate)
 
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proofObj =
         mock_extended_proof.get_proof();
-    aggregator_proto::HexPointBaseGroup1Affine *a =
-        new aggregator_proto::HexPointBaseGroup1Affine();
-    aggregator_proto::HexPointBaseGroup2Affine *b =
-        new aggregator_proto::HexPointBaseGroup2Affine(); // in G2
-    aggregator_proto::HexPointBaseGroup1Affine *c =
-        new aggregator_proto::HexPointBaseGroup1Affine();
+    zecale_proto::HexPointBaseGroup1Affine *a =
+        new zecale_proto::HexPointBaseGroup1Affine();
+    zecale_proto::HexPointBaseGroup2Affine *b =
+        new zecale_proto::HexPointBaseGroup2Affine(); // in G2
+    zecale_proto::HexPointBaseGroup1Affine *c =
+        new zecale_proto::HexPointBaseGroup1Affine();
 
     a->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_A));
     b->CopyFrom(format_hexPointBaseGroup2Affine<ppT>(proofObj.g_B)); // in G2
@@ -187,10 +187,10 @@ TEST(MainTests, ParseTransactionToAggregate)
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
     // https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
-    aggregator_proto::ExtendedProof *ext_proof =
-        new aggregator_proto::ExtendedProof();
-    aggregator_proto::ExtendedProofGROTH16 *grpc_extended_groth16_proof_obj =
-        new aggregator_proto::ExtendedProofGROTH16();
+    zecale_proto::ExtendedProof *ext_proof =
+        new zecale_proto::ExtendedProof();
+    zecale_proto::ExtendedProofGROTH16 *grpc_extended_groth16_proof_obj =
+        new zecale_proto::ExtendedProofGROTH16();
 
     grpc_extended_groth16_proof_obj->set_allocated_a(a);
     grpc_extended_groth16_proof_obj->set_allocated_b(b);
@@ -200,8 +200,8 @@ TEST(MainTests, ParseTransactionToAggregate)
     ext_proof->set_allocated_groth16_extended_proof(
         grpc_extended_groth16_proof_obj);
 
-    aggregator_proto::TransactionToAggregate *grpc_tx_to_aggregate_obj =
-        new aggregator_proto::TransactionToAggregate();
+    zecale_proto::TransactionToAggregate *grpc_tx_to_aggregate_obj =
+        new zecale_proto::TransactionToAggregate();
     grpc_tx_to_aggregate_obj->set_application_name("zeth");
     grpc_tx_to_aggregate_obj->set_fee_in_wei(12);
     grpc_tx_to_aggregate_obj->set_allocated_extended_proof(ext_proof);
@@ -219,7 +219,7 @@ TEST(MainTests, ParseTransactionToAggregate)
     ASSERT_EQ(retrieved_tx.application_name(), "zeth");
     ASSERT_EQ(retrieved_tx.fee_wei(), 12);
 
-    // The destructor of `aggregator_proto::TransactionToAggregate` should be
+    // The destructor of `zecale_proto::TransactionToAggregate` should be
     // invoked which whould free the memory allocated for the fields of this
     // message
     delete grpc_tx_to_aggregate_obj;

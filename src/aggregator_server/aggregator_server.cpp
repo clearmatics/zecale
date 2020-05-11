@@ -57,7 +57,7 @@ using CurveAggregator = libff::mnt6_pp;
 /// The aggregator_server class inherits from the Aggregator service
 /// defined in the proto files, and provides an implementation
 /// of the service.
-class aggregator_server final : public aggregator_proto::Aggregator::Service
+class aggregator_server final : public zecale_proto::Aggregator::Service
 {
 private:
     libzecale::aggregator_circuit_wrapper<
@@ -112,7 +112,7 @@ public:
 
     grpc::Status RegisterApplication(
         grpc::ServerContext *,
-        const aggregator_proto::ApplicationRegistration *registration,
+        const zecale_proto::ApplicationRegistration *registration,
         proto::Empty *response) override
     {
         std::cout << "[ACK] Received the request to register application"
@@ -140,7 +140,7 @@ public:
 
     grpc::Status GenerateAggregateProof(
         grpc::ServerContext *,
-        const aggregator_proto::ApplicationName *app_name,
+        const zecale_proto::ApplicationName *app_name,
         prover_proto::ExtendedProof *proof) override
     {
         std::cout
@@ -189,7 +189,7 @@ public:
 
     grpc::Status SubmitTransaction(
         grpc::ServerContext *,
-        const aggregator_proto::TransactionToAggregate *transaction,
+        const zecale_proto::TransactionToAggregate *transaction,
         proto::Empty *response) override
     {
         std::cout << "[ACK] Received the request to submit transaction"

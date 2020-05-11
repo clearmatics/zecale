@@ -1,8 +1,6 @@
 syntax = "proto3";
 
-// To rename: `clearmatics.zecale_proto`
-// Likewise, rename `prover_proto` to `clearmatics.zeth_proto`
-package aggregator_proto;
+package zecale_proto;
 
 import "google/protobuf/empty.proto";
 
@@ -56,17 +54,3 @@ message TransactionToAggregate {
     // Only if an incentive structure is in place and fees are supported
     int32 fee_in_wei = 3;
 }
-
-//message VerificationKey {
-//    oneof VK {
-//        prover_proto.VerificationKeyPGHR13 pghr13_verification_key = 1;
-//        prover_proto.VerificationKeyGROTH16 groth16_verification_key = 2;
-//    }
-//}
-//
-//message ExtendedProof {
-//    oneof EP {
-//        prover_proto.ExtendedProofPGHR13 pghr13_extended_proof = 1;
-//        prover_proto.ExtendedProofGROTH16 groth16_extended_proof = 2;
-//    }
-//}

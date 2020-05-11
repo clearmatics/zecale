@@ -14,7 +14,7 @@ namespace libzecale
 
 template<typename ppT>
 transaction_to_aggregate<ppT> parse_transaction_to_aggregate(
-    const aggregator_proto::TransactionToAggregate &transaction);
+    const zecale_proto::TransactionToAggregate &transaction);
 
 template<typename ppT>
 prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
@@ -25,6 +25,7 @@ prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     const libff::G2<ppT> &point);
 
 } // namespace libzecale
+
 #include "util_api.tcc"
 
 #endif // __ZECALE_UTIL_API_HPP__

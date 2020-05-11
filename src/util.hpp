@@ -23,6 +23,7 @@ template<typename ppT>
 std::vector<libff::Fr<ppT>> parse_str_inputs(std::string input_str);
 
 } // namespace libzecale
+
 #include "util.tcc"
 
 #endif // __ZECALE_UTIL_HPP__

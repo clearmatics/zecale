@@ -57,6 +57,7 @@ std::ostream &operator<<(
     std::ostream &os, const transaction_to_aggregate<ppT> &tx);
 
 } // namespace libzecale
+
 #include "transaction_to_aggregate.tcc"
 
 #endif // __ZECALE_TYPES_TRANSACTION_TO_AGGREGATE_HPP__

@@ -68,6 +68,7 @@ public:
 };
 
 } // namespace libzecale
+
 #include "application_pool.tcc"
 
 #endif // __ZECALE_APPLICATION_POOL_HPP__
