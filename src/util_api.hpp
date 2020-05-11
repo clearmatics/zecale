@@ -6,7 +6,7 @@
 #define __ZECALE_UTIL_API_HPP__
 
 #include "api/aggregator.pb.h"
-#include "api/util.pb.h"
+//#include "api/util.pb.h"
 #include "types/transaction_to_aggregate.hpp"
 
 namespace libzecale
@@ -17,11 +17,11 @@ transaction_to_aggregate<ppT> parse_transaction_to_aggregate(
     const aggregator_proto::TransactionToAggregate &transaction);
 
 template<typename ppT>
-aggregator_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
+prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
     const libff::G1<ppT> &point);
 
 template<typename ppT>
-aggregator_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
+prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
     const libff::G2<ppT> &point);
 
 } // namespace libzecale
