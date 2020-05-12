@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "src/circuits/pairing/pairing_checks.hpp"
-#include "src/circuits/pairing/weierstrass_miller_loop.hpp"
+#include "libzecale/circuits/pairing/pairing_checks.hpp"
+#include "libzecale/circuits/pairing/weierstrass_miller_loop.hpp"
 
 #include "gtest/gtest.h"
 

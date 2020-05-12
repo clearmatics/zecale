@@ -3,17 +3,18 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "api/aggregator.pb.h"
-#include "api/util.pb.h"
-#include "util.hpp"
-#include "util_api.hpp"
+#include "api/ec_group_messages.pb.h"
+#include "libzecale/serialization/proto_utils.hpp"
 
 #include "gtest/gtest.h"
 #include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
 #include <libsnark/knowledge_commitment/knowledge_commitment.hpp>
 #include <libsnark/relations/constraint_satisfaction_problems/r1cs/r1cs.hpp>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
-#include <libzeth/libsnark_helpers/debug_helpers.hpp>
-#include <libzeth/libsnark_helpers/extended_proof.hpp>
+#include <libzeth/core/extended_proof.hpp>
+#include <libzeth/snarks/groth16/groth16_api_handler.hpp>
+#include <libzeth/snarks/pghr13/pghr13_api_handler.hpp>
+#include <libzeth/serialization/proto_utils.hpp>
 #include <stdio.h>
 
 typedef libff::mnt4_pp ppT;
@@ -23,8 +24,7 @@ using namespace libzecale;
 namespace
 {
 
-#ifdef ZKSNARK_PGHR13
-TEST(MainTests, ParseTransactionToAggregate)
+TEST(MainTests, ParseTransactionToAggregatePGHR13)
 {
     // 1. Format arbitary data that will be parsed afterwards
     libsnark::r1cs_ppzksnark_proof<ppT> proof(
@@ -48,56 +48,40 @@ TEST(MainTests, ParseTransactionToAggregate)
 
     libsnark::r1cs_ppzksnark_proof<ppT> proofObj =
         mock_extended_proof.get_proof();
-    zecale_proto::HexPointBaseGroup1Affine *a =
-        new zecale_proto::HexPointBaseGroup1Affine();
-    zecale_proto::HexPointBaseGroup1Affine *a_p =
-        new zecale_proto::HexPointBaseGroup1Affine();
-    zecale_proto::HexPointBaseGroup2Affine *b =
-        new zecale_proto::HexPointBaseGroup2Affine(); // in G2
-    zecale_proto::HexPointBaseGroup1Affine *b_p =
-        new zecale_proto::HexPointBaseGroup1Affine();
-    zecale_proto::HexPointBaseGroup1Affine *c =
-        new zecale_proto::HexPointBaseGroup1Affine();
-    zecale_proto::HexPointBaseGroup1Affine *c_p =
-        new zecale_proto::HexPointBaseGroup1Affine();
-    zecale_proto::HexPointBaseGroup1Affine *h =
-        new zecale_proto::HexPointBaseGroup1Affine();
-    zecale_proto::HexPointBaseGroup1Affine *k =
-        new zecale_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup1Affine *a =
+        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup1Affine *a_p =
+        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup2Affine *b =
+        new zeth_proto::HexPointBaseGroup2Affine();
+    zeth_proto::HexPointBaseGroup1Affine *b_p =
+        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup1Affine *c =
+        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup1Affine *c_p =
+        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup1Affine *h =
+        new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup1Affine *k =
+        new zeth_proto::HexPointBaseGroup1Affine();
 
-    a->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_A.g));
-    a_p->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_A.h));
-    b->CopyFrom(format_hexPointBaseGroup2Affine<ppT>(proofObj.g_B.g)); // in G2
-    b_p->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_B.h));
-    c->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_C.g));
-    c_p->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_C.h));
-    h->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_H));
-    k->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_K));
+    a->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_A.g));
+    a_p->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_A.h));
+    b->CopyFrom(libzeth::point_g2_affine_to_proto<ppT>(proofObj.g_B.g));
+    b_p->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_B.h));
+    c->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_C.g));
+    c_p->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_C.h));
+    h->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_H));
+    k->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_K));
 
-    libsnark::r1cs_ppzksnark_primary_input<ppT> pub_inputs =
-        mock_extended_proof.get_primary_input();
-    std::stringstream ss;
-    ss << "[";
-    for (size_t i = 0; i < pub_inputs.size(); ++i) {
-        ss << "0x"
-           << libzeth::hex_from_libsnark_bigint<libff::Fr<ppT>>(
-                  pub_inputs[i].as_bigint());
-        if (i < pub_inputs.size() - 1) {
-            ss << ", ";
-        }
-    }
-    ss << "]";
-    std::string inputs_json = ss.str();
+    libsnark::r1cs_ppzksnark_primary_input<ppT> pub_inputs = mock_extended_proof.get_primary_input();
+    std::string inputs_json = libzeth::primary_inputs_to_string(pub_inputs);
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
     // https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
-    zecale_proto::ExtendedProof *ext_proof =
-        new zecale_proto::ExtendedProof();
-    zecale_proto::ExtendedProofPGHR13 *grpc_extended_pghr13_proof_obj =
-        new zecale_proto::ExtendedProofPGHR13();
-    // zecale_proto::ExtendedProofPGHR13 *grpc_extended_pghr13_proof_obj =
-    // ext_proof->mutable_pghr13_extended_proof();
+    zeth_proto::ExtendedProof *ext_proof = new zeth_proto::ExtendedProof();
+    zeth_proto::ExtendedProofPGHR13 *grpc_extended_pghr13_proof_obj = new zeth_proto::ExtendedProofPGHR13();
 
     grpc_extended_pghr13_proof_obj->set_allocated_a(a);
     grpc_extended_pghr13_proof_obj->set_allocated_a_p(a_p);
@@ -120,7 +104,7 @@ TEST(MainTests, ParseTransactionToAggregate)
 
     // Parse the TransactionToAggregate
     transaction_to_aggregate<ppT> retrieved_tx =
-        parse_transaction_to_aggregate<ppT>(*grpc_tx_to_aggregate_obj);
+        transaction_to_aggregate_from_proto<ppT, libzeth::pghr13_api_handler<ppT>>(*grpc_tx_to_aggregate_obj);
 
     ASSERT_EQ(
         retrieved_tx.extended_proof().get_primary_input(),
@@ -136,10 +120,8 @@ TEST(MainTests, ParseTransactionToAggregate)
     // message
     delete grpc_tx_to_aggregate_obj;
 }
-#endif
 
-#ifdef ZKSNARK_GROTH16
-TEST(MainTests, ParseTransactionToAggregate)
+TEST(MainTests, ParseTransactionToAggregateGROTH16)
 {
     // 1. Format arbitary data that will be parsed afterwards
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof(
@@ -156,41 +138,23 @@ TEST(MainTests, ParseTransactionToAggregate)
 
     libzeth::extended_proof<ppT> mock_extended_proof(proof, primary_inputs);
 
-    libsnark::r1cs_gg_ppzksnark_proof<ppT> proofObj =
-        mock_extended_proof.get_proof();
-    zecale_proto::HexPointBaseGroup1Affine *a =
-        new zecale_proto::HexPointBaseGroup1Affine();
-    zecale_proto::HexPointBaseGroup2Affine *b =
-        new zecale_proto::HexPointBaseGroup2Affine(); // in G2
-    zecale_proto::HexPointBaseGroup1Affine *c =
-        new zecale_proto::HexPointBaseGroup1Affine();
+    libsnark::r1cs_gg_ppzksnark_proof<ppT> proofObj = mock_extended_proof.get_proof();
+    zeth_proto::HexPointBaseGroup1Affine *a = new zeth_proto::HexPointBaseGroup1Affine();
+    zeth_proto::HexPointBaseGroup2Affine *b = new zeth_proto::HexPointBaseGroup2Affine();
+    zeth_proto::HexPointBaseGroup1Affine *c = new zeth_proto::HexPointBaseGroup1Affine();
 
-    a->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_A));
-    b->CopyFrom(format_hexPointBaseGroup2Affine<ppT>(proofObj.g_B)); // in G2
-    c->CopyFrom(format_hexPointBaseGroup1Affine<ppT>(proofObj.g_C));
+    a->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_A));
+    b->CopyFrom(libzeth::point_g2_affine_to_proto<ppT>(proofObj.g_B)); // in G2
+    c->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_C));
 
-    libsnark::r1cs_gg_ppzksnark_primary_input<ppT> pub_inputs =
-        mock_extended_proof.get_primary_input();
-    std::stringstream ss;
-    ss << "[";
-    for (size_t i = 0; i < pub_inputs.size(); ++i) {
-        ss << "0x"
-           << libzeth::hex_from_libsnark_bigint<libff::Fr<ppT>>(
-                  pub_inputs[i].as_bigint());
-        if (i < pub_inputs.size() - 1) {
-            ss << ", ";
-        }
-    }
-    ss << "]";
-    std::string inputs_json = ss.str();
+    libsnark::r1cs_gg_ppzksnark_primary_input<ppT> pub_inputs = mock_extended_proof.get_primary_input();
+    std::string inputs_json = libzeth::primary_inputs_to_string(pub_inputs);
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
     // https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
-    zecale_proto::ExtendedProof *ext_proof =
-        new zecale_proto::ExtendedProof();
-    zecale_proto::ExtendedProofGROTH16 *grpc_extended_groth16_proof_obj =
-        new zecale_proto::ExtendedProofGROTH16();
+    zeth_proto::ExtendedProof *ext_proof = new zeth_proto::ExtendedProof();
+    zeth_proto::ExtendedProofGROTH16 *grpc_extended_groth16_proof_obj = new zeth_proto::ExtendedProofGROTH16();
 
     grpc_extended_groth16_proof_obj->set_allocated_a(a);
     grpc_extended_groth16_proof_obj->set_allocated_b(b);
@@ -208,7 +172,7 @@ TEST(MainTests, ParseTransactionToAggregate)
 
     // Parse the TransactionToAggregate
     transaction_to_aggregate<ppT> retrieved_tx =
-        parse_transaction_to_aggregate<ppT>(*grpc_tx_to_aggregate_obj);
+        transaction_to_aggregate_from_proto<ppT, libzeth::groth16_api_handler<ppT>>(*grpc_tx_to_aggregate_obj);
 
     ASSERT_EQ(
         retrieved_tx.extended_proof().get_primary_input(),
@@ -224,7 +188,6 @@ TEST(MainTests, ParseTransactionToAggregate)
     // message
     delete grpc_tx_to_aggregate_obj;
 }
-#endif
 
 } // namespace
 
