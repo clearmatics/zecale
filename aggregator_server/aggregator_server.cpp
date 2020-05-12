@@ -47,16 +47,16 @@
 namespace proto = google::protobuf;
 namespace po = boost::program_options;
 
-static const size_t BatchSize = 1;
-
 // Instantiate the templates
 using npp = libff::mnt4_pp;
-using nSnark = libzeth::default_snark<npp>;
-using nApiHandler = libzeth::default_api_handler<npp>;
+using nsnark = libzeth::default_snark<npp>;
+using napi_handler = libzeth::default_api_handler<npp>;
 
 using wpp = libff::mnt6_pp;
-using wSnark = libzeth::default_snark<wpp>;
-using wApiHandler = libzeth::default_api_handler<wpp>;
+using wsnark = libzeth::default_snark<wpp>;
+using wapi_handler = libzeth::default_api_handler<wpp>;
+
+static const size_t batch_size = 1;
 
 /// The aggregator_server class inherits from the Aggregator service
 /// defined in the proto files, and provides an implementation
@@ -67,34 +67,34 @@ private:
     libzecale::aggregator_circuit_wrapper<
         npp,
         wpp,
-        nSnark,
-        wSnark,
-        BatchSize>
+        nsnark,
+        wsnark,
+        batch_size>
         aggregator;
 
     // The keypair is the result of the setup for the aggregation circuit
-    wSnark::KeypairT keypair;
+    wsnark::KeypairT keypair;
 
     // The nested verification key is the vk used to verify the nested proofs
-    std::map<std::string, libzecale::application_pool<npp, nSnark, BatchSize>> pools_map;
+    std::map<std::string, libzecale::application_pool<npp, nsnark, batch_size>> pools_map;
 
 public:
     explicit aggregator_server(
         libzecale::aggregator_circuit_wrapper<
             npp,
             wpp,
-            nSnark,
-            wSnark,
-            BatchSize> &aggregator,
-        wSnark::KeypairT &keypair)
+            nsnark,
+            wsnark,
+            batch_size> &aggregator,
+        wsnark::KeypairT &keypair)
         : aggregator(aggregator), keypair(keypair)
     {
         // Nothing
     }
 
     grpc::Status GetVerificationKey(
-        grpc::ServerContext *,
-        const proto::Empty *,
+        grpc::ServerContext */*context*/,
+        const proto::Empty */*request*/,
         prover_proto::VerificationKey *response) override
     {
         std::cout << "[ACK] Received the request to get the verification key"
@@ -102,7 +102,7 @@ public:
         std::cout << "[DEBUG] Preparing verification key for response..."
                   << std::endl;
         try {
-            wApiHandler::verification_key_to_proto(this->keypair.vk, response);
+            wapi_handler::verification_key_to_proto(this->keypair.vk, response);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -116,19 +116,19 @@ public:
     }
 
     grpc::Status RegisterApplication(
-        grpc::ServerContext *,
+        grpc::ServerContext */*context*/,
         const zecale_proto::ApplicationRegistration *registration,
         proto::Empty *response) override
     {
-        std::cout << "[ACK] Received the request to register application"
-                  << std::endl;
+        std::cout << "[ACK] Received 'register application' request" << std::endl;
         std::cout << "[DEBUG] Registering application..." << std::endl;
         try {
             // Add the application to the list of supported application on the
             // aggregator server.
-            libzecale::application_pool<npp, nSnark, BatchSize> app_pool(
+            nsnark::VerificationKeyT registered_vk = napi_handler::verification_key_from_proto(registration->vk());
+            libzecale::application_pool<npp, nsnark, batch_size> app_pool(
                 registration->name(),
-                libzecale::parse_verification_key<npp>(registration->vk()));
+                registered_vk);
             this->pools_map[registration->name()] = app_pool;
             //this->pools_map.insert({registration->name(), app_pool});
         } catch (const std::exception &e) {
@@ -144,7 +144,7 @@ public:
     }
 
     grpc::Status GenerateAggregateProof(
-        grpc::ServerContext *,
+        grpc::ServerContext */*context*/,
         const zecale_proto::ApplicationName *app_name,
         prover_proto::ExtendedProof *proof) override
     {
@@ -154,22 +154,22 @@ public:
         try {
             std::cout << "[DEBUG] Pop batch from the pool..." << std::endl;
             // Select the application pool corresponding to the request
-            libzecale::application_pool<npp, nSnark, BatchSize> app_pool = this->pools_map[app_name->name()];
+            libzecale::application_pool<npp, nsnark, batch_size> app_pool = this->pools_map[app_name->name()];
             // Retrieve batch from the pool
-            std::array<libzecale::transaction_to_aggregate<npp, nSnark>, BatchSize> batch = app_pool.get_next_batch();
+            std::array<libzecale::transaction_to_aggregate<npp, nsnark>, batch_size> batch = app_pool.get_next_batch();
 
             std::cout << "[DEBUG] Parse batch and generate witness..." << std::endl;
             // Get batch of proofs to aggregate
-            std::array<libzeth::extended_proof<npp, nSnark>, BatchSize> extended_proofs;
+            std::array<libzeth::extended_proof<npp, nsnark>, batch_size> extended_proofs;
             for (size_t i = 0; i < batch.size(); i++){
                 extended_proofs[i] = batch[i].extended_proof();
             }
 
             // Retrieve the application verification key for the proof aggregation
-            nSnark::VerificationKeyT<npp> nested_vk = app_pool.verification_key();
+            nsnark::VerificationKeyT nested_vk = app_pool.verification_key();
 
             std::cout << "[DEBUG] Generating the proof..." << std::endl;
-            libzeth::extended_proof<wpp, wSnark> wrapping_proof = this->aggregator.prove(
+            libzeth::extended_proof<wpp, wsnark> wrapping_proof = this->aggregator.prove(
                 nested_vk,
                 extended_proofs,
                 this->keypair.pk);
@@ -178,7 +178,7 @@ public:
             wrapping_proof.write_json(std::cout);
 
             std::cout << "[DEBUG] Preparing response..." << std::endl;
-            wApiHandler::extended_proof_to_proto(wrapping_proof, proof);
+            wapi_handler::extended_proof_to_proto(wrapping_proof, proof);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -202,8 +202,9 @@ public:
         try {
             // Add the application to the list of supported application on the
             // aggregator server.
-            libzecale::transaction_to_aggregate<npp, nSnark> tx = libzecale::transaction_to_aggregate_from_proto<npp, nSnark>(*transaction);
-            libzecale::application_pool<npp, nSnark, BatchSize> app_pool = this->pools_map[transaction->application_name()];
+            libzecale::transaction_to_aggregate<npp, nsnark> tx =
+                libzecale::transaction_to_aggregate_from_proto<npp, napi_handler>(*transaction);
+            libzecale::application_pool<npp, nsnark, batch_size> app_pool = this->pools_map[transaction->application_name()];
             app_pool.add_tx(tx);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
@@ -261,10 +262,10 @@ static void RunServer(
     libzecale::aggregator_circuit_wrapper<
         npp,
         wpp,
-        nSnark,
-        wSnark,
-        BatchSize> &aggregator,
-    typename wSnark::KeypairT &keypair)
+        nsnark,
+        wsnark,
+        batch_size> &aggregator,
+    typename wsnark::KeypairT &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50052
     // TODO: Move this in a config file
@@ -357,10 +358,10 @@ int main(int argc, char **argv)
     libzecale::aggregator_circuit_wrapper<
         npp,
         wpp,
-        nSnark,
-        wSnark,
-        BatchSize> aggregator;
-    wSnark::KeypairT keypair = [&keypair_file, &aggregator]() {
+        nsnark,
+        wsnark,
+        batch_size> aggregator;
+    wsnark::KeypairT keypair = [&keypair_file, &aggregator]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16
             std::cout << "[INFO] Loading keypair: " << keypair_file
@@ -374,7 +375,7 @@ int main(int argc, char **argv)
         }
 
         std::cout << "[INFO] Generate new keypair" << std::endl;
-        wSnark::KeypairT keypair = aggregator.generate_trusted_setup();
+        wsnark::KeypairT keypair = aggregator.generate_trusted_setup();
         return keypair;
     }();
 

@@ -19,16 +19,16 @@
 namespace libzecale
 {
 
-template<typename ppT, typename snarkT>
-transaction_to_aggregate<ppT, snarkT> transaction_to_aggregate_from_proto(
+template<typename ppT, typename snarkHandlerT>
+transaction_to_aggregate<ppT, snarkHandlerT::snarkT> transaction_to_aggregate_from_proto(
     const zecale_proto::TransactionToAggregate &grpc_transaction_obj)
 {
     std::string app_name = grpc_transaction_obj.application_name();
     libzeth::extended_proof<ppT, snarkT> ext_proof =
-        snarkT::extended_proof_from_proto<ppT, snarkT>(grpc_transaction_obj.extended_proof());
+        snarkHandlerT::extended_proof_from_proto<ppT, snarkHandlerT::snarkT>(grpc_transaction_obj.extended_proof());
     uint32_t fee = uint32_t(grpc_transaction_obj.fee_in_wei());
 
-    return transaction_to_aggregate<ppT, snarkT>(app_name, ext_proof, fee);
+    return transaction_to_aggregate<ppT, snarkHandlerT::snarkT>(app_name, ext_proof, fee);
 }
 
 } // namespace libzecale
