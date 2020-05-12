@@ -1,7 +1,7 @@
 include_directories(.)
 
 find_package(Protobuf REQUIRED)
-find_package(GRPC REQUIRED)
+find_package(gRPC REQUIRED)
 
 include_directories(SYSTEM ${PROTO_SRC_DIR})
 
