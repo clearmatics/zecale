@@ -2,30 +2,21 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZECALE_UTIL_API_HPP__
-#define __ZECALE_UTIL_API_HPP__
+#ifndef __ZECALE_SERIALIZATION_PROTO_UTILS_HPP__
+#define __ZECALE_SERIALIZATION_PROTO_UTILS_HPP__
 
 #include "api/aggregator.pb.h"
-//#include "api/util.pb.h"
-#include "types/transaction_to_aggregate.hpp"
+#include "libzecale/core/transaction_to_aggregate.hpp"
 
 namespace libzecale
 {
 
-template<typename ppT>
-transaction_to_aggregate<ppT> parse_transaction_to_aggregate(
+template<typename ppT, typename snarkT>
+transaction_to_aggregate<ppT, snarkT> transaction_to_aggregate_from_proto(
     const zecale_proto::TransactionToAggregate &transaction);
-
-template<typename ppT>
-prover_proto::HexPointBaseGroup1Affine format_hexPointBaseGroup1Affine(
-    const libff::G1<ppT> &point);
-
-template<typename ppT>
-prover_proto::HexPointBaseGroup2Affine format_hexPointBaseGroup2Affine(
-    const libff::G2<ppT> &point);
 
 } // namespace libzecale
 
-#include "util_api.tcc"
+#include "proto_utils.tcc"
 
-#endif // __ZECALE_UTIL_API_HPP__
+#endif // __ZECALE_SERIALIZATION_PROTO_UTILS_HPP__

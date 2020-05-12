@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZECALE_VERIFIER_CIRCUIS_ALIAS_HPP__
-#define __ZECALE_VERIFIER_CIRCUIS_ALIAS_HPP__
+#ifndef __ZECALE_CIRCUITS_VERIFIER_GADGET_IMPORTS_HPP__
+#define __ZECALE_CIRCUITS_VERIFIER_GADGET_IMPORTS_HPP__
 
 // ------------------------- Pick a zkSNARK -------------------------
 
@@ -41,4 +41,4 @@ using verificationKeyVariableGadgetT =
 #error You must define one of the SNARK_* symbols indicated into the CMakelists.txt file.
 #endif
 
-#endif // __ZECALE_VERIFIER_CIRCUIS_ALIAS_HPP__
+#endif // __ZECALE_CIRCUITS_VERIFIER_GADGET_IMPORTS_HPP__

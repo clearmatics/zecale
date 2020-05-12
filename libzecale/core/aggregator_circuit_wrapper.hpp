@@ -2,17 +2,13 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
-#define __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
+#ifndef __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
+#define __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
 
-#include "circuits/aggregator.tcc"
+#include "libzecale/circuits/aggregator.tcc"
 
-#include <libzeth/libsnark_helpers/extended_proof.hpp>
-#include <libzeth/libsnark_helpers/libsnark_helpers.hpp>
-
-// zkSNARK specific imports, and templates instantiation
-#include <libzeth/snarks_alias.hpp>
-#include <libzeth/snarks_core_imports.hpp>
+#include <libzeth/core/extended_proof.hpp>
+#include <libzeth/snarks/default/default_snark.hpp>
 
 using namespace libzeth;
 
@@ -20,40 +16,29 @@ namespace libzecale
 {
 
 template<
-    // Curve over which we "prove" Zeth state transitions => E/Fq
-    typename ZethProofCurve,
-    // Curve over which we "prove" successful
-    // verication of the nested proofs batch => E/Fr
-    typename AggregateProofCurve,
+    typename nppT,
+    typename wppT,
+    typename nSnarkT,
+    typename wSnarkT,
     size_t NumProofs>
 class aggregator_circuit_wrapper
 {
-public:
-    typedef libff::Fr<AggregateProofCurve> ScalarFieldAggregatorT;
-
-    boost::filesystem::path setup_path;
+private:
     std::shared_ptr<
-        aggregator_gadget<ZethProofCurve, AggregateProofCurve, NumProofs>>
+        aggregator_gadget<nppT, wppT, NumProofs>>
         aggregator_g;
 
-    aggregator_circuit_wrapper(const boost::filesystem::path setup_path = "")
-        : setup_path(setup_path){};
+public:
+    aggregator_circuit_wrapper();
 
-    // Generate the trusted setup
-    libzeth::keyPairT<AggregateProofCurve> generate_trusted_setup() const;
+    wSnarkT::KeypairT generate_trusted_setup() const;
+    libsnark::protoboard<libff::Fr<wppT>> get_constraint_system() const;
 
-#ifdef DEBUG
-    // Used to debug the constraint system
-    // Exports the r1cs to json and write to debug folder
-    void dump_constraint_system(boost::filesystem::path file_path) const;
-#endif
-
-    // Generate a proof and returns an extended proof
-    extended_proof<AggregateProofCurve> prove(
-        libzeth::verificationKeyT<ZethProofCurve> nested_vk,
-        std::array<libzeth::extended_proof<ZethProofCurve>, NumProofs>
-            extended_proofs,
-        const libzeth::provingKeyT<AggregateProofCurve> &aggregator_proving_key)
+    /// Generate a proof and returns an extended proof
+    extended_proof<wppT, wSnarkT> prove(
+        nSnarkT::VerificationKeyT nested_vk,
+        std::array<libzeth::extended_proof<nppT, nSnarkT>, NumProofs> extended_proofs,
+        const wSnarkT::ProvingKeyT &aggregator_proving_key)
         const;
 };
 
@@ -61,4 +46,4 @@ public:
 
 #include "aggregator_circuit_wrapper.tcc"
 
-#endif // __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
+#endif // __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__

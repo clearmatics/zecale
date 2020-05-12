@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZECALE_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_TCC__
-#define __ZECALE_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_TCC__
+#ifndef __ZECALE_CIRCUITS_GROTH16_VERIFIER_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_TCC__
+#define __ZECALE_CIRCUITS_GROTH16_VERIFIER_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_TCC__
 
 #include <libsnark/gadgetlib1/constraint_profiling.hpp>
 
@@ -534,4 +534,4 @@ void r1cs_gg_ppzksnark_verifier_gadget<ppT>::generate_r1cs_witness()
 
 } // namespace libzecale
 
-#endif // __ZECALE_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_TCC__
+#endif // __ZECALE_CIRCUITS_GROTH16_VERIFIER_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_TCC__

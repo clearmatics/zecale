@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZECALE_PAIRING_CHECKS_CIRCUIT_TCC__
-#define __ZECALE_PAIRING_CHECKS_CIRCUIT_TCC__
+#ifndef __ZECALE_CIRCUITS_PAIRING_PAIRING_CHECKS_TCC__
+#define __ZECALE_CIRCUITS_PAIRING_PAIRING_CHECKS_TCC__
 
 #include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
 
@@ -227,4 +227,4 @@ bool test_check_e_equals_eee_gadget(
 
 } // namespace libzecale
 
-#endif // __ZECALE_PAIRING_CHECKS_CIRCUIT_TCC__
+#endif // __ZECALE_CIRCUITS_PAIRING_PAIRING_CHECKS_TCC__

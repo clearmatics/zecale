@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZECALE_CONSTANTS__
-#define __ZECALE_CONSTANTS__
+#ifndef __ZECALE_ZECALE_CONSTANTS__
+#define __ZECALE_ZECALE_CONSTANTS__
 
 #include <stddef.h>
 
@@ -14,4 +14,4 @@ static const size_t ZECALE_BATCH_SIZE = 2;
 // Max depth of the Proofs pool/Zeth tx pool
 static const size_t ZECALE_MAX_POOL_DEPTH = 10;
 
-#endif // __ZECALE_CONSTANTS__
+#endif // __ZECALE_ZECALE_CONSTANTS__

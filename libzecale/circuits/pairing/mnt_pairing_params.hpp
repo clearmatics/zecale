@@ -14,8 +14,8 @@
  * @copyright  MIT license (see LICENSE file)
  *****************************************************************************/
 
-#ifndef __ZECALE_MNT_PAIRING_PARAMS_HPP__
-#define __ZECALE_MNT_PAIRING_PARAMS_HPP__
+#ifndef __ZECALE_CIRCUITS_PAIRING_MNT_PAIRING_PARAMS_HPP__
+#define __ZECALE_CIRCUITS_PAIRING_MNT_PAIRING_PARAMS_HPP__
 
 #include "src/circuits/pairing/pairing_params.hpp"
 #include "src/circuits/pairing/weierstrass_miller_loop.hpp"
@@ -111,4 +111,4 @@ public:
 
 } // namespace libzecale
 
-#endif // __ZECALE_MNT_PAIRING_PARAMS_HPP__
+#endif // __ZECALE_CIRCUITS_PAIRING_MNT_PAIRING_PARAMS_HPP__

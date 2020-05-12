@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
-#define __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
+#ifndef __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
+#define __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
 
-#include <libzeth/snarks_alias.hpp>
-#include <libzeth/zeth.h>
+#include <libzeth/snarks/default/default_snark.hpp>
+#include <libzeth/zeth_constants.hpp>
 
 using namespace libzeth;
 
@@ -14,115 +14,94 @@ namespace libzecale
 {
 
 template<
-    typename ZethProofCurve,      // Curve over which we "prove" Zeth state
-                                  // transitions => E/Fq
-    typename AggregateProofCurve, // Curve over which we "prove" succesfull
-                                  // verication of the nested proofs batch =>
-                                  // E/Fr
+    typename nppT,
+    typename wppT,
+    typename nSnarkT,
+    typename wSnarkT,
     size_t NumProofs>
-libzeth::keyPairT<AggregateProofCurve> aggregator_circuit_wrapper<
-    ZethProofCurve,
-    AggregateProofCurve,
+wSnarkT::KeypairT aggregator_circuit_wrapper<
+    nppT,
+    wppT,
+    nSnarkT,
+    wSnarkT,
     NumProofs>::generate_trusted_setup() const
 {
-    std::cout << "[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG1"
-              << std::endl;
-    libsnark::protoboard<ScalarFieldAggregatorT> pb;
+    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG1" << std::endl;
+    libsnark::protoboard<libff::Fr<wppT>> pb;
 
-    std::cout << "[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG2"
-              << std::endl;
-    aggregator_gadget<ZethProofCurve, AggregateProofCurve, NumProofs> g(pb);
-    std::cout
-        << "[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG2.1"
-        << std::endl;
+    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG2" << std::endl;
+    aggregator_gadget<nppT, wppT, NumProofs> g(pb);
+
+    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG3" << std::endl;
     g.generate_r1cs_constraints();
 
     // Generate a verification and proving key (trusted setup)
     // and write them in a file
-    std::cout << "[Aggregator_circuit_wrapper -- generate_trusted_setup] DEBUG3"
-              << std::endl;
-    libzeth::keyPairT<AggregateProofCurve> keypair =
-        gen_trusted_setup<AggregateProofCurve>(pb);
-    // TODO: the function below only works with `libff::alt_bn128_G1` so it is
-    // commented out to make the build pass wiht the MNT curves
-    // write_setup<AggregateProofCurve>(keypair, this->setup_path);
+    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG4" << std::endl;
+    wSnarkT::KeypairT keypair = wSnarkT::generate_setup(pb);
 
     return keypair;
 }
 
-#ifdef DEBUG
 template<
-    typename ZethProofCurve,      // Curve over which we "prove" Zeth state
-                                  // transitions => E/Fq
-    typename AggregateProofCurve, // Curve over which we "prove" succesfull
-                                  // verication of the nested proofs batch =>
-                                  // E/Fr
+    typename nppT,
+    typename wppT,
+    typename nSnarkT,
+    typename wSnarkT,
     size_t NumProofs>
-void aggregator_circuit_wrapper<
-    ZethProofCurve,
-    AggregateProofCurve,
-    NumProofs>::dump_constraint_system(boost::filesystem::path file_path) const
+libsnark::protoboard<libff::Fr<wppT>> aggregator_circuit_wrapper<
+    nppT,
+    wppT,
+    nSnarkT,
+    wSnarkT,
+    NumProofs>::get_constraint_system() const
 {
-    libsnark::protoboard<ScalarFieldAggregatorT> pb;
-    aggregator_gadget<ZethProofCurve, AggregateProofCurve, NumProofs> g(pb);
+    libsnark::protoboard<libff::Fr<wppT>> pb;
+    aggregator_gadget<nppT, wppT, NumProofs> g(pb);
     g.generate_r1cs_constraints();
-
-    // Write the constraint system in the default location
-    r1cs_to_json<AggregateProofCurve>(pb, file_path);
+    return pb;
 }
-#endif
 
 template<
-    // Curve over which we "prove" Zeth state transitions => E/Fq
-    typename ZethProofCurve,
-    // Curve over which we "prove" succesfull verication of the
-    // nested proofs batch => E/Fr
-    typename AggregateProofCurve,
+    typename nppT,
+    typename wppT,
+    typename nSnarkT,
+    typename wSnarkT,
     size_t NumProofs>
-extended_proof<AggregateProofCurve> aggregator_circuit_wrapper<
-    ZethProofCurve,
-    AggregateProofCurve,
+libzeth::extended_proof<wppT, wSnarkT> aggregator_circuit_wrapper<
+    nppT,
+    wppT,
+    nSnarkT,
+    wSnarkT,
     NumProofs>::
     prove(
-        libzeth::verificationKeyT<ZethProofCurve> nested_vk,
-        std::array<libzeth::extended_proof<ZethProofCurve>, NumProofs>
-            extended_proofs,
-        const libzeth::provingKeyT<AggregateProofCurve> &aggregator_proving_key)
+        nSnarkT::VerificationKeyT nested_vk,
+        std::array<libzeth::extended_proof<nppT, nSnarkT>, NumProofs> extended_proofs,
+        const wSnarkT::ProvingKeyT &aggregator_proving_key)
         const
 {
-    libsnark::protoboard<ScalarFieldAggregatorT> pb;
+    libsnark::protoboard<libff::Fr<wppT>> pb;
 
-    aggregator_gadget<ZethProofCurve, AggregateProofCurve, NumProofs> g(pb);
+    aggregator_gadget<nppT, wppT, NumProofs> g(pb);
     g.generate_r1cs_constraints();
     // We pass to the witness generation function the elements defined
-    // over the "other curve"
-    // see:
+    // over the "other curve". See:
     // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp#L98
     g.generate_r1cs_witness(nested_vk, extended_proofs);
 
     bool is_valid_witness = pb.is_satisfied();
-    std::cout << "******* [DEBUG] Satisfiability result: " << is_valid_witness
-              << " *******" << std::endl;
+    std::cout << "*** [DEBUG] Satisfiability result: " << is_valid_witness << " ***" << std::endl;
 
-    proofT<AggregateProofCurve> proof =
-        libzeth::gen_proof<AggregateProofCurve>(pb, aggregator_proving_key);
-    libsnark::r1cs_primary_input<libff::Fr<AggregateProofCurve>> primary_input =
-        pb.primary_input();
+    wSnarkT::ProofT proof = libzeth::gen_proof<wppT>(pb, aggregator_proving_key);
+    libsnark::r1cs_primary_input<libff::Fr<wppT>> primary_input = pb.primary_input();
 
     // Instantiate an extended_proof from the proof we generated and the given
     // primary_input
-    extended_proof<AggregateProofCurve> ext_proof =
-        extended_proof<AggregateProofCurve>(proof, primary_input);
-
-    // Write the extended proof in a file (Default path is taken if not
-    // specified)
-    // TODO: the function below only works for `libff::alt_bn128_G1` so it is
-    // commented out to make the build pass with the mnt curves
-    // ext_proof.write_extended_proof();
+    libzeth::extended_proof<wppT, wSnarkT> ext_proof = extended_proof<wppT, wSnarkT>(proof, primary_input);
 
     return ext_proof;
 }
 
 } // namespace libzecale
 
-#endif // __ZECALE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
+#endif // __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__

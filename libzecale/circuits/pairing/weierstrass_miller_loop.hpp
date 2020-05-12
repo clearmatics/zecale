@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZECALE_WEIERSTRASS_MILLER_LOOP_CIRCUIT_HPP__
-#define __ZECALE_WEIERSTRASS_MILLER_LOOP_CIRCUIT_HPP__
+#ifndef __ZECALE_CIRCUITS_PAIRING_WEIERSTRASS_MILLER_LOOP_HPP__
+#define __ZECALE_CIRCUITS_PAIRING_WEIERSTRASS_MILLER_LOOP_HPP__
 
 #include "src/circuits/pairing/mnt_pairing_params.hpp"
 #include "src/circuits/pairing/pairing_params.hpp"
@@ -104,4 +104,4 @@ bool test_mnt_e_times_e_times_e_over_e_miller_loop(
 
 #include "src/circuits/pairing/weierstrass_miller_loop.tcc"
 
-#endif // __ZECALE_WEIERSTRASS_MILLER_LOOP_CIRCUIT_HPP__
+#endif // __ZECALE_CIRCUITS_PAIRING_WEIERSTRASS_MILLER_LOOP_HPP__

@@ -10,8 +10,8 @@
  * @copyright  MIT license (see LICENSE file)
  *****************************************************************************/
 
-#ifndef __ZECALE_PAIRING_PARAMS_HPP__
-#define __ZECALE_PAIRING_PARAMS_HPP__
+#ifndef __ZECALE_CIRCUITS_PAIRING_PAIRING_PARAMS_HPP__
+#define __ZECALE_CIRCUITS_PAIRING_PAIRING_PARAMS_HPP__
 
 namespace libzecale
 {
@@ -126,4 +126,4 @@ using final_exp_gadget = typename pairing_selector<ppT>::final_exp_gadget_type;
 
 } // namespace libzecale
 
-#endif // __ZECALE_PAIRING_PARAMS_HPP__
+#endif // __ZECALE_CIRCUITS_PAIRING_PAIRING_PARAMS_HPP__

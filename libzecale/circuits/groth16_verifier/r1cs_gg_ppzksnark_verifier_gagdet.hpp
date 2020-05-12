@@ -8,8 +8,8 @@
 ///  Beacon Model" Sean Bowe and Ariel Gabizon and Ian Miers, IACR Cryptology
 ///  ePrint Archive 2017, <http://eprint.iacr.org/2017/1050>
 
-#ifndef __ZECALE_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_HPP__
-#define __ZECALE_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_HPP__
+#ifndef __ZECALE_CIRCUITS_GROTH16_VERIFIER_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_HPP__
+#define __ZECALE_CIRCUITS_GROTH16_VERIFIER_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_HPP__
 
 #include "src/circuits/pairing/pairing_checks.hpp"
 #include "src/circuits/pairing/pairing_params.hpp"
@@ -235,4 +235,4 @@ public:
 
 #include "r1cs_gg_ppzksnark_verifier_gadget.tcc"
 
-#endif // __ZECALE_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_HPP__
+#endif // __ZECALE_CIRCUITS_GROTH16_VERIFIER_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_HPP__

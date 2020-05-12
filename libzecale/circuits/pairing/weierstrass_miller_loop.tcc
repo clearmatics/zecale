@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZECALE_WEIERSTRASS_MILLER_LOOP_CIRCUIT_TCC__
-#define __ZECALE_WEIERSTRASS_MILLER_LOOP_CIRCUIT_TCC__
+#ifndef __ZECALE_CIRCUITS_PAIRING_WEIERSTRASS_MILLER_LOOP_TCC__
+#define __ZECALE_CIRCUITS_PAIRING_WEIERSTRASS_MILLER_LOOP_TCC__
 
 #include <libff/algebra/scalar_multiplication/wnaf.hpp>
 #include <libsnark/gadgetlib1/constraint_profiling.hpp>
@@ -500,4 +500,4 @@ bool test_mnt_e_times_e_times_e_over_e_miller_loop(
 
 } // namespace libzecale
 
-#endif // __ZECALE_WEIERSTRASS_MILLER_LOOP_CIRCUIT_TCC__
+#endif // __ZECALE_CIRCUITS_PAIRING_WEIERSTRASS_MILLER_LOOP_TCC__
