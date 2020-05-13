@@ -5,8 +5,8 @@
 #ifndef __ZECALE_CIRCUITS_PAIRING_WEIERSTRASS_MILLER_LOOP_HPP__
 #define __ZECALE_CIRCUITS_PAIRING_WEIERSTRASS_MILLER_LOOP_HPP__
 
-#include "src/circuits/pairing/mnt_pairing_params.hpp"
-#include "src/circuits/pairing/pairing_params.hpp"
+#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
+#include "libzecale/circuits/pairing/pairing_params.hpp"
 
 #include <libsnark/gadgetlib1/gadgets/pairing/weierstrass_miller_loop.hpp>
 #include <libsnark/gadgetlib1/gadgets/pairing/weierstrass_precomputation.hpp>
@@ -102,6 +102,6 @@ bool test_mnt_e_times_e_times_e_over_e_miller_loop(
 
 } // namespace libzecale
 
-#include "src/circuits/pairing/weierstrass_miller_loop.tcc"
+#include "libzecale/circuits/pairing/weierstrass_miller_loop.tcc"
 
 #endif // __ZECALE_CIRCUITS_PAIRING_WEIERSTRASS_MILLER_LOOP_HPP__

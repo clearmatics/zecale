@@ -13,26 +13,26 @@
 namespace libzecale
 {
 template<typename ppT>
-using verifierGadgetT = libsnark::r1cs_ppzksnark_verifier_gadget<ppT>;
+using VerifierGadgetT = libsnark::r1cs_ppzksnark_verifier_gadget<ppT>;
 template<typename ppT>
-using proofVariableGadgetT = libsnark::r1cs_ppzksnark_proof_variable<ppT>;
+using ProofVariableGadgetT = libsnark::r1cs_ppzksnark_proof_variable<ppT>;
 template<typename ppT>
-using verificationKeyVariableGadgetT =
+using VerificationKeyVariableGadgetT =
     libsnark::r1cs_ppzksnark_verification_key_variable<ppT>;
 } // namespace libzecale
 #endif
 
 #ifdef ZKSNARK_GROTH16
 #define LIBZECALE_VERIFIER_GADGET_DEFINED
-#include "src/circuits/groth16_verifier/r1cs_gg_ppzksnark_verifier_gagdet.hpp"
+#include "libzecale/circuits/groth16_verifier/r1cs_gg_ppzksnark_verifier_gagdet.hpp"
 namespace libzecale
 {
 template<typename ppT>
-using verifierGadgetT = r1cs_gg_ppzksnark_verifier_gadget<ppT>;
+using VerifierGadgetT = r1cs_gg_ppzksnark_verifier_gadget<ppT>;
 template<typename ppT>
-using proofVariableGadgetT = r1cs_gg_ppzksnark_proof_variable<ppT>;
+using ProofVariableGadgetT = r1cs_gg_ppzksnark_proof_variable<ppT>;
 template<typename ppT>
-using verificationKeyVariableGadgetT =
+using VerificationKeyVariableGadgetT =
     r1cs_gg_ppzksnark_verification_key_variable<ppT>;
 } // namespace libzecale
 #endif

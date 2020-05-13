@@ -30,6 +30,8 @@ configure_file (
 )
 
 # Flags and compilation options to chose the type of zksnark
+# TODO: Allow Zeth and Zecale to use different snarks. To do so, introduce
+# separate variables in the cmake config
 set(
   ZKSNARK
   "GROTH16"
@@ -198,11 +200,16 @@ file(
   ${PROJECT_SOURCE_DIR}/api/*.proto
 )
 
-set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR})
+# Add the compiled proto files of zeth into the set of include directories
+include_directories(${PROJECT_SOURCE_DIR}/build/depends/zeth)
+# Set the import path to be able to re-use the Zeth proto files
+set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/depends/zeth/)
+
 set(PROTOBUF_PROTO_PATH ${PROJECT_SOURCE_DIR})
 set(PROTOBUF_APPEND_DEST_PATH "/api")
 set(PROTOBUF_GENERATE_CPP_APPEND_PATH OFF)
 set(GRPC_GENERATE_CPP_APPEND_PATH OFF)
+set(Protobuf_DEBUG ON)
 
 # By default, compile with all warning flags
 add_compile_options(-Wall -Wextra)

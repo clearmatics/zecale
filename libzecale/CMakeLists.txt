@@ -5,10 +5,6 @@ find_package(gRPC REQUIRED)
 
 include_directories(SYSTEM ${PROTO_SRC_DIR})
 
-# TODO remove line below:
-# Add the compiled proto files of zeth into the set of include directories
-include_directories(${PROJECT_SOURCE_DIR}/build/depends/zeth)
-
 # See cmake scripts in the cmake folder
 # Generate the grpc and protobuf files and set the result of the generation
 # in the given env var (PROTO_SRCS, PROTO_HDRS, GRPC_SRCS, GRPC_HDRS)

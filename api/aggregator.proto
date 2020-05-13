@@ -12,7 +12,7 @@ service Aggregator {
     //
     // This verification key corresponds to the aggregator statement (this statement
     // is basically multiple calls to the SNARK verification routine)
-    rpc GetVerificationKey(google.protobuf.Empty) returns (prover_proto.VerificationKey) {}
+    rpc GetVerificationKey(google.protobuf.Empty) returns (zeth_proto.VerificationKey) {}
 
     // Registering an application allows to support a new
     // application on the aggregation service
@@ -29,7 +29,7 @@ service Aggregator {
     //
     // This endpoint won't necessarily be useful in practice, but this is useful
     // for some manual triggering for now.
-    rpc GenerateAggregateProof(ApplicationName) returns (prover_proto.ExtendedProof) {}
+    rpc GenerateAggregateProof(ApplicationName) returns (zeth_proto.ExtendedProof) {}
 
     // Function to submit a transaction to aggregate
     rpc SubmitTransaction(TransactionToAggregate) returns (google.protobuf.Empty) {}
@@ -41,7 +41,7 @@ message ApplicationName {
 
 message ApplicationRegistration {
     string name = 1;
-    prover_proto.VerificationKey vk = 2;
+    zeth_proto.VerificationKey vk = 2;
 }
 
 // A Zeth transaction is a "TransactionToAggregate"
@@ -50,7 +50,7 @@ message TransactionToAggregate {
     // Using the application name avoids to pass the verification key.
     // This is more bandwidth efficient.
     string application_name = 1;
-    prover_proto.ExtendedProof extended_proof = 2;
+    zeth_proto.ExtendedProof extended_proof = 2;
     // Only if an incentive structure is in place and fees are supported
     int32 fee_in_wei = 3;
 }

@@ -5,8 +5,8 @@
 #ifndef __ZECALE_CIRCUITS_PAIRING_PAIRING_CHECKS_HPP__
 #define __ZECALE_CIRCUITS_PAIRING_PAIRING_CHECKS_HPP__
 
-#include "src/circuits/pairing/pairing_params.hpp"
-#include "src/circuits/pairing/weierstrass_miller_loop.hpp"
+#include "libzecale/circuits/pairing/pairing_params.hpp"
+#include "libzecale/circuits/pairing/weierstrass_miller_loop.hpp"
 
 #include <libsnark/gadgetlib1/gadgets/pairing/pairing_checks.hpp>
 #include <libsnark/gadgetlib1/gadgets/pairing/weierstrass_final_exponentiation.hpp>
@@ -74,6 +74,6 @@ bool test_check_e_equals_eee_gadget(
 
 } // namespace libzecale
 
-#include "src/circuits/pairing/pairing_checks.tcc"
+#include "libzecale/circuits/pairing/pairing_checks.tcc"
 
 #endif // __ZECALE_CIRCUITS_PAIRING_PAIRING_CHECKS_HPP__

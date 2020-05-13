@@ -25,7 +25,7 @@
 #pragma GCC diagnostic pop
 
 // Include the API for the given SNARK
-#include "zecaleConfig.h"
+#include "zecale_config.h"
 
 #include <libzeth/circuits/circuit_types.hpp>
 #include <libzeth/core/utils.hpp>
@@ -95,7 +95,7 @@ public:
     grpc::Status GetVerificationKey(
         grpc::ServerContext */*context*/,
         const proto::Empty */*request*/,
-        prover_proto::VerificationKey *response) override
+        zeth_proto::VerificationKey *response) override
     {
         std::cout << "[ACK] Received the request to get the verification key"
                   << std::endl;
@@ -146,7 +146,7 @@ public:
     grpc::Status GenerateAggregateProof(
         grpc::ServerContext */*context*/,
         const zecale_proto::ApplicationName *app_name,
-        prover_proto::ExtendedProof *proof) override
+        zeth_proto::ExtendedProof *proof) override
     {
         std::cout
             << "[ACK] Received the request to generate an aggregation proof"
@@ -203,7 +203,7 @@ public:
             // Add the application to the list of supported application on the
             // aggregator server.
             libzecale::transaction_to_aggregate<npp, nsnark> tx =
-                libzecale::transaction_to_aggregate_from_proto<npp, napi_handler>(*transaction);
+                libzecale::transaction_to_aggregate_from_proto<npp, nsnark, napi_handler>(*transaction);
             libzecale::application_pool<npp, nsnark, batch_size> app_pool = this->pools_map[transaction->application_name()];
             app_pool.add_tx(tx);
         } catch (const std::exception &e) {

@@ -31,14 +31,14 @@ private:
 public:
     aggregator_circuit_wrapper();
 
-    wSnarkT::KeypairT generate_trusted_setup() const;
+    typename wSnarkT::KeypairT generate_trusted_setup() const;
     libsnark::protoboard<libff::Fr<wppT>> get_constraint_system() const;
 
     /// Generate a proof and returns an extended proof
     extended_proof<wppT, wSnarkT> prove(
-        nSnarkT::VerificationKeyT nested_vk,
+        typename nSnarkT::VerificationKeyT nested_vk,
         std::array<libzeth::extended_proof<nppT, nSnarkT>, NumProofs> extended_proofs,
-        const wSnarkT::ProvingKeyT &aggregator_proving_key)
+        const typename wSnarkT::ProvingKeyT &aggregator_proving_key)
         const;
 };
 

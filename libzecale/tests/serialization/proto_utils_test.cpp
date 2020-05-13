@@ -104,7 +104,7 @@ TEST(MainTests, ParseTransactionToAggregatePGHR13)
 
     // Parse the TransactionToAggregate
     transaction_to_aggregate<ppT> retrieved_tx =
-        transaction_to_aggregate_from_proto<ppT, libzeth::pghr13_api_handler<ppT>>(*grpc_tx_to_aggregate_obj);
+        transaction_to_aggregate_from_proto<ppT, libzeth::pghr13_snark<ppT>, libzeth::pghr13_api_handler<ppT>>(*grpc_tx_to_aggregate_obj);
 
     ASSERT_EQ(
         retrieved_tx.extended_proof().get_primary_input(),
@@ -172,7 +172,7 @@ TEST(MainTests, ParseTransactionToAggregateGROTH16)
 
     // Parse the TransactionToAggregate
     transaction_to_aggregate<ppT> retrieved_tx =
-        transaction_to_aggregate_from_proto<ppT, libzeth::groth16_api_handler<ppT>>(*grpc_tx_to_aggregate_obj);
+        transaction_to_aggregate_from_proto<ppT, libzeth::groth16_snark<ppT>, libzeth::groth16_api_handler<ppT>>(*grpc_tx_to_aggregate_obj);
 
     ASSERT_EQ(
         retrieved_tx.extended_proof().get_primary_input(),

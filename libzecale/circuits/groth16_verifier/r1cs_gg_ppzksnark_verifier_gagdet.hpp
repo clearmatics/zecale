@@ -11,8 +11,8 @@
 #ifndef __ZECALE_CIRCUITS_GROTH16_VERIFIER_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_HPP__
 #define __ZECALE_CIRCUITS_GROTH16_VERIFIER_R1CS_GG_PPZKSNARK_VERIFIER_GADGET_HPP__
 
-#include "src/circuits/pairing/pairing_checks.hpp"
-#include "src/circuits/pairing/pairing_params.hpp"
+#include "libzecale/circuits/pairing/pairing_checks.hpp"
+#include "libzecale/circuits/pairing/pairing_params.hpp"
 
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/curves/weierstrass_g1_gadget.hpp>
