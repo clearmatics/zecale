@@ -26,18 +26,22 @@ typename wSnarkT::KeypairT aggregator_circuit_wrapper<
     wSnarkT,
     NumProofs>::generate_trusted_setup() const
 {
-    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG1" << std::endl;
+    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG1"
+              << std::endl;
     libsnark::protoboard<libff::Fr<wppT>> pb;
 
-    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG2" << std::endl;
+    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG2"
+              << std::endl;
     aggregator_gadget<nppT, wppT, nSnarkT, NumProofs> g(pb);
 
-    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG3" << std::endl;
+    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG3"
+              << std::endl;
     g.generate_r1cs_constraints();
 
     // Generate a verification and proving key (trusted setup)
     // and write them in a file
-    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG4" << std::endl;
+    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG4"
+              << std::endl;
     typename wSnarkT::KeypairT keypair = wSnarkT::generate_setup(pb);
 
     return keypair;
@@ -76,9 +80,9 @@ libzeth::extended_proof<wppT, wSnarkT> aggregator_circuit_wrapper<
     NumProofs>::
     prove(
         typename nSnarkT::VerificationKeyT nested_vk,
-        std::array<libzeth::extended_proof<nppT, nSnarkT>, NumProofs> extended_proofs,
-        const typename wSnarkT::ProvingKeyT &aggregator_proving_key)
-        const
+        std::array<libzeth::extended_proof<nppT, nSnarkT>, NumProofs>
+            extended_proofs,
+        const typename wSnarkT::ProvingKeyT &aggregator_proving_key) const
 {
     libsnark::protoboard<libff::Fr<wppT>> pb;
 
@@ -90,14 +94,18 @@ libzeth::extended_proof<wppT, wSnarkT> aggregator_circuit_wrapper<
     g.generate_r1cs_witness(nested_vk, extended_proofs);
 
     bool is_valid_witness = pb.is_satisfied();
-    std::cout << "*** [DEBUG] Satisfiability result: " << is_valid_witness << " ***" << std::endl;
+    std::cout << "*** [DEBUG] Satisfiability result: " << is_valid_witness
+              << " ***" << std::endl;
 
-    typename wSnarkT::ProofT proof = wSnarkT::generate_proof(pb, aggregator_proving_key);
-    libsnark::r1cs_primary_input<libff::Fr<wppT>> primary_input = pb.primary_input();
+    typename wSnarkT::ProofT proof =
+        wSnarkT::generate_proof(pb, aggregator_proving_key);
+    libsnark::r1cs_primary_input<libff::Fr<wppT>> primary_input =
+        pb.primary_input();
 
     // Instantiate an extended_proof from the proof we generated and the given
     // primary_input
-    libzeth::extended_proof<wppT, wSnarkT> ext_proof = extended_proof<wppT, wSnarkT>(proof, primary_input);
+    libzeth::extended_proof<wppT, wSnarkT> ext_proof =
+        extended_proof<wppT, wSnarkT>(proof, primary_input);
 
     return ext_proof;
 }

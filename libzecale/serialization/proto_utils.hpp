@@ -11,10 +11,7 @@
 namespace libzecale
 {
 
-template<
-    typename ppT,
-    typename snarkT,
-    typename snarkHandlerT>
+template<typename ppT, typename snarkT, typename snarkHandlerT>
 transaction_to_aggregate<ppT, snarkT> transaction_to_aggregate_from_proto(
     const zecale_proto::TransactionToAggregate &transaction);
 

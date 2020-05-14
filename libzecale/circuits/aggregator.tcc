@@ -14,13 +14,11 @@
 
 // Contains the definitions of the constants we use
 #include <boost/static_assert.hpp>
-#include <libzeth/core/merkle_tree_field.hpp>
-#include <libzeth/zeth_constants.hpp>
-
-#include <libzeth/core/extended_proof.hpp>
-#include <libzeth/snarks/default/default_snark.hpp>
-
 #include <libff/algebra/fields/field_utils.hpp>
+#include <libzeth/core/extended_proof.hpp>
+#include <libzeth/core/merkle_tree_field.hpp>
+#include <libzeth/snarks/default/default_snark.hpp>
+#include <libzeth/zeth_constants.hpp>
 
 using namespace libzeth;
 
@@ -31,20 +29,20 @@ using namespace libzeth;
 namespace libzecale
 {
 
-/// We know that a proof (PGHR13 or GROTH16) is made of group elements (G1 or G2)
-/// where the coordinates of the group elements are elements of E/F_q (for G1),
-/// or elements of E/F_q^n (for G2), where `n` varies depending on the setting.
-/// As such, the coordinates of the elements in the proof are defined over the
-/// field Fq this field is referred to as the "base field".
+/// We know that a proof (PGHR13 or GROTH16) is made of group elements (G1 or
+/// G2) where the coordinates of the group elements are elements of E/F_q (for
+/// G1), or elements of E/F_q^n (for G2), where `n` varies depending on the
+/// setting. As such, the coordinates of the elements in the proof are defined
+/// over the field Fq this field is referred to as the "base field".
 ///
 /// Primary inputs however are defined over F_r, referred to as the "scalar
 /// field".
 ///
 /// In the context of recursion, especially in the context of the MNT(4,6)-cycle
 /// of pairing friendly elliptic curves, it is necessary to be careful with how
-/// we refer to the fields. In fact, the base field used to define one curve also
-/// constitutes the scalar field of the other curve, and vice-and-versa. This
-/// represents a cycle.
+/// we refer to the fields. In fact, the base field used to define one curve
+/// also constitutes the scalar field of the other curve, and vice-and-versa.
+/// This represents a cycle.
 ///
 /// In fact, in the context of Zeth proof "aggregation", we have the following:
 /// |              |      Zeth proof      |    Aggregator proof    |
@@ -52,11 +50,7 @@ namespace libzecale
 /// |  Base field  |  Pi_z (over Fq)      |     Pi_a (over Fr)     |
 /// | Scalar field |  PrimIn_z (over Fr)  |   PrimIn_a (over Fq)   |
 
-template<
-    typename nppT,
-    typename wppT,
-    typename nSnarkT,
-    size_t NumProofs>
+template<typename nppT, typename wppT, typename nSnarkT, size_t NumProofs>
 class aggregator_gadget : libsnark::gadget<libff::Fr<wppT>>
 {
 private:
@@ -72,21 +66,23 @@ private:
     /// We need to convert them to `libff::Fr<wppT>` elements so that they
     /// constitute valid values for the wires of our circuit which is defined
     /// over `libff::Fr<wppT>`
-    std::array<libsnark::pb_variable_array<libff::Fr<wppT>>, NumProofs> nested_primary_inputs;
+    std::array<libsnark::pb_variable_array<libff::Fr<wppT>>, NumProofs>
+        nested_primary_inputs;
 
     /// The array of the results of the verifiers
-    std::array<libsnark::pb_variable<libff::Fr<wppT>>, NumProofs> nested_proofs_results;
+    std::array<libsnark::pb_variable<libff::Fr<wppT>>, NumProofs>
+        nested_proofs_results;
 
     /// ---- Auxiliary inputs (private) ---- //
     ///
     /// The auxiliary inputs lie in the scalar field `libff::Fr<wppT>`
     ///
-    /// A proof of computational integrity is sufficient, **we don't need ZK here**
-    /// We move the proofs to verify as part of the auxiliary input though in
-    /// order to keep the amount of info sent on-chain as small as possible.
-    /// On-chain we only need to have access to the Zeth primary inputs in order
-    /// to change the state of the Mixer accordingly. The Zeth proofs are not
-    /// strictly necessary.
+    /// A proof of computational integrity is sufficient, **we don't need ZK
+    /// here** We move the proofs to verify as part of the auxiliary input
+    /// though in order to keep the amount of info sent on-chain as small as
+    /// possible. On-chain we only need to have access to the Zeth primary
+    /// inputs in order to change the state of the Mixer accordingly. The Zeth
+    /// proofs are not strictly necessary.
     ///
     /// The `NumProofs` proofs to verify
     /// 1. The Zeth proofs to verify in this circuit
@@ -103,7 +99,8 @@ private:
     /// `r1cs_ppzksnark_proof<other_curve<ppT> >` for the witness!
     /// https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp#L55
     ///
-    std::array<std::shared_ptr<ProofVariableGadgetT<wppT>>, NumProofs> nested_proofs;
+    std::array<std::shared_ptr<ProofVariableGadgetT<wppT>>, NumProofs>
+        nested_proofs;
 
     /// Likewise, this is not strictly necessary, but we do not need to pass the
     /// VK to the contract everytime as such we move it to the auxiliary inputs
@@ -199,9 +196,7 @@ public:
             // known) we will need to add the "hash to the vk" as part of the
             // primary inputs
             // - The Zeth proofs
-            wZero.allocate(
-                pb,
-                FMT(this->annotation_prefix, " wZero"));
+            wZero.allocate(pb, FMT(this->annotation_prefix, " wZero"));
             // == The nested vk ==
             // Bit size of the nested VK
             // The nested VK is interpreted as an array of bits
@@ -209,29 +204,26 @@ public:
             // to the # of primary inputs of the zeth circuit, which is used to
             // determine the size of the zeth VK which is the one we manipulate
             // below.
-            const size_t vk_size_in_bits = VerificationKeyVariableGadgetT<
-                wppT>::size_in_bits(nb_zeth_inputs);
+            const size_t vk_size_in_bits =
+                VerificationKeyVariableGadgetT<wppT>::size_in_bits(
+                    nb_zeth_inputs);
             libsnark::pb_variable_array<libff::Fr<wppT>> nested_vk_bits;
             nested_vk_bits.allocate(
                 pb,
                 vk_size_in_bits,
                 FMT(this->annotation_prefix, " vk_size_in_bits"));
-            nested_vk.reset(
-                new VerificationKeyVariableGadgetT<wppT>(
-                    pb,
-                    nested_vk_bits,
-                    nb_zeth_inputs,
-                    FMT(this->annotation_prefix, " nested_vk")));
+            nested_vk.reset(new VerificationKeyVariableGadgetT<wppT>(
+                pb,
+                nested_vk_bits,
+                nb_zeth_inputs,
+                FMT(this->annotation_prefix, " nested_vk")));
 
             // Initialize the proof variable gadgets. The protoboard allocation
             // is done in the constructor `r1cs_ppzksnark_proof_variable()`
             for (size_t i = 0; i < NumProofs; i++) {
-                nested_proofs[i].reset(
-                    new ProofVariableGadgetT<wppT>(
-                        pb,
-                        FMT(this->annotation_prefix,
-                            " nested_proofs[%zu]",
-                            i)));
+                nested_proofs[i].reset(new ProofVariableGadgetT<wppT>(
+                    pb,
+                    FMT(this->annotation_prefix, " nested_proofs[%zu]", i)));
             }
         }
 
@@ -286,8 +278,7 @@ public:
             in_extended_proofs)
     {
         // Witness `zero`
-        this->pb.val(wZero) =
-            libff::Fr<wppT>::zero();
+        this->pb.val(wZero) = libff::Fr<wppT>::zero();
 
         // Witness the VK
         nested_vk->generate_r1cs_witness(in_nested_vk);

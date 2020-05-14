@@ -16,18 +16,20 @@ transaction_to_aggregate<nppT, nSnarkT>::transaction_to_aggregate(
     : _application_name(application_name), _fee_wei(fee_wei)
 {
     this->_extended_proof =
-        std::make_shared<libzeth::extended_proof<nppT, nSnarkT>>(extended_proof);
+        std::make_shared<libzeth::extended_proof<nppT, nSnarkT>>(
+            extended_proof);
 }
 
 template<typename nppT, typename nSnarkT>
-std::ostream &transaction_to_aggregate<nppT, nSnarkT>::write_json(std::ostream &os) const
+std::ostream &transaction_to_aggregate<nppT, nSnarkT>::write_json(
+    std::ostream &os) const
 {
     os << "{\n"
-          "\t\"app_name\": " <<
-          "\"" << _application_name << "\"";
+          "\t\"app_name\": "
+       << "\"" << _application_name << "\"";
     os << ",\n"
-          "\t\"fee_wei\": " <<
-          "\"" << _fee_wei << "\"";
+          "\t\"fee_wei\": "
+       << "\"" << _fee_wei << "\"";
     os << "\n"
           "}\n";
     return os;

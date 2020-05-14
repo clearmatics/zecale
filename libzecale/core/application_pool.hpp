@@ -23,7 +23,8 @@ namespace libzecale
 /// For example, we can have an `application_pool` to aggregate `Zeth` proofs
 /// and an other `aggregation_pool` to aggregate proofs for other type
 /// of statements.
-template<typename nppT, typename nSnarkT, size_t NumProofs> class application_pool
+template<typename nppT, typename nSnarkT, size_t NumProofs>
+class application_pool
 {
 private:
     /// Name/Identifier of the application (E.g. "zeth")

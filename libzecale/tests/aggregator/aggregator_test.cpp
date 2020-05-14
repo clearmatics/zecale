@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "gtest/gtest.h"
 #include "libzecale/core/aggregator_circuit_wrapper.hpp"
 
+#include "gtest/gtest.h"
 #include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
 #include <libff/algebra/curves/mnt/mnt6/mnt6_pp.hpp>
 #include <libff/algebra/fields/field_utils.hpp>
@@ -14,10 +14,10 @@
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 // Include the joinsplit gadget - generate the zeth proofs
-#include <libzeth/circuits/circuit_wrapper.hpp>
 #include "libzeth/circuits/blake2s/blake2s.hpp"
-#include <libzeth/circuits/mimc/mimc_mp.hpp>
 
+#include <libzeth/circuits/circuit_wrapper.hpp>
+#include <libzeth/circuits/mimc/mimc_mp.hpp>
 #include <libzeth/core/bits.cpp>
 
 // Include the core files and template instantiations corresponding
@@ -96,8 +96,9 @@ libzeth::extended_proof<zethProofCurve, zethSnark> generate_valid_zeth_proof(
         "f172d7299ac8ac974ea59413e4a87691826df038ba24a2b52d5c5d15c2cc8c49");
     libzeth::bits256 nf_bits256 = libzeth::bits256_from_hex(
         "ff2f41920346251f6e7c67062149f98bc90c915d3d3020927ca01deab5da0fd7");
-    zethScalarField cm_field = zethScalarField("1042337073265819561558789652115525918926201435246"
-                             "16864409706009242461667751082");
+    zethScalarField cm_field =
+        zethScalarField("1042337073265819561558789652115525918926201435246"
+                        "16864409706009242461667751082");
     const size_t address_commitment = 1;
     libff::bit_vector address_bits;
     for (size_t i = 0; i < tree_depth; ++i) {
@@ -120,7 +121,8 @@ libzeth::extended_proof<zethProofCurve, zethSnark> generate_valid_zeth_proof(
     libzeth::zeth_note note_dummy_input(
         a_pk_bits256,
         libzeth::bits64_from_hex("0000000000000000"),
-        libzeth::bits256_from_hex("AAAA00000000000000000000000000000000000000000000000000000000EEEE"),
+        libzeth::bits256_from_hex(
+            "AAAA00000000000000000000000000000000000000000000000000000000EEEE"),
         trap_r_bits256);
     libzeth::joinsplit_input<zethScalarField, tree_depth> input(
         path,
@@ -144,7 +146,8 @@ libzeth::extended_proof<zethProofCurve, zethSnark> generate_valid_zeth_proof(
     libff::leave_block("Create joinsplit_input", true);
 
     libff::enter_block("Create JSOutput/zeth_note", true);
-    libzeth::bits64 value_out_bits64 = libzeth::bits64_from_hex("1800000000000008");
+    libzeth::bits64 value_out_bits64 =
+        libzeth::bits64_from_hex("1800000000000008");
     libzeth::bits256 a_pk_out_bits256 = libzeth::bits256_from_hex(
         "7777f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b");
     libzeth::bits256 rho_out_bits256;
@@ -168,16 +171,17 @@ libzeth::extended_proof<zethProofCurve, zethSnark> generate_valid_zeth_proof(
     libff::leave_block("Create JSOutput/zeth_note", true);
 
     libff::enter_block("Generate Zeth proof", true);
-    libzeth::extended_proof<zethProofCurve, zethSnark> ext_proof = zeth_prover.prove(
-        updated_root_value,
-        inputs,
-        outputs,
-        // vpub_in = 0
-        libzeth::bits64_from_hex("0000000000000000"),
-        value_pub_out_bits64,
-        h_sig,
-        phi,
-        zeth_keypair.pk);
+    libzeth::extended_proof<zethProofCurve, zethSnark> ext_proof =
+        zeth_prover.prove(
+            updated_root_value,
+            inputs,
+            outputs,
+            // vpub_in = 0
+            libzeth::bits64_from_hex("0000000000000000"),
+            value_pub_out_bits64,
+            h_sig,
+            phi,
+            zeth_keypair.pk);
     libff::leave_block("Generate Zeth proof", true);
 
     libff::enter_block("Verify Zeth proof", true);
@@ -206,20 +210,20 @@ bool test_valid_aggregation_batch_proofs(
         zecaleProofCurve,
         zethSnark,
         zecaleSnark,
-        batch_size>
-        &aggregator_prover,
+        batch_size> &aggregator_prover,
     typename zecaleSnark::KeypairT aggregator_keypair,
     typename zethSnark::KeypairT zeth_keypair,
     std::array<libzeth::extended_proof<zethProofCurve, zethSnark>, batch_size>
         nested_proofs)
 {
     libff::enter_block("Generate Aggregate proof", true);
-    libzeth::extended_proof<zecaleProofCurve, zecaleSnark> ext_proof = aggregator_prover.prove(
-        // This should cause a crash because the primary inputs are
-        // packed in Zeth and are processed as unpacked here.
-        zeth_keypair.vk,
-        nested_proofs,
-        aggregator_keypair.pk);
+    libzeth::extended_proof<zecaleProofCurve, zecaleSnark> ext_proof =
+        aggregator_prover.prove(
+            // This should cause a crash because the primary inputs are
+            // packed in Zeth and are processed as unpacked here.
+            zeth_keypair.vk,
+            nested_proofs,
+            aggregator_keypair.pk);
     libff::leave_block("Generate Aggregate proof", true);
 
     libff::enter_block("Verify Aggregate proof", true);
@@ -251,7 +255,8 @@ TEST(MainTests, AggregatorTest)
         tree_depth>
         zeth_prover;
     std::cout << "[DEBUG] Before Zeth trusted setup" << std::endl;
-    typename zethSnark::KeypairT zeth_keypair = zeth_prover.generate_trusted_setup();
+    typename zethSnark::KeypairT zeth_keypair =
+        zeth_prover.generate_trusted_setup();
 
     // Test to aggregate a single proof (i.e. generate a proof for the
     // verification of the proof)
@@ -265,8 +270,8 @@ TEST(MainTests, AggregatorTest)
      * invalid_proof.get_primary_input
      **/
 
-    std::array<libzeth::extended_proof<zethProofCurve, zethSnark>, batch_size> batch = {
-        valid_proof, valid_proof};
+    std::array<libzeth::extended_proof<zethProofCurve, zethSnark>, batch_size>
+        batch = {valid_proof, valid_proof};
     // Make sure that the number of primary inputs matches the one we set in the
     // `aggregator_prover` circuit
     std::cout << "[DEBUG] nested_proofs[0].get_primary_inputs().size(): "
@@ -284,7 +289,8 @@ TEST(MainTests, AggregatorTest)
         batch_size>
         aggregator_prover;
     std::cout << "[DEBUG] Before gen Aggregator setup" << std::endl;
-    typename zecaleSnark::KeypairT aggregator_keypair = aggregator_prover.generate_trusted_setup();
+    typename zecaleSnark::KeypairT aggregator_keypair =
+        aggregator_prover.generate_trusted_setup();
 
     std::cout << "[DEBUG] Before first test" << std::endl;
     bool res = false;
