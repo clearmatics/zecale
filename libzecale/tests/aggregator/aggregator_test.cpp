@@ -186,10 +186,6 @@ libzeth::extended_proof<zethProofCurve, zethSnark> generate_valid_zeth_proof(
         ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verify? " << res << std::endl;
 
-    /*
-     * // The proof should be valid, so we assert it
-     * //ASSERT_EQ(bit, true);
-     **/
     libff::leave_block("Verify Zeth proof", true);
 
     std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
