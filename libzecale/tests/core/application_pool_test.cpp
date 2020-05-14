@@ -66,15 +66,15 @@ TEST(MainTests, AddAndRetrieveTransactions)
     // (set with arbitrary number of inputs)
     const size_t BATCH_SIZE = 2;
     std::string dummy_app_name = std::string("test_application");
-    libzeth::default_snark::VerificationKeyT<ppT> vk = get_dummy_verification_key(42);
-    application_pool<ppT, BATCH_SIZE> pool(dummy_app_name, vk);
+    libzeth::default_snark<ppT>::VerificationKeyT vk = get_dummy_verification_key(42);
+    application_pool<ppT, libzeth::default_snark<ppT>, BATCH_SIZE> pool(dummy_app_name, vk);
 
     // Get size of the pool before any addition
     ASSERT_EQ(pool.tx_pool_size(), (size_t)0);
 
     // Create a dummy extended proof to build the set of transactions to
     // aggregate
-    libzeth::default_snark::ProofT<ppT> proof = get_dummy_proof();
+    libzeth::default_snark<ppT>::ProofT proof = get_dummy_proof();
     std::vector<libff::Fr<ppT>> dummy_inputs;
     dummy_inputs.push_back(libff::Fr<ppT>::random_element());
     dummy_inputs.push_back(libff::Fr<ppT>::random_element());
@@ -82,19 +82,19 @@ TEST(MainTests, AddAndRetrieveTransactions)
     libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_inputs =
         libsnark::r1cs_primary_input<libff::Fr<ppT>>(dummy_inputs);
 
-    libzeth::extended_proof<ppT, libzeth::default_snark> dummy_extended_proof(proof, dummy_inputs);
+    libzeth::extended_proof<ppT, libzeth::default_snark<ppT>> dummy_extended_proof(proof, dummy_inputs);
 
     // Add transactions in the pool
-    transaction_to_aggregate<ppT, libzeth::default_snark> tx_a =
-        transaction_to_aggregate<ppT, libzeth::default_snark>(dummy_app_name, dummy_extended_proof, 1);
-    transaction_to_aggregate<ppT, libzeth::default_snark> tx_b =
-        transaction_to_aggregate<ppT, libzeth::default_snark>(dummy_app_name, dummy_extended_proof, 20);
-    transaction_to_aggregate<ppT, libzeth::default_snark> tx_c =
-        transaction_to_aggregate<ppT, libzeth::default_snark>(dummy_app_name, dummy_extended_proof, 12);
-    transaction_to_aggregate<ppT, libzeth::default_snark> tx_d =
-        transaction_to_aggregate<ppT, libzeth::default_snark>(dummy_app_name, dummy_extended_proof, 3);
-    transaction_to_aggregate<ppT, libzeth::default_snark> tx_e =
-        transaction_to_aggregate<ppT, libzeth::default_snark>(dummy_app_name, dummy_extended_proof, 120);
+    transaction_to_aggregate<ppT, libzeth::default_snark<ppT>> tx_a =
+        transaction_to_aggregate<ppT, libzeth::default_snark<ppT>>(dummy_app_name, dummy_extended_proof, 1);
+    transaction_to_aggregate<ppT, libzeth::default_snark<ppT>> tx_b =
+        transaction_to_aggregate<ppT, libzeth::default_snark<ppT>>(dummy_app_name, dummy_extended_proof, 20);
+    transaction_to_aggregate<ppT, libzeth::default_snark<ppT>> tx_c =
+        transaction_to_aggregate<ppT, libzeth::default_snark<ppT>>(dummy_app_name, dummy_extended_proof, 12);
+    transaction_to_aggregate<ppT, libzeth::default_snark<ppT>> tx_d =
+        transaction_to_aggregate<ppT, libzeth::default_snark<ppT>>(dummy_app_name, dummy_extended_proof, 3);
+    transaction_to_aggregate<ppT, libzeth::default_snark<ppT>> tx_e =
+        transaction_to_aggregate<ppT, libzeth::default_snark<ppT>>(dummy_app_name, dummy_extended_proof, 120);
 
     pool.add_tx(tx_a);
     pool.add_tx(tx_b);
@@ -110,7 +110,8 @@ TEST(MainTests, AddAndRetrieveTransactions)
     ASSERT_EQ(batch.size(), BATCH_SIZE);
 
     for (size_t i = 0; i < batch.size(); i++) {
-        std::cout << "i: " << i << " val: " << batch[i] << std::endl;
+        std::cout << "i: " << i << " val: ";
+        batch[i].write_json(std::cout);
     }
 
     // Get size of the pool after batch retrieval

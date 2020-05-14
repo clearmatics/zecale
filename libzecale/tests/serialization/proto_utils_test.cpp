@@ -44,7 +44,7 @@ TEST(MainTests, ParseTransactionToAggregatePGHR13)
     libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_inputs =
         libsnark::r1cs_primary_input<libff::Fr<ppT>>(inputs);
 
-    libzeth::extended_proof<ppT> mock_extended_proof(proof, primary_inputs);
+    libzeth::extended_proof<ppT, libzeth::pghr13_snark<ppT>> mock_extended_proof(proof, primary_inputs);
 
     libsnark::r1cs_ppzksnark_proof<ppT> proofObj =
         mock_extended_proof.get_proof();
@@ -74,8 +74,8 @@ TEST(MainTests, ParseTransactionToAggregatePGHR13)
     h->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_H));
     k->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_K));
 
-    libsnark::r1cs_ppzksnark_primary_input<ppT> pub_inputs = mock_extended_proof.get_primary_input();
-    std::string inputs_json = libzeth::primary_inputs_to_string(pub_inputs);
+    libsnark::r1cs_ppzksnark_primary_input<ppT> pub_inputs = mock_extended_proof.get_primary_inputs();
+    std::string inputs_json = libzeth::primary_inputs_to_string<ppT>(pub_inputs);
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
@@ -103,12 +103,12 @@ TEST(MainTests, ParseTransactionToAggregatePGHR13)
     grpc_tx_to_aggregate_obj->set_allocated_extended_proof(ext_proof);
 
     // Parse the TransactionToAggregate
-    transaction_to_aggregate<ppT> retrieved_tx =
+    transaction_to_aggregate<ppT, libzeth::pghr13_snark<ppT>> retrieved_tx =
         transaction_to_aggregate_from_proto<ppT, libzeth::pghr13_snark<ppT>, libzeth::pghr13_api_handler<ppT>>(*grpc_tx_to_aggregate_obj);
 
     ASSERT_EQ(
-        retrieved_tx.extended_proof().get_primary_input(),
-        mock_extended_proof.get_primary_input());
+        retrieved_tx.extended_proof().get_primary_inputs(),
+        mock_extended_proof.get_primary_inputs());
     ASSERT_EQ(
         retrieved_tx.extended_proof().get_proof(),
         mock_extended_proof.get_proof());
@@ -136,7 +136,7 @@ TEST(MainTests, ParseTransactionToAggregateGROTH16)
     libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_inputs =
         libsnark::r1cs_primary_input<libff::Fr<ppT>>(inputs);
 
-    libzeth::extended_proof<ppT> mock_extended_proof(proof, primary_inputs);
+    libzeth::extended_proof<ppT, libzeth::groth16_snark<ppT>> mock_extended_proof(proof, primary_inputs);
 
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proofObj = mock_extended_proof.get_proof();
     zeth_proto::HexPointBaseGroup1Affine *a = new zeth_proto::HexPointBaseGroup1Affine();
@@ -147,8 +147,8 @@ TEST(MainTests, ParseTransactionToAggregateGROTH16)
     b->CopyFrom(libzeth::point_g2_affine_to_proto<ppT>(proofObj.g_B)); // in G2
     c->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_C));
 
-    libsnark::r1cs_gg_ppzksnark_primary_input<ppT> pub_inputs = mock_extended_proof.get_primary_input();
-    std::string inputs_json = libzeth::primary_inputs_to_string(pub_inputs);
+    libsnark::r1cs_gg_ppzksnark_primary_input<ppT> pub_inputs = mock_extended_proof.get_primary_inputs();
+    std::string inputs_json = libzeth::primary_inputs_to_string<ppT>(pub_inputs);
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
@@ -171,12 +171,12 @@ TEST(MainTests, ParseTransactionToAggregateGROTH16)
     grpc_tx_to_aggregate_obj->set_allocated_extended_proof(ext_proof);
 
     // Parse the TransactionToAggregate
-    transaction_to_aggregate<ppT> retrieved_tx =
+    transaction_to_aggregate<ppT, libzeth::groth16_snark<ppT>> retrieved_tx =
         transaction_to_aggregate_from_proto<ppT, libzeth::groth16_snark<ppT>, libzeth::groth16_api_handler<ppT>>(*grpc_tx_to_aggregate_obj);
 
     ASSERT_EQ(
-        retrieved_tx.extended_proof().get_primary_input(),
-        mock_extended_proof.get_primary_input());
+        retrieved_tx.extended_proof().get_primary_inputs(),
+        mock_extended_proof.get_primary_inputs());
     ASSERT_EQ(
         retrieved_tx.extended_proof().get_proof(),
         mock_extended_proof.get_proof());
