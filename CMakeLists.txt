@@ -1,7 +1,7 @@
-# See: http://www.elpauer.org/stuff/learning_cmake.pdf
-# For a tutorial of CMake
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.15)
 
+# Change the compiler BEFORE the first `project()` command to avoid an infinite loop.
+# See: https://public.kitware.com/pipermail/cmake/2009-November/033133.html
 if(APPLE)
   # If custom llvm compilers are available, use them (for openmp
   # support), otherwise disable multicore.
@@ -11,27 +11,27 @@ if(APPLE)
   endif()
 endif()
 
-# Name of the project
-# https://cmake.org/cmake/help/v3.0/command/project.html#command:project
 # Sets the env vars PROJECT_SOURCE_DIR, and PROJECT_BINARY_DIR
-project(zecale)
+project(zecale CXX)
 
 # Versionning of the project
 set (ZECALE_VERSION_MAJOR 0)
 set (ZECALE_VERSION_MINOR 1)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 # Configure a header file to pass some of the CMake settings
 # to the source code
 configure_file (
-    "${PROJECT_SOURCE_DIR}/zecaleConfig.h.in"
-    "${PROJECT_BINARY_DIR}/zecaleConfig.h"
+    "${PROJECT_SOURCE_DIR}/zecale_config.h.in"
+    "${PROJECT_BINARY_DIR}/zecale_config.h"
 )
 
 # Flags and compilation options to chose the type of zksnark
-#
-# We use PGHR13 for this first version because the GROTH16 verifier gadget
-# is not provided in the gadgetlib1 of libsnark.
-# TODO: Implement it
+# TODO: Allow Zeth and Zecale to use different snarks. To do so, introduce
+# separate variables in the cmake config
 set(
   ZKSNARK
   "GROTH16"
@@ -63,9 +63,6 @@ set(
 set(
   DEPENDS_DIR
   "${CMAKE_CURRENT_SOURCE_DIR}/depends"
-  CACHE
-  STRING
-  "Optionally specify the dependency installation directory relative to the source directory (default: inside dependency folder)"
 )
 
 set(
@@ -179,6 +176,44 @@ include_directories(.)
 
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
 
-# Add sub-directories for the build
+# Add dependencies
 add_subdirectory(depends)
-add_subdirectory(src)
+
+# CMAKE_MODULE_PATH: Path used for searching by FIND_XXX(), with appropriate
+# suffixes added.
+# See: https://cmake.org/cmake/help/v3.0/variable/CMAKE_PREFIX_PATH.html
+list(APPEND CMAKE_PREFIX_PATH "/usr/local/lib" "/usr/lib")
+# Cmake find modules
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
+# Set the target of the Protobuf and gRPC generated files.
+set(
+  PROTO_SRC_DIR
+  ${PROJECT_BINARY_DIR}
+)
+#file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
+
+# Get the proto files
+file(
+  GLOB
+  PROTO_FILES
+  ${PROJECT_SOURCE_DIR}/api/*.proto
+)
+
+# Add the compiled proto files of zeth into the set of include directories
+include_directories(${PROJECT_SOURCE_DIR}/build/depends/zeth)
+# Set the import path to be able to re-use the Zeth proto files
+set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/depends/zeth/)
+
+set(PROTOBUF_PROTO_PATH ${PROJECT_SOURCE_DIR})
+set(PROTOBUF_APPEND_DEST_PATH "/api")
+set(PROTOBUF_GENERATE_CPP_APPEND_PATH OFF)
+set(GRPC_GENERATE_CPP_APPEND_PATH OFF)
+set(Protobuf_DEBUG ON)
+
+# By default, compile with all warning flags
+add_compile_options(-Wall -Wextra)
+
+# Add all local subdirecetories
+add_subdirectory(libzecale)
+add_subdirectory(aggregator_server)
