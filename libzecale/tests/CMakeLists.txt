@@ -68,6 +68,6 @@ file(
 )
 zecale_tests(SOURCES ${TEST_SOURCE_FILES} ARGS "${CMAKE_CURRENT_LIST_DIR}/../.." FAST)
 
-# `prover` tests are considered SLOW
-file(GLOB_RECURSE TEST_SOURCE_FILES prover/**_test.cpp)
+# `aggregator` tests are considered SLOW
+file(GLOB_RECURSE TEST_SOURCE_FILES aggregator/**_test.cpp)
 zecale_tests(SOURCES ${TEST_SOURCE_FILES} ARGS "${CMAKE_CURRENT_LIST_DIR}/../..")
