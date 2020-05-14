@@ -20,7 +20,7 @@ application_pool<nppT, nSnarkT, NumProofs>::application_pool(
     : _name(name), _tx_pool()
 {
     this->_verification_key =
-        std::make_shared<nSnarkT::VerificationKeyT>(vk);
+        std::make_shared<typename nSnarkT::VerificationKeyT>(vk);
 }
 
 template<typename nppT, typename nSnarkT, size_t NumProofs>

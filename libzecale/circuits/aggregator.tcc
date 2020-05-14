@@ -5,6 +5,9 @@
 #ifndef __ZECALE_CIRCUITS_AGGREGATOR_TCC__
 #define __ZECALE_CIRCUITS_AGGREGATOR_TCC__
 
+// Include the verifier gadgets
+#include "libzecale/circuits/verifier_gagdet_imports.hpp"
+
 // Contains the circuits for the notes
 #include <libzeth/circuits/notes/note.hpp>
 #include <libzeth/core/joinsplit_input.hpp>
@@ -14,10 +17,8 @@
 #include <libzeth/core/merkle_tree_field.hpp>
 #include <libzeth/zeth_constants.hpp>
 
+#include <libzeth/core/extended_proof.hpp>
 #include <libzeth/snarks/default/default_snark.hpp>
-
-// Include the verifier gadgets
-#include "libzecale/circuits/verifier_gagdet_imports.hpp"
 
 #include <libff/algebra/fields/field_utils.hpp>
 
@@ -54,6 +55,7 @@ namespace libzecale
 template<
     typename nppT,
     typename wppT,
+    typename nSnarkT,
     size_t NumProofs>
 class aggregator_gadget : libsnark::gadget<libff::Fr<wppT>>
 {
@@ -279,8 +281,8 @@ public:
     // see:
     // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp#L98
     void generate_r1cs_witness(
-        typename libzeth::default_snark<nppT>::VerificationKeyT in_nested_vk,
-        std::array<libzeth::extended_proof<nppT, libzeth::default_snark<nppT>>, NumProofs>
+        typename nSnarkT::VerificationKeyT in_nested_vk,
+        std::array<libzeth::extended_proof<nppT, nSnarkT>, NumProofs>
             in_extended_proofs)
     {
         // Witness `zero`
@@ -306,7 +308,7 @@ public:
             // from `ScalarFieldZethT` to `libff::Fr<wppT>` here
             libsnark::r1cs_primary_input<libff::Fr<nppT>>
                 other_curve_primary_inputs =
-                    in_extended_proofs[i].get_primary_input();
+                    in_extended_proofs[i].get_primary_inputs();
             // Convert
             // WARNING: This should be done in the circuit via the packing
             // gadgets!! This is just a dirty hack

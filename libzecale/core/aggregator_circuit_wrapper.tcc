@@ -30,7 +30,7 @@ typename wSnarkT::KeypairT aggregator_circuit_wrapper<
     libsnark::protoboard<libff::Fr<wppT>> pb;
 
     std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG2" << std::endl;
-    aggregator_gadget<nppT, wppT, NumProofs> g(pb);
+    aggregator_gadget<nppT, wppT, nSnarkT, NumProofs> g(pb);
 
     std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG3" << std::endl;
     g.generate_r1cs_constraints();
@@ -57,7 +57,7 @@ libsnark::protoboard<libff::Fr<wppT>> aggregator_circuit_wrapper<
     NumProofs>::get_constraint_system() const
 {
     libsnark::protoboard<libff::Fr<wppT>> pb;
-    aggregator_gadget<nppT, wppT, NumProofs> g(pb);
+    aggregator_gadget<nppT, wppT, nSnarkT, NumProofs> g(pb);
     g.generate_r1cs_constraints();
     return pb;
 }
@@ -82,7 +82,7 @@ libzeth::extended_proof<wppT, wSnarkT> aggregator_circuit_wrapper<
 {
     libsnark::protoboard<libff::Fr<wppT>> pb;
 
-    aggregator_gadget<nppT, wppT, NumProofs> g(pb);
+    aggregator_gadget<nppT, wppT, nSnarkT, NumProofs> g(pb);
     g.generate_r1cs_constraints();
     // We pass to the witness generation function the elements defined
     // over the "other curve". See:

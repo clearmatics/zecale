@@ -25,11 +25,11 @@ class aggregator_circuit_wrapper
 {
 private:
     std::shared_ptr<
-        aggregator_gadget<nppT, wppT, NumProofs>>
+        aggregator_gadget<nppT, wppT, nSnarkT, NumProofs>>
         aggregator_g;
 
 public:
-    aggregator_circuit_wrapper();
+    aggregator_circuit_wrapper(){};
 
     typename wSnarkT::KeypairT generate_trusted_setup() const;
     libsnark::protoboard<libff::Fr<wppT>> get_constraint_system() const;
