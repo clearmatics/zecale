@@ -1,21 +1,13 @@
-/** @file
- *****************************************************************************
-
- Declaration of specializations of pairing_selector<ppT> to
- - pairing_selector<libff::mnt4_pp>, and
- - pairing_selector<libff::mnt6_pp>.
-
- See pairing_params.hpp .
-
- *****************************************************************************
- * @author     This file is taken and modified from libsnark, developed by SCIPR
- Lab
- *             and contributors (see AUTHORS).
- * @copyright  MIT license (see LICENSE file)
- *****************************************************************************/
+// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
+//
+// SPDX-License-Identifier: LGPL-3.0+
 
 #ifndef __ZECALE_CIRCUITS_PAIRING_MNT_PAIRING_PARAMS_HPP__
 #define __ZECALE_CIRCUITS_PAIRING_MNT_PAIRING_PARAMS_HPP__
+
+// DISCLAIMER:
+// Content taken and modified from libsnark, developed by SCIPR Lab
+// https://github.com/scipr-lab/libsnark/tree/master/libsnark/gadgetlib1/gadgets/pairing
 
 #include "libzecale/circuits/pairing/pairing_params.hpp"
 #include "libzecale/circuits/pairing/weierstrass_miller_loop.hpp"
