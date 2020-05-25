@@ -1,13 +1,9 @@
-// Copyright (c) 2015-2020 Clearmatics Technologies Ltd
-//
-// SPDX-License-Identifier: LGPL-3.0+
-
-#ifndef __ZECALE_CIRCUITS_PAIRING_MNT_PAIRING_PARAMS_HPP__
-#define __ZECALE_CIRCUITS_PAIRING_MNT_PAIRING_PARAMS_HPP__
-
 // DISCLAIMER:
 // Content taken and modified from libsnark, developed by SCIPR Lab
 // https://github.com/scipr-lab/libsnark/tree/master/libsnark/gadgetlib1/gadgets/pairing
+
+#ifndef __ZECALE_CIRCUITS_PAIRING_MNT_PAIRING_PARAMS_HPP__
+#define __ZECALE_CIRCUITS_PAIRING_MNT_PAIRING_PARAMS_HPP__
 
 #include "libzecale/circuits/pairing/pairing_params.hpp"
 #include "libzecale/circuits/pairing/weierstrass_miller_loop.hpp"

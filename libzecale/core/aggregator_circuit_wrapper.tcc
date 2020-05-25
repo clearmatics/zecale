@@ -26,22 +26,11 @@ typename wSnarkT::KeypairT aggregator_circuit_wrapper<
     wSnarkT,
     NumProofs>::generate_trusted_setup() const
 {
-    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG1"
-              << std::endl;
     libsnark::protoboard<libff::Fr<wppT>> pb;
-
-    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG2"
-              << std::endl;
     aggregator_gadget<nppT, wppT, nSnarkT, NumProofs> g(pb);
-
-    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG3"
-              << std::endl;
     g.generate_r1cs_constraints();
 
     // Generate a verification and proving key (trusted setup)
-    // and write them in a file
-    std::cout << "[agg_circ_wrap -- generate_trusted_setup] DEBUG4"
-              << std::endl;
     typename wSnarkT::KeypairT keypair = wSnarkT::generate_setup(pb);
 
     return keypair;

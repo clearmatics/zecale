@@ -171,7 +171,7 @@ public:
             // The number of primary inputs is pretty big here
             // so we may want to hash the set of primary inputs to follow the
             // same trick as in [GGPR13] in order to save costs on the Verifier
-            // side In this way, the verifier only has a single public input
+            // side. In this way, the verifier only has a single public input
             // which is the hash of the primary inputs. And for the zk-rollup
             // implementation, we will only need to send the "zeth public
             // inputs" as normal arguments to the contract. Then the contract
