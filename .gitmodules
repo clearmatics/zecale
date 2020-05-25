@@ -1,4 +1,4 @@
 [submodule "depends/zeth"]
 	path = depends/zeth
-	url = https://github.com/clearmatics/zeth.git
-	branch = organization-refactor
+	url = git@github.com:clearmatics/zeth.git
+	branch = zecale-v0.1
