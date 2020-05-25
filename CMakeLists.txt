@@ -32,6 +32,9 @@ configure_file (
 # Flags and compilation options to chose the type of zksnark
 # TODO: Allow Zeth and Zecale to use different snarks. To do so, introduce
 # separate variables in the cmake config
+# Introduce the variables:
+# - WSNARK, and NSNARK to match the template names
+# - WCURVE, and NCURVE
 set(
   ZKSNARK
   "GROTH16"
@@ -56,7 +59,8 @@ set(
   "MNT6"
   CACHE
   STRING
-  "Default curve: MNT6"
+  "Default curve (Warning: make sure the choosen curve matches the curve used to
+  generate the nested proofs): one of MNT6, BW6_761"
 )
 
 # Dependencies
