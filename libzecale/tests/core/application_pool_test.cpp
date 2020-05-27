@@ -83,7 +83,7 @@ TEST(MainTests, AddAndRetrieveTransactions)
     dummy_inputs.push_back(libff::Fr<ppT>::random_element());
 
     libzeth::extended_proof<ppT, libzeth::default_snark<ppT>>
-        dummy_extended_proof(proof, dummy_inputs);
+        dummy_extended_proof(std::move(proof), std::move(dummy_inputs));
 
     // Add transactions in the pool
     transaction_to_aggregate<ppT, libzeth::default_snark<ppT>> tx_a =

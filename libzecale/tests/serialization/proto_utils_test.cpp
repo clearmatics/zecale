@@ -43,7 +43,7 @@ TEST(MainTests, ParseTransactionToAggregatePGHR13)
     inputs.push_back(libff::Fr<ppT>::random_element());
 
     libzeth::extended_proof<ppT, libzeth::pghr13_snark<ppT>>
-        mock_extended_proof(proof, inputs);
+        mock_extended_proof(std::move(proof), std::move(inputs));
 
     libsnark::r1cs_ppzksnark_proof<ppT> proofObj =
         mock_extended_proof.get_proof();
@@ -140,7 +140,7 @@ TEST(MainTests, ParseTransactionToAggregateGROTH16)
     inputs.push_back(libff::Fr<ppT>::random_element());
 
     libzeth::extended_proof<ppT, libzeth::groth16_snark<ppT>>
-        mock_extended_proof(proof, inputs);
+        mock_extended_proof(std::move(proof), std::move(inputs));
 
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proofObj =
         mock_extended_proof.get_proof();
