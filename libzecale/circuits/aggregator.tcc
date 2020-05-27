@@ -274,8 +274,9 @@ public:
     // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp#L98
     void generate_r1cs_witness(
         typename nSnarkT::VerificationKeyT in_nested_vk,
-        std::array<libzeth::extended_proof<nppT, nSnarkT>, NumProofs>
-            in_extended_proofs)
+        const std::array<
+            const libzeth::extended_proof<nppT, nSnarkT> *,
+            NumProofs> &in_extended_proofs)
     {
         // Witness `zero`
         this->pb.val(wZero) = libff::Fr<wppT>::zero();
@@ -287,19 +288,19 @@ public:
         for (size_t i = 0; i < NumProofs; i++) {
             // ... the nested_proofs
             nested_proofs[i]->generate_r1cs_witness(
-                in_extended_proofs[i].get_proof());
+                in_extended_proofs[i]->get_proof());
 
             // ... the nested_prinary_inputs
             // Explicit cast of the primary inputs to the other curve
             //
             // The problem is that `nested_primary_inputs` are of type
             // `libff::Fr<wppT>` but the primary inputs of the Zeth proof
-            // (`in_extended_proofs[i].get_primary_input()`) are over
+            // (`in_extended_proofs[i]->get_primary_input()`) are over
             // `ScalarFieldZethT` We need to explicitly and manually convert
             // from `ScalarFieldZethT` to `libff::Fr<wppT>` here
-            libsnark::r1cs_primary_input<libff::Fr<nppT>>
-                other_curve_primary_inputs =
-                    in_extended_proofs[i].get_primary_inputs();
+            const libsnark::r1cs_primary_input<libff::Fr<nppT>>
+                &other_curve_primary_inputs =
+                    in_extended_proofs[i]->get_primary_inputs();
             // Convert
             // WARNING: This should be done in the circuit via the packing
             // gadgets!! This is just a dirty hack

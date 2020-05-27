@@ -156,10 +156,10 @@ public:
             std::cout << "[DEBUG] Parse batch and generate witness..."
                       << std::endl;
             // Get batch of proofs to aggregate
-            std::array<libzeth::extended_proof<npp, nsnark>, batch_size>
-                extended_proofs;
+            std::array<const libzeth::extended_proof<npp, nsnark> *, batch_size>
+                extended_proofs{nullptr};
             for (size_t i = 0; i < batch.size(); i++) {
-                extended_proofs[i] = batch[i].extended_proof();
+                extended_proofs[i] = &(batch[i].extended_proof());
             }
 
             // Retrieve the application verification key for the proof
