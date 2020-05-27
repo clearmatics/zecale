@@ -85,16 +85,17 @@ libzeth::extended_proof<zethProofCurve, zethSnark> generate_valid_zeth_proof(
     // Generate a valid proof for commitment inserted at address 1
     libff::enter_block("Create joinsplit_input", true);
     // Generate note data
-    libzeth::bits256 trap_r_bits256 = libzeth::bits256_from_hex(
+    libzeth::bits256 trap_r_bits256 = libzeth::bits256::from_hex(
         "0F000000000000FF00000000000000FF00000000000000FF00000000000000FF");
-    libzeth::bits64 value_bits64 = libzeth::bits64_from_hex("2F0000000000000F");
-    libzeth::bits256 a_sk_bits256 = libzeth::bits256_from_hex(
+    libzeth::bits64 value_bits64 =
+        libzeth::bits64::from_hex("2F0000000000000F");
+    libzeth::bits256 a_sk_bits256 = libzeth::bits256::from_hex(
         "FF0000000000000000000000000000000000000000000000000000000000000F");
-    libzeth::bits256 rho_bits256 = libzeth::bits256_from_hex(
+    libzeth::bits256 rho_bits256 = libzeth::bits256::from_hex(
         "FFFF000000000000000000000000000000000000000000000000000000009009");
-    libzeth::bits256 a_pk_bits256 = libzeth::bits256_from_hex(
+    libzeth::bits256 a_pk_bits256 = libzeth::bits256::from_hex(
         "f172d7299ac8ac974ea59413e4a87691826df038ba24a2b52d5c5d15c2cc8c49");
-    libzeth::bits256 nf_bits256 = libzeth::bits256_from_hex(
+    libzeth::bits256 nf_bits256 = libzeth::bits256::from_hex(
         "ff2f41920346251f6e7c67062149f98bc90c915d3d3020927ca01deab5da0fd7");
     zethScalarField cm_field =
         zethScalarField("1042337073265819561558789652115525918926201435246"
@@ -104,9 +105,9 @@ libzeth::extended_proof<zethProofCurve, zethSnark> generate_valid_zeth_proof(
     for (size_t i = 0; i < tree_depth; ++i) {
         address_bits.push_back((address_commitment >> i) & 0x1);
     }
-    libzeth::bits256 h_sig = libzeth::bits256_from_hex(
+    libzeth::bits256 h_sig = libzeth::bits256::from_hex(
         "6838aac4d8247655715d3dfb9b32573da2b7d3360ba89ccdaaa7923bb24c99f7");
-    libzeth::bits256 phi = libzeth::bits256_from_hex(
+    libzeth::bits256 phi = libzeth::bits256::from_hex(
         "403794c0e20e3bf36b820d8f7aef5505e5d1c7ac265d5efbcc3030a74a3f701b");
 
     // We insert the commitment to the zeth note in the merkle tree
@@ -120,13 +121,13 @@ libzeth::extended_proof<zethProofCurve, zethSnark> generate_valid_zeth_proof(
         a_pk_bits256, value_bits64, rho_bits256, trap_r_bits256);
     libzeth::zeth_note note_dummy_input(
         a_pk_bits256,
-        libzeth::bits64_from_hex("0000000000000000"),
-        libzeth::bits256_from_hex(
+        libzeth::bits64::from_hex("0000000000000000"),
+        libzeth::bits256::from_hex(
             "AAAA00000000000000000000000000000000000000000000000000000000EEEE"),
         trap_r_bits256);
     libzeth::joinsplit_input<zethScalarField, tree_depth> input(
-        path,
-        libzeth::bits_addr_from_vector<tree_depth>(address_bits),
+        std::vector<zethScalarField>(path),
+        libzeth::bits_addr<tree_depth>::from_vector(address_bits),
         note_input,
         a_sk_bits256,
         nf_bits256);
@@ -134,8 +135,8 @@ libzeth::extended_proof<zethProofCurve, zethSnark> generate_valid_zeth_proof(
     // We don't care since this note is zero-valued and the merkle auth path
     // check is rendered dummy in such case
     libzeth::joinsplit_input<zethScalarField, tree_depth> input_dummy(
-        path,
-        libzeth::bits_addr_from_vector<tree_depth>(address_bits),
+        std::vector<zethScalarField>(path),
+        libzeth::bits_addr<tree_depth>::from_vector(address_bits),
         note_dummy_input,
         a_sk_bits256,
         nf_bits256);
@@ -147,11 +148,11 @@ libzeth::extended_proof<zethProofCurve, zethSnark> generate_valid_zeth_proof(
 
     libff::enter_block("Create JSOutput/zeth_note", true);
     libzeth::bits64 value_out_bits64 =
-        libzeth::bits64_from_hex("1800000000000008");
-    libzeth::bits256 a_pk_out_bits256 = libzeth::bits256_from_hex(
+        libzeth::bits64::from_hex("1800000000000008");
+    libzeth::bits256 a_pk_out_bits256 = libzeth::bits256::from_hex(
         "7777f753bfe21ba2219ced74875b8dbd8c114c3c79d7e41306dd82118de1895b");
     libzeth::bits256 rho_out_bits256;
-    libzeth::bits256 trap_r_out_bits256 = libzeth::bits256_from_hex(
+    libzeth::bits256 trap_r_out_bits256 = libzeth::bits256::from_hex(
         "11000000000000990000000000000099000000000000007700000000000000FF");
 
     libzeth::zeth_note note_output(
@@ -161,10 +162,10 @@ libzeth::extended_proof<zethProofCurve, zethSnark> generate_valid_zeth_proof(
         trap_r_out_bits256);
     libzeth::zeth_note note_dummy_output(
         a_pk_out_bits256,
-        libzeth::bits64_from_hex("0000000000000000"),
+        libzeth::bits64::from_hex("0000000000000000"),
         rho_out_bits256,
         trap_r_out_bits256);
-    bits64 value_pub_out_bits64 = libzeth::bits64_from_hex("1700000000000007");
+    bits64 value_pub_out_bits64 = libzeth::bits64::from_hex("1700000000000007");
     std::array<zeth_note, outputs_number> outputs;
     outputs[0] = note_output;
     outputs[1] = note_dummy_output;
@@ -177,7 +178,7 @@ libzeth::extended_proof<zethProofCurve, zethSnark> generate_valid_zeth_proof(
             inputs,
             outputs,
             // vpub_in = 0
-            libzeth::bits64_from_hex("0000000000000000"),
+            libzeth::bits64::from_hex("0000000000000000"),
             value_pub_out_bits64,
             h_sig,
             phi,
