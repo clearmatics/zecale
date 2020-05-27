@@ -30,10 +30,10 @@ namespace libzecale
 {
 
 /// We know that a proof (PGHR13 or GROTH16) is made of group elements (G1 or
-/// G2) where the coordinates of the group elements are elements of E/F_q (for
-/// G1), or elements of E/F_q^n (for G2), where `n` varies depending on the
-/// setting. As such, the coordinates of the elements in the proof are defined
-/// over the field Fq this field is referred to as the "base field".
+/// G2) where the group elements belong to E/F_q (for G1) or E/F_q^n (for G2),
+/// and `n` varies depending on the setting. As such, the coordinates of the
+/// elements in the proof are defined over the field F_q. This field is
+/// referred to as the "base field".
 ///
 /// Primary inputs however are defined over F_r, referred to as the "scalar
 /// field".
@@ -49,7 +49,6 @@ namespace libzecale
 /// ----------------------------------------------------------------
 /// |  Base field  |  Pi_z (over Fq)      |     Pi_a (over Fr)     |
 /// | Scalar field |  PrimIn_z (over Fr)  |   PrimIn_a (over Fq)   |
-
 template<typename nppT, typename wppT, typename nSnarkT, size_t NumProofs>
 class aggregator_gadget : libsnark::gadget<libff::Fr<wppT>>
 {
@@ -168,11 +167,11 @@ public:
             //
             // TODO:
             //
-            // The number of primary inputs is pretty big here
-            // so we may want to hash the set of primary inputs to follow the
-            // same trick as in [GGPR13] in order to save costs on the Verifier
-            // side. In this way, the verifier only has a single public input
-            // which is the hash of the primary inputs. And for the zk-rollup
+            // The number of primary inputs is pretty big here so we may want
+            // to hash the set of primary inputs to follow the same trick as in
+            // [GGPR13] in order to save costs on the Verifier side. In this
+            // way, the verifier only has a single public input which is the
+            // hash of the primary inputs. And for the zk-rollup
             // implementation, we will only need to send the "zeth public
             // inputs" as normal arguments to the contract. Then the contract
             // would hash them, and pass the hash to the verifier to verify the
