@@ -81,8 +81,6 @@ TEST(MainTests, AddAndRetrieveTransactions)
     dummy_inputs.push_back(libff::Fr<ppT>::random_element());
     dummy_inputs.push_back(libff::Fr<ppT>::random_element());
     dummy_inputs.push_back(libff::Fr<ppT>::random_element());
-    libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_inputs =
-        libsnark::r1cs_primary_input<libff::Fr<ppT>>(dummy_inputs);
 
     libzeth::extended_proof<ppT, libzeth::default_snark<ppT>>
         dummy_extended_proof(proof, dummy_inputs);

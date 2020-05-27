@@ -273,7 +273,7 @@ public:
     // see:
     // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp#L98
     void generate_r1cs_witness(
-        typename nSnarkT::VerificationKeyT in_nested_vk,
+        const typename nSnarkT::VerificationKeyT &in_nested_vk,
         const std::array<
             const libzeth::extended_proof<nppT, nSnarkT> *,
             NumProofs> &in_extended_proofs)
