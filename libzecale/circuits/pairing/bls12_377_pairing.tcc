@@ -5,6 +5,8 @@
 #ifndef __ZECALE_CIRCUITS_PAIRING_BLS12_377_PAIRING_TCC__
 #define __ZECALE_CIRCUITS_PAIRING_BLS12_377_PAIRING_TCC__
 
+#include "libzecale/circuits/pairing/bls12_377_pairing.hpp"
+
 namespace libzecale
 {
 

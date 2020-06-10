@@ -154,9 +154,9 @@ TEST(BLS12_377_PairingTest, PrecomputeAddGadgetTest)
     libsnark::protoboard<libff::Fr<ppp>> pb;
     libsnark::Fqe_variable<ppp> Q_X(pb, " Q_X");
     libsnark::Fqe_variable<ppp> Q_Y(pb, " Q_Y");
+    const size_t num_primary_inputs = pb.num_inputs();
     libzecale::bls12_377_G2_proj<ppp> R0_var(pb, " R0");
 
-    const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
     std::cout << "num_primary_inputs: " << std::to_string(num_primary_inputs)
               << "\n";
@@ -187,15 +187,8 @@ TEST(BLS12_377_PairingTest, PrecomputeAddGadgetTest)
     const libff::Fqe<cpp> G = check_add_R0.G.get_element();
     const libff::Fqe<cpp> H = check_add_R0.H.get_element();
     const libff::Fqe<cpp> I = check_add_R0.I.get_element();
-    const libff::Fqe<cpp> theta_times_Qx =
-        check_add_R0.theta_times_Qx.get_element();
-    const libff::Fqe<cpp> lambda_times_Qy =
-        check_add_R0.lambda_times_Qy.get_element();
     const libff::Fqe<cpp> J = check_add_R0.J.get_element();
     const libff::Fqe<cpp> out_Rx = check_add_R0.out_Rx.get_element();
-    const libff::Fqe<cpp> G_minus_H = check_add_R0.G_minus_H.get_element();
-    const libff::Fqe<cpp> theta_times_G_minus_H =
-        check_add_R0.theta_times_G_minus_H.get_element();
     const libff::Fqe<cpp> out_Rz = check_add_R0.out_Rz.get_element();
 
     // A = Qy * Rz
@@ -222,20 +215,9 @@ TEST(BLS12_377_PairingTest, PrecomputeAddGadgetTest)
     ASSERT_EQ(R0.Y * E, I);
     // J = theta * Qx - lambda * Qy;
     ASSERT_EQ(theta * Q.X - lambda * Q.Y, J);
-    // libsnark::Fqe_variable<ppT> theta_times_Rx;
-    // libsnark::Fqe_mul_gadget<ppT> check_theta_times_Rx;
-    // libsnark::Fqe_variable<ppT> lambda_times_Ry;
-    // libsnark::Fqe_mul_gadget<ppT> check_lambda_times_Ry;
-    // libsnark::Fqe_variable<ppT> J;
 
     // out_Rx = lambda * H;
     ASSERT_EQ(lambda * H, out_Rx);
-    // // out_Ry = theta * (G - H) - I;
-    // libsnark::Fqe_variable<ppT> G_minus_H;
-    // libsnark::Fqe_variable<ppT> theta_times_G_minus_H;
-    // libsnark::Fqe_mul_gadget<ppT> check_theta_times_G_minus_H;
-    // // out_Rz = Z1 * E;
-    // libsnark::Fqe_variable<ppT> out_Rz;
 
     ASSERT_EQ(R1.X, out_Rx);
     ASSERT_EQ(R1.Z, out_Rz);
