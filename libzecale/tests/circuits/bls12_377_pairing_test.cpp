@@ -132,6 +132,132 @@ TEST(BLS12_377_PairingTest, PrecomputeDoubleGadgetTest)
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
+TEST(BLS12_377_PairingTest, PrecomputeAddGadgetTest)
+{
+    // Fqe element in bls12-377.  Perform a single add step natively.
+
+    const libff::bls12_377_G2 Q =
+        libff::bls12_377_Fr("7") * libff::bls12_377_G2::one();
+    const libff::bls12_377_G2 R0 =
+        libff::bls12_377_Fr("13") * libff::bls12_377_G2::one();
+
+    libff::bls12_377_ate_ell_coeffs R1_coeffs;
+    libff::bls12_377_G2 R1;
+    {
+        R1 = R0;
+        libff::bls12_377_mixed_addition_step_for_miller_loop(Q, R1, R1_coeffs);
+    }
+
+    // Create and populate protoboard with a simple circuit containing the ate
+    // add gadget.
+
+    libsnark::protoboard<libff::Fr<ppp>> pb;
+    libsnark::Fqe_variable<ppp> Q_X(pb, " Q_X");
+    libsnark::Fqe_variable<ppp> Q_Y(pb, " Q_Y");
+    libzecale::bls12_377_G2_proj<ppp> R0_var(pb, " R0");
+
+    const size_t num_primary_inputs = pb.num_inputs();
+    pb.set_input_sizes(num_primary_inputs);
+    std::cout << "num_primary_inputs: " << std::to_string(num_primary_inputs)
+              << "\n";
+
+    libzecale::bls12_377_ate_add_gadget<ppp> check_add_R0(
+        pb, Q_X, Q_Y, R0_var, "check R1");
+
+    check_add_R0.generate_r1cs_constraints();
+
+    // Populate R0 and Q, and generate values vai the gadget
+
+    Q_X.generate_r1cs_witness(Q.X);
+    Q_Y.generate_r1cs_witness(Q.Y);
+    R0_var.generate_r1cs_witness(R0);
+
+    check_add_R0.generate_r1cs_witness();
+
+    // Check values
+
+    const libff::Fqe<cpp> A = check_add_R0.A.get_element();
+    const libff::Fqe<cpp> B = check_add_R0.B.get_element();
+    const libff::Fqe<cpp> theta = check_add_R0.theta.get_element();
+    const libff::Fqe<cpp> lambda = check_add_R0.lambda.get_element();
+    const libff::Fqe<cpp> C = check_add_R0.C.get_element();
+    const libff::Fqe<cpp> D = check_add_R0.D.get_element();
+    const libff::Fqe<cpp> E = check_add_R0.E.get_element();
+    const libff::Fqe<cpp> F = check_add_R0.F.get_element();
+    const libff::Fqe<cpp> G = check_add_R0.G.get_element();
+    const libff::Fqe<cpp> H = check_add_R0.H.get_element();
+    const libff::Fqe<cpp> I = check_add_R0.I.get_element();
+    const libff::Fqe<cpp> theta_times_Qx =
+        check_add_R0.theta_times_Qx.get_element();
+    const libff::Fqe<cpp> lambda_times_Qy =
+        check_add_R0.lambda_times_Qy.get_element();
+    const libff::Fqe<cpp> J = check_add_R0.J.get_element();
+    const libff::Fqe<cpp> out_Rx = check_add_R0.out_Rx.get_element();
+    const libff::Fqe<cpp> G_minus_H = check_add_R0.G_minus_H.get_element();
+    const libff::Fqe<cpp> theta_times_G_minus_H =
+        check_add_R0.theta_times_G_minus_H.get_element();
+    const libff::Fqe<cpp> out_Rz = check_add_R0.out_Rz.get_element();
+
+    // A = Qy * Rz
+    ASSERT_EQ(Q.Y * R0.Z, A);
+    // B = Qx * Rz;
+    ASSERT_EQ(Q.X * R0.Z, B);
+    // theta = Ry - A;
+    ASSERT_EQ(R0.Y - A, theta);
+    // lambda = Rx - B;
+    ASSERT_EQ(R0.X - B, lambda);
+    // C = theta.squared();
+    ASSERT_EQ(theta * theta, C);
+    // D = lambda.squared();
+    ASSERT_EQ(lambda * lambda, D);
+    // E = lambda * D;
+    ASSERT_EQ(lambda * D, E);
+    // F = Rz * C;
+    ASSERT_EQ(R0.Z * C, F);
+    // G = Rx * D;
+    ASSERT_EQ(R0.X * D, G);
+    // H = E + F - (G + G);
+    ASSERT_EQ(E + F - G - G, H);
+    // I = Ry * E;
+    ASSERT_EQ(R0.Y * E, I);
+    // J = theta * Qx - lambda * Qy;
+    ASSERT_EQ(theta * Q.X - lambda * Q.Y, J);
+    // libsnark::Fqe_variable<ppT> theta_times_Rx;
+    // libsnark::Fqe_mul_gadget<ppT> check_theta_times_Rx;
+    // libsnark::Fqe_variable<ppT> lambda_times_Ry;
+    // libsnark::Fqe_mul_gadget<ppT> check_lambda_times_Ry;
+    // libsnark::Fqe_variable<ppT> J;
+
+    // out_Rx = lambda * H;
+    ASSERT_EQ(lambda * H, out_Rx);
+    // // out_Ry = theta * (G - H) - I;
+    // libsnark::Fqe_variable<ppT> G_minus_H;
+    // libsnark::Fqe_variable<ppT> theta_times_G_minus_H;
+    // libsnark::Fqe_mul_gadget<ppT> check_theta_times_G_minus_H;
+    // // out_Rz = Z1 * E;
+    // libsnark::Fqe_variable<ppT> out_Rz;
+
+    ASSERT_EQ(R1.X, out_Rx);
+    ASSERT_EQ(R1.Z, out_Rz);
+
+    ASSERT_EQ(R1.X, check_add_R0.out_R.X.get_element());
+    ASSERT_EQ(R1.Y, check_add_R0.out_R.Y.get_element());
+    ASSERT_EQ(R1.Z, check_add_R0.out_R.Z.get_element());
+    ASSERT_EQ(R1_coeffs.ell_0, check_add_R0.out_coeffs.ell_0.get_element());
+    ASSERT_EQ(R1_coeffs.ell_VW, check_add_R0.out_coeffs.ell_vw.get_element());
+    ASSERT_EQ(R1_coeffs.ell_VV, check_add_R0.out_coeffs.ell_vv.get_element());
+
+    // Generate and check the proof
+
+    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    libsnark::r1cs_primary_input<libff::Fr<ppp>> primary_input =
+        pb.primary_input();
+    libsnark::r1cs_auxiliary_input<libff::Fr<ppp>> auxiliary_input =
+        pb.auxiliary_input();
+    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
+}
+
 } // namespace
 
 int main(int argc, char **argv)

@@ -30,6 +30,21 @@ public:
     {
     }
 
+    bls12_377_G2_proj(
+        const libsnark::Fqe_variable<ppT> &X_var,
+        const libsnark::Fqe_variable<ppT> &Y_var,
+        const libsnark::Fqe_variable<ppT> &Z_var)
+        : X(X_var), Y(Y_var), Z(Z_var)
+    {
+    }
+
+    void evaluate() const
+    {
+        X.evaluate();
+        Y.evaluate();
+        Z.evaluate();
+    }
+
     void generate_r1cs_witness(const libff::bls12_377_G2 &element)
     {
         X.generate_r1cs_witness(element.X);
@@ -349,6 +364,244 @@ public:
         // ell_0 = xi * I (assigned by check_ell_0)
         // ell_vw = -H
         // ell_vv = 3 * J
+        out_coeffs.evaluate();
+    }
+};
+
+template<typename ppT>
+class bls12_377_ate_add_gadget : public libsnark::gadget<libff::Fr<ppT>>
+{
+public:
+    typedef libff::Fq<libsnark::other_curve<ppT>> FqT;
+    typedef libff::Fqe<libsnark::other_curve<ppT>> FqeT;
+
+    libsnark::Fqe_variable<ppT> base_X;
+    libsnark::Fqe_variable<ppT> base_Y;
+    bls12_377_G2_proj<ppT> in_R;
+
+    // A = Qy * Rz;
+    libsnark::Fqe_variable<ppT> A;
+    libsnark::Fqe_mul_gadget<ppT> check_A;
+    // B = Qx * Rz;
+    libsnark::Fqe_variable<ppT> B;
+    libsnark::Fqe_mul_gadget<ppT> check_B;
+    // theta = Ry - A;
+    libsnark::Fqe_variable<ppT> theta;
+    // lambda = Rx - B;
+    libsnark::Fqe_variable<ppT> lambda;
+    // C = theta.squared();
+    libsnark::Fqe_variable<ppT> C;
+    libsnark::Fqe_sqr_gadget<ppT> check_C;
+    // D = lambda.squared();
+    libsnark::Fqe_variable<ppT> D;
+    libsnark::Fqe_sqr_gadget<ppT> check_D;
+    // E = lambda * D;
+    libsnark::Fqe_variable<ppT> E;
+    libsnark::Fqe_mul_gadget<ppT> check_E;
+    // F = Rz * C;
+    libsnark::Fqe_variable<ppT> F;
+    libsnark::Fqe_mul_gadget<ppT> check_F;
+    // G = Rx * D;
+    libsnark::Fqe_variable<ppT> G;
+    libsnark::Fqe_mul_gadget<ppT> check_G;
+    // H = E + F - (G + G);
+    libsnark::Fqe_variable<ppT> H;
+    // I = Ry * E;
+    libsnark::Fqe_variable<ppT> I;
+    libsnark::Fqe_mul_gadget<ppT> check_I;
+    // J = theta * Qx - lambda * Qy;
+    libsnark::Fqe_variable<ppT> theta_times_Qx;
+    libsnark::Fqe_mul_gadget<ppT> check_theta_times_Qx;
+    libsnark::Fqe_variable<ppT> lambda_times_Qy;
+    libsnark::Fqe_mul_gadget<ppT> check_lambda_times_Qy;
+    libsnark::Fqe_variable<ppT> J;
+
+    // out_Rx = lambda * H;
+    libsnark::Fqe_variable<ppT> out_Rx;
+    libsnark::Fqe_mul_gadget<ppT> check_out_Rx;
+    // out_Ry = theta * (G - H) - I;
+    libsnark::Fqe_variable<ppT> G_minus_H;
+    libsnark::Fqe_variable<ppT> theta_times_G_minus_H;
+    libsnark::Fqe_mul_gadget<ppT> check_theta_times_G_minus_H;
+    // out_Rz = Z1 * E;
+    libsnark::Fqe_variable<ppT> out_Rz;
+    libsnark::Fqe_mul_gadget<ppT> check_out_Rz;
+
+    bls12_377_G2_proj<ppT> out_R;
+
+    // out_coeffs.ell_0 = xi * J;
+    // out_coeffs.ell_vw = lambda;
+    // out_coeffs.ell_vv = -theta;
+    bls12_377_ate_ell_coeffs<ppT> out_coeffs;
+
+    bls12_377_ate_add_gadget(
+        libsnark::protoboard<libff::Fr<ppT>> &pb,
+        const libsnark::Fqe_variable<ppT> &base_X,
+        const libsnark::Fqe_variable<ppT> &base_Y,
+        const bls12_377_G2_proj<ppT> &R,
+        const std::string &annotation_prefix)
+        : libsnark::gadget<libff::Fr<ppT>>(pb, annotation_prefix)
+        , base_X(base_X)
+        , base_Y(base_Y)
+        , in_R(R)
+
+        // A = Qy * Rz
+        , A(pb, FMT(annotation_prefix, " A"))
+        , check_A(pb, base_Y, in_R.Z, A, FMT(annotation_prefix, " check A"))
+        // B = Qx * Rz;
+        , B(pb, FMT(annotation_prefix, " B"))
+        , check_B(pb, base_X, in_R.Z, B, FMT(annotation_prefix, " check B"))
+        // theta = Ry - A;
+        , theta(in_R.Y + (A * -libff::Fr<ppT>::one()))
+        // lambda = Rx - B;
+        , lambda(in_R.X + (B * -libff::Fr<ppT>::one()))
+        // C = theta.squared();
+        , C(pb, FMT(annotation_prefix, " C"))
+        , check_C(pb, theta, C, FMT(annotation_prefix, " check C"))
+        // D = lambda.squared();
+        , D(pb, FMT(annotation_prefix, " D"))
+        , check_D(pb, lambda, D, FMT(annotation_prefix, " check D"))
+        // E = lambda * D;
+        , E(pb, FMT(annotation_prefix, " E"))
+        , check_E(pb, lambda, D, E, FMT(annotation_prefix, " check E"))
+        // F = Rz * C;
+        , F(pb, FMT(annotation_prefix, " F"))
+        , check_F(pb, in_R.Z, C, F, FMT(annotation_prefix, " check F"))
+        // G = Rx * D;
+        , G(pb, FMT(annotation_prefix, " G"))
+        , check_G(pb, in_R.X, D, G, FMT(annotation_prefix, " check G"))
+        // H = E + F - (G + G);
+        , H(E + F + (G * -libff::Fr<ppT>(2)))
+        // I = Ry * E;
+        , I(pb, FMT(annotation_prefix, " I"))
+        , check_I(pb, in_R.Y, E, I, FMT(annotation_prefix, " check I"))
+        // J = theta * Qx - lambda * Qy;
+        , theta_times_Qx(pb, FMT(annotation_prefix, " theta_times_Rx"))
+        , check_theta_times_Qx(
+              pb,
+              theta,
+              base_X,
+              theta_times_Qx,
+              FMT(annotation_prefix, " check_theta_times_Qx"))
+        , lambda_times_Qy(pb, FMT(annotation_prefix, " lambda_times_Qy"))
+        , check_lambda_times_Qy(
+              pb,
+              lambda,
+              base_Y,
+              lambda_times_Qy,
+              FMT(annotation_prefix, " check_lambda_times_Qy"))
+        , J(theta_times_Qx + (lambda_times_Qy * -libff::Fr<ppT>::one()))
+
+        // out_Rx = lambda * H;
+        , out_Rx(pb, FMT(annotation_prefix, " out_Rx"))
+        , check_out_Rx(
+              pb, lambda, H, out_Rx, FMT(annotation_prefix, " check out_Rx"))
+        // out_Ry = theta * (G - H) - I;
+        , G_minus_H(G + (H * -libff::Fr<ppT>::one()))
+        , theta_times_G_minus_H(
+              pb, FMT(annotation_prefix, " theta_times_G_minus_H"))
+        , check_theta_times_G_minus_H(
+              pb,
+              theta,
+              G_minus_H,
+              theta_times_G_minus_H,
+              FMT(annotation_prefix, " check_theta_times_G_minus_H"))
+        // out_Rz = Rza * E;
+        , out_Rz(pb, FMT(annotation_prefix, " out_Rz"))
+        , check_out_Rz(
+              pb, in_R.Z, E, out_Rz, FMT(annotation_prefix, " check Rz"))
+
+        , out_R(
+              out_Rx,
+              theta_times_G_minus_H + (I * -libff::Fr<ppT>::one()),
+              out_Rz)
+
+        // out_coeffs.ell_0 = xi * J;
+        // out_coeffs.ell_vw = lambda;
+        // out_coeffs.ell_vv = -theta;
+        , out_coeffs(
+              J * libff::bls12_377_twist,
+              lambda,
+              theta * -libff::Fr<ppT>::one())
+    {
+    }
+
+    void generate_r1cs_constraints()
+    {
+        // A = Ry * Rz  (A assigned by check_A)
+        check_A.generate_r1cs_constraints();
+        // B = Rx * Rz  (B assigned by check_B)
+        check_B.generate_r1cs_constraints();
+        // theta = Ry - A;
+        // lambda = Rx - B;
+        // C = theta.squared()  (C assigned by check_C)
+        check_C.generate_r1cs_constraints();
+        // D = lambda.squared();
+        check_D.generate_r1cs_constraints();
+        // E = lambda * D;
+        check_E.generate_r1cs_constraints();
+        // F = Rz * C;
+        check_F.generate_r1cs_constraints();
+        // G = Rx * D;
+        check_G.generate_r1cs_constraints();
+        // H = E + F - (G + G);
+        // I = Ry * E;
+        check_I.generate_r1cs_constraints();
+        // J = theta * Qx - lambda * Qy;
+        check_theta_times_Qx.generate_r1cs_constraints();
+        check_lambda_times_Qy.generate_r1cs_constraints();
+        // out_Rx = lambda * H;
+        check_out_Rx.generate_r1cs_constraints();
+        // out_Ry = theta * (G - H) - I;
+        check_theta_times_G_minus_H.generate_r1cs_constraints();
+        // out_Rz = Z1 * E;
+        check_out_Rz.generate_r1cs_constraints();
+        // out_coeffs.ell_0 = xi * J;
+        // out_coeffs.ell_VV = -theta;
+        // out_coeffs.ell_VW = lambda;
+    }
+
+    void generate_r1cs_witness()
+    {
+        // A = Ry * Rz  (A assigned by check_A)
+        check_A.generate_r1cs_witness();
+        // B = Rx * Rz  (B assigned by check_B)
+        check_B.generate_r1cs_witness();
+        // theta = Ry - A;
+        theta.evaluate();
+        // lambda = Rx - B;
+        lambda.evaluate();
+        // C = theta.squared()  (C assigned by check_C)
+        check_C.generate_r1cs_witness();
+        // D = lambda.squared()  (D assigned by check_D)
+        check_D.generate_r1cs_witness();
+        // E = lambda * D  (E assigned by check_E)
+        check_E.generate_r1cs_witness();
+        // F = Rz * C  (F assigned by check_F)
+        check_F.generate_r1cs_witness();
+        // G = Rx * D;
+        check_G.generate_r1cs_witness();
+        // H = E + F - (G + G);
+        H.evaluate();
+        // I = Ry * E  (I assigned by check_I)
+        check_I.generate_r1cs_witness();
+        // J = theta * Qx - lambda * Qy;
+        check_theta_times_Qx.generate_r1cs_witness();
+        check_lambda_times_Qy.generate_r1cs_witness();
+        J.evaluate();
+
+        // out_Rx = lambda * H (assigned by check_out_Rx)
+        check_out_Rx.generate_r1cs_witness();
+        // out_Ry = theta * (G - H) - I;
+        G_minus_H.evaluate();
+        check_theta_times_G_minus_H.generate_r1cs_witness();
+        // out_Rz = Z1 * E (assigned by check_out_Rz)
+        check_out_Rz.generate_r1cs_witness();
+        out_R.evaluate();
+
+        // out_coeffs.ell_0 = xi * J;
+        // out_coeffs.ell_vw = lambda;
+        // out_coeffs.ell_vv = -theta;
         out_coeffs.evaluate();
     }
 };
