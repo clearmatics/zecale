@@ -14,8 +14,7 @@ namespace libzecale
 
 /// Holds an element of G2 in homogeneous projective form. Used for
 /// intermediate values of R in the miller loop.
-template<typename ppT>
-class bls12_377_G2_proj : libsnark::gadget<libff::Fr<ppT>>
+template<typename ppT> class bls12_377_G2_proj
 {
 public:
     libsnark::Fqe_variable<ppT> X;
@@ -25,8 +24,7 @@ public:
     bls12_377_G2_proj(
         libsnark::protoboard<libff::Fr<ppT>> &pb,
         const std::string &annotation_prefix)
-        : libsnark::gadget<libff::Fr<ppT>>(pb, annotation_prefix)
-        , X(pb, FMT(annotation_prefix, " X"))
+        : X(pb, FMT(annotation_prefix, " X"))
         , Y(pb, FMT(annotation_prefix, " Y"))
         , Z(pb, FMT(annotation_prefix, " Z"))
     {
@@ -45,9 +43,9 @@ public:
 template<typename ppT> class bls12_377_ate_ell_coeffs
 {
 public:
-    libsnark::Fqe_variable<ppT> ell_0;
-    libsnark::Fqe_variable<ppT> ell_vw;
-    libsnark::Fqe_variable<ppT> ell_vv;
+    const libsnark::Fqe_variable<ppT> ell_0;
+    const libsnark::Fqe_variable<ppT> ell_vw;
+    const libsnark::Fqe_variable<ppT> ell_vv;
 
     bls12_377_ate_ell_coeffs(
         const libsnark::Fqe_variable<ppT> &ell_0,
@@ -55,6 +53,13 @@ public:
         const libsnark::Fqe_variable<ppT> &ell_vv)
         : ell_0(ell_0), ell_vw(ell_vw), ell_vv(ell_vv)
     {
+    }
+
+    void evaluate() const
+    {
+        ell_0.evaluate();
+        ell_vw.evaluate();
+        ell_vv.evaluate();
     }
 };
 
@@ -342,11 +347,9 @@ public:
         check_out_Rz.generate_r1cs_witness();
 
         // ell_0 = xi * I (assigned by check_ell_0)
-        out_coeffs.ell_0.evaluate();
         // ell_vw = -H
-        out_coeffs.ell_vw.evaluate();
         // ell_vv = 3 * J
-        out_coeffs.ell_vv.evaluate();
+        out_coeffs.evaluate();
     }
 };
 
