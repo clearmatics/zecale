@@ -2,7 +2,9 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.6.9;
+// ABIEncoderV2 is not experimental anymore from solidity 0.6
+// see: https://solidity.readthedocs.io/en/v0.6.0/layout-of-source-files.html#abiencoderv2
 pragma experimental ABIEncoderV2;
 
 import "./Pairing.sol";
@@ -10,17 +12,17 @@ import "./Pairing.sol";
 /// ZecaleAppContract represents any SNARK-based application contract
 /// that aims to be used along Zecale. All such contracts need to implement
 /// (at least) the dispatch method below.
-contract ZecaleAppContract {
-    function dispatch(bytes[] inputs) public;
+abstract contract ZecaleAppContract {
+    function dispatch(bytes[] memory inputs) public virtual;
 }
 
 contract AggregationVerifier {
     // Groth16 Verification key
     struct VerifyingKey {
-        Pairing.G1Point Alpha;      // slots 0x00, 0x01
-        Pairing.G2Point Beta;       // slots 0x02, 0x03, 0x04, 0x05
-        Pairing.G2Point Delta;      // slots 0x06, 0x07, 0x08, 0x09
-        Pairing.G1Point[] ABC;      // slot 0x0a
+        Pairing.G1Point Alpha; // slots 0x00, 0x01
+        Pairing.G2Point Beta;  // slots 0x02, 0x03, 0x04, 0x05
+        Pairing.G2Point Delta; // slots 0x06, 0x07, 0x08, 0x09
+        Pairing.G1Point[] ABC; // slot 0x0a
     }
 
     // Groth16 Proof
@@ -47,19 +49,28 @@ contract AggregationVerifier {
     // because the batch_size is 8
     uint8 constant batch_size = 8;
 
-    function dispatch(
-        uint256 input,
-        uint256[batch_size] memory app_data
-    ) public returns (uint256[] memory) {
-        uint256[] memory dispatch_data;
-        for (uint256 i = 0; i < batch_size; i++){
-            if (input & 0x1 == 0x1) {
-                dispatch_data[i] = app_data[i];
-            }
-            input >> 1;
-        }
-        return dispatch_data;
-    }
+    // All SNARK-based applications used with Zecale need to have the same
+    // number of primary inputs. We use GGPR's trick here.
+    uint8 constant nbInputs = 1;
+
+    /*
+     *    function dispatch(
+     *        uint256 input,
+     *        bytes[batch_size] memory app_data
+     *    ) public returns (bytes[] memory) {
+     *        bytes[] memory dispatch_data = new uint256[](batch_size);
+     *        for (uint256 i = 0; i < batch_size; i++){
+     *            if (input & 0x1 == 0x1) {
+     *                dispatch_data[i] = app_data[i];
+     *            }
+     *            // There is no bit shift in solidity, we need to use arithmetic
+     *            // to shift. The following won't work: input >> 1;
+     *            // A right shift of N positions is a division by 2**N
+     *            input = input / 2;
+     *        }
+     *        return dispatch_data;
+     *    }
+     **/
 
     // Constructor. Takes the Zecale verification key as input
     constructor(
@@ -85,8 +96,11 @@ contract AggregationVerifier {
         }
     }
 
-    // This verifies the aggregate transaction
-    function verify_aggregate_tx(
+    // This function processes the aggregate transaction:
+    // 1. Verifies the wrapping proof
+    // 2. Creates the dispatch_data
+    // 3. Executes the dispatch logic and run underlying SNARK-application
+    function process_aggregate_tx(
         uint256[2] memory a,
         uint256[4] memory b,
         uint256[2] memory c,
@@ -94,14 +108,13 @@ contract AggregationVerifier {
         // Zecale has only one public input which is the packed representation
         // of the binary string of length `batch_size` where each bit is the
         // result of the verification of the associated proof in the batch
-        // NOTE: The batch size will be smaller than 256 (length of an Ethereum
-        // word) so, the packed representation of this binary string will fit
-        // in an Ethereum word. This is why `input` is a uint256 below
-        uint256 memory input,
+        // NOTE: The batch size binary representation length will be smaller than 256
+        // (length of an Ethereum word) so, the packed representation of this binary
+        // string will fit in an Ethereum word. This is why `input` is a uint256 below
+        uint256 input,
         bytes[batch_size] memory application_data,
-        // The application contract needs to expose an interface, standard
-        // to all applications working with Zecale, so that we can call it
-        // from here.
+        // The application contract needs to expose an interface, standard to all
+        // applications working with Zecale, so that we can call it from here.
         address application_contract
     ) public payable {
         // 1. Verify the proof
@@ -110,20 +123,34 @@ contract AggregationVerifier {
             "Invalid proof: Unable to verify the proof correctly"
         );
 
-        // 3. Process Zecale input and build dispatch_data (dispatch_data being the
+        // 2. Process Zecale input and build dispatch_data (dispatch_data being the
         // subset of application data that corresponds to acceptable nested proofs)
+        // Here we basically remove the primary inputs of the underlying proofs
+        // that didn't verify correctly.
+        bytes[] memory dispatch_data = new bytes[](batch_size);
+        for (uint256 i = 0; i < batch_size; i++){
+            if (input & 0x1 == 0x1) {
+                dispatch_data[i] = application_data[i];
+            }
+            // There is no bit shift in solidity, we need to use arithmetic
+            // to shift. The following won't work: input >> 1;
+            // A right shift of N positions is a division by 2**N
+            input = input / 2;
+        }
 
-
-        // 2. Call the zecale_dispatch method of the application contract
+        // 3. Call the zecale_dispatch method of the application contract
         ZecaleAppContract zecaleApp = ZecaleAppContract(application_contract);
-        zecaleApp.dispatch(application_data);
+        zecaleApp.dispatch(dispatch_data);
     }
 
     function verifyTx(
         uint256[2] memory a,
         uint256[4] memory b,
         uint256[2] memory c,
-        uint256[nbInputs] memory primaryInputs
+        //uint256[nbInputs] memory primaryInputs
+        
+        // Only 1 input because of GGPR's trick
+        uint256 primaryInput
     ) public
         returns (bool) {
         // Scalar field characteristic
@@ -139,17 +166,16 @@ contract AggregationVerifier {
         proof.B_Y1 = b[3];
         proof.C_X = c[0];
         proof.C_Y = c[1];
-        // Make sure that all primary inputs lie in the scalar field
 
+        // Make sure that all primary inputs lie in the scalar field
+        //
         // TODO: For some reason, using a statically sized array (or
         // primaryInputs directly) causes an out-of-gas exception, which seems
         // completely counter-intuitive. Until that is tracked down, we use a
         // dynamic array.
         uint256[] memory inputValues = new uint256[](nbInputs);
-        for (uint256 i = 0 ; i < nbInputs; i++) {
-            require(primaryInputs[i] < r, "Input is not in scalar field");
-            inputValues[i] = primaryInputs[i];
-        }
+        require(primaryInput < r, "Input is not in scalar field");
+        inputValues[0] = primaryInput;
 
         return verify(inputValues, proof) == 1;
     }
@@ -219,39 +245,42 @@ contract AggregationVerifier {
 
         bool success = true;
         assembly {
-            let g := sub(gas, 2000)
+            let g := sub(gas(), 2000)
 
             // Compute slot of ABC[0]. Solidity memory array layout defines the
             // first entry of verifyKey.ABC as the keccak256 hash of the slot
             // of verifyKey.ABC. The slot of verifyKey.ABC is computed using
             // Solidity implicit `_slot` notation.
             mstore(pad, add(verifyKey_slot, 10))
-            let abc_slot := keccak256(pad, 32)
+            // The `_slot` suffix is not needed anymore for Solidity 0.6.0
+            // see: https://solidity.readthedocs.io/en/v0.6.0/060-breaking-changes.html?highlight=_slot
+            // `let abc_slot := keccak256(pad, 32)`
+            let abc_slott := keccak256(pad, 32)
 
             // Compute input array bounds (layout: <len>,elem_0,elem_1...)
             let input_i := add(input, 0x20)
             let input_end := add(input_i, mul(0x20, mload(input)))
 
             // Initialize pad[0] with abc[0]
-            mstore(pad, sload(abc_slot))
-            mstore(add(pad, 0x20), sload(add(abc_slot, 1)))
-            abc_slot := add(abc_slot, 2)
+            mstore(pad, sload(abc_slott))
+            mstore(add(pad, 0x20), sload(add(abc_slott, 1)))
+            abc_slott := add(abc_slott, 2)
 
             // Location within pad to do scalar mul operation
             let mul_in := add(pad, 0x40)
 
             // Iterate over all inputs / ABC values
             for
-            { }
-            lt(input_i, input_end)
-            {
-                abc_slot := add(abc_slot, 2)
-                input_i := add(input_i, 0x20)
-            }
+                { }
+                lt(input_i, input_end)
+                {
+                    abc_slott := add(abc_slott, 2)
+                    input_i := add(input_i, 0x20)
+                }
             {
                 // Copy abc[i+1] into mul_in, incrementing abc
-                mstore(mul_in, sload(abc_slot))
-                mstore(add(mul_in, 0x20), sload(add(abc_slot, 1)))
+                mstore(mul_in, sload(abc_slott))
+                mstore(add(mul_in, 0x20), sload(add(abc_slott, 1)))
 
                 // Copy input[i] into mul_in + 0x40, and increment index_i
                 mstore(add(mul_in, 0x40), mload(input_i))
@@ -348,7 +377,7 @@ contract AggregationVerifier {
             mstore(add(pad, 0x2c0), sload(add(verifyKey_slot, 8)))
             mstore(add(pad, 0x2e0), sload(add(verifyKey_slot, 9)))
 
-            success := call(sub(gas, 2000), 8, 0, pad, 0x300, pad, 0x20)
+            success := call(sub(gas(), 2000), 8, 0, pad, 0x300, pad, 0x20)
         }
 
         require(
