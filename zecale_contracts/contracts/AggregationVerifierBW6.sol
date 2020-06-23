@@ -7,7 +7,7 @@ pragma solidity ^0.6.9;
 // see: https://solidity.readthedocs.io/en/v0.6.0/layout-of-source-files.html#abiencoderv2
 pragma experimental ABIEncoderV2;
 
-import "./Pairing.sol";
+import "./PairingBW6.sol";
 
 /// ZecaleAppContract represents any SNARK-based application contract
 /// that aims to be used along Zecale. All such contracts need to implement
@@ -16,9 +16,9 @@ abstract contract ZecaleAppContract {
     function dispatch(bytes[] memory inputs) public virtual;
 }
 
-contract AggregationVerifier {
+contract AggregationVerifierBW6 {
     // Groth16 Verification key
-    struct VerifyingKey {
+    struct VerifyingKeyBW6 {
         Pairing.G1Point Alpha; // slots 0x00, 0x01
         Pairing.G2Point Beta;  // slots 0x02, 0x03, 0x04, 0x05
         Pairing.G2Point Delta; // slots 0x06, 0x07, 0x08, 0x09
