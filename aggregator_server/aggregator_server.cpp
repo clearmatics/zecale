@@ -108,7 +108,7 @@ public:
     grpc::Status RegisterApplication(
         grpc::ServerContext * /*context*/,
         const zecale_proto::ApplicationRegistration *registration,
-        proto::Empty * /*request*/) override
+        proto::Empty * /*response*/) override
     {
         std::cout << "[ACK] Received 'register application' request"
                   << std::endl;
@@ -191,7 +191,7 @@ public:
     grpc::Status SubmitTransaction(
         grpc::ServerContext * /*context*/,
         const zecale_proto::TransactionToAggregate *transaction,
-        proto::Empty * /*request*/) override
+        proto::Empty * /*response*/) override
     {
         std::cout << "[ACK] Received the request to submit transaction"
                   << std::endl;
