@@ -31,12 +31,12 @@ public:
         uint32_t fee_wei = 0);
     virtual ~transaction_to_aggregate(){};
 
-    inline std::string application_name() const
+    inline const std::string &application_name() const
     {
         return this->_application_name;
     };
 
-    inline libzeth::extended_proof<nppT, nSnarkT> extended_proof() const
+    inline const libzeth::extended_proof<nppT, nSnarkT> &extended_proof() const
     {
         return *(this->_extended_proof);
     };

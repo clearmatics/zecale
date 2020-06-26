@@ -108,7 +108,7 @@ public:
     grpc::Status RegisterApplication(
         grpc::ServerContext * /*context*/,
         const zecale_proto::ApplicationRegistration *registration,
-        proto::Empty *response) override
+        proto::Empty * /*response*/) override
     {
         std::cout << "[ACK] Received 'register application' request"
                   << std::endl;
@@ -156,10 +156,10 @@ public:
             std::cout << "[DEBUG] Parse batch and generate witness..."
                       << std::endl;
             // Get batch of proofs to aggregate
-            std::array<libzeth::extended_proof<npp, nsnark>, batch_size>
-                extended_proofs;
+            std::array<const libzeth::extended_proof<npp, nsnark> *, batch_size>
+                extended_proofs{nullptr};
             for (size_t i = 0; i < batch.size(); i++) {
-                extended_proofs[i] = batch[i].extended_proof();
+                extended_proofs[i] = &(batch[i].extended_proof());
             }
 
             // Retrieve the application verification key for the proof
@@ -189,9 +189,9 @@ public:
     }
 
     grpc::Status SubmitTransaction(
-        grpc::ServerContext *,
+        grpc::ServerContext * /*context*/,
         const zecale_proto::TransactionToAggregate *transaction,
-        proto::Empty *response) override
+        proto::Empty * /*response*/) override
     {
         std::cout << "[ACK] Received the request to submit transaction"
                   << std::endl;

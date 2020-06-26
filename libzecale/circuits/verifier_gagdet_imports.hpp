@@ -24,7 +24,7 @@ using VerificationKeyVariableGadgetT =
 
 #ifdef ZKSNARK_GROTH16
 #define LIBZECALE_VERIFIER_GADGET_DEFINED
-#include "libzecale/circuits/groth16_verifier/r1cs_gg_ppzksnark_verifier_gagdet.hpp"
+#include "libzecale/circuits/groth16_verifier/r1cs_gg_ppzksnark_verifier_gadget.hpp"
 namespace libzecale
 {
 template<typename ppT>

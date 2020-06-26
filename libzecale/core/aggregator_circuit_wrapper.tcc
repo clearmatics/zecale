@@ -69,8 +69,9 @@ libzeth::extended_proof<wppT, wSnarkT> aggregator_circuit_wrapper<
     NumProofs>::
     prove(
         typename nSnarkT::VerificationKeyT nested_vk,
-        std::array<libzeth::extended_proof<nppT, nSnarkT>, NumProofs>
-            extended_proofs,
+        const std::array<
+            const libzeth::extended_proof<nppT, nSnarkT> *,
+            NumProofs> &extended_proofs,
         const typename wSnarkT::ProvingKeyT &aggregator_proving_key) const
 {
     libsnark::protoboard<libff::Fr<wppT>> pb;
@@ -94,7 +95,8 @@ libzeth::extended_proof<wppT, wSnarkT> aggregator_circuit_wrapper<
     // Instantiate an extended_proof from the proof we generated and the given
     // primary_input
     libzeth::extended_proof<wppT, wSnarkT> ext_proof =
-        extended_proof<wppT, wSnarkT>(proof, primary_input);
+        extended_proof<wppT, wSnarkT>(
+            std::move(proof), std::move(primary_input));
 
     return ext_proof;
 }

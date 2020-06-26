@@ -56,18 +56,15 @@ namespace libzecale
  *       typedef my_Fqk_sqr_gadget_type Fqk_sqr_gadget_type;
  *       typedef my_other_curve_type other_curve_type;
  *       typedef my_e_over_e_miller_loop_gadget_type
- * e_over_e_miller_loop_gadget_type; typedef
- * my_e_times_e_over_e_miller_loop_gadget_type
- * e_times_e_over_e_miller_loop_gadget_type; typedef my_final_exp_gadget_type
- * final_exp_gadget_type; static const constexpr libff::bigint<...>
- * &pairing_loop_count = ...;
+ *           e_over_e_miller_loop_gadget_type;
+ *       typedef my_e_times_e_over_e_miller_loop_gadget_type
+ *           e_times_e_over_e_miller_loop_gadget_type;
+ *       typedef my_final_exp_gadget_type final_exp_gadget_type;
+ *       static const constexpr libff::bigint<...> &pairing_loop_count = ...;
  *   };
- *
- * Having done the above, my_ec_pp can be used as a template parameter.
- *
- * See mnt_pairing_params.hpp for examples for the case of fixing
- * ec_ppT to "MNT4" and "MNT6".
- *
+ * Having done the above, my_ec_pp can be used as a template parameter. See
+ * mnt_pairing_params.hpp for examples for the case of fixing ec_ppT to "MNT4"
+ * and "MNT6".
  */
 template<typename ppT> class pairing_selector;
 

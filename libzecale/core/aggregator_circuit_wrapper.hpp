@@ -36,8 +36,9 @@ public:
     /// Generate a proof and returns an extended proof
     extended_proof<wppT, wSnarkT> prove(
         typename nSnarkT::VerificationKeyT nested_vk,
-        std::array<libzeth::extended_proof<nppT, nSnarkT>, NumProofs>
-            extended_proofs,
+        const std::array<
+            const libzeth::extended_proof<nppT, nSnarkT> *,
+            NumProofs> &extended_proofs,
         const typename wSnarkT::ProvingKeyT &aggregator_proving_key) const;
 };
 

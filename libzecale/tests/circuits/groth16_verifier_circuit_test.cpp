@@ -2,7 +2,7 @@
 // File adapated from:
 // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/tests/test_r1cs_ppzksnark_verifier_gadget.cpp
 
-#include "libzecale/circuits/groth16_verifier/r1cs_gg_ppzksnark_verifier_gagdet.hpp"
+#include "libzecale/circuits/groth16_verifier/r1cs_gg_ppzksnark_verifier_gadget.hpp"
 
 #include "gtest/gtest.h"
 #include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>

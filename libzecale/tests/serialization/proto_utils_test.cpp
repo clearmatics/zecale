@@ -41,11 +41,9 @@ TEST(MainTests, ParseTransactionToAggregatePGHR13)
     inputs.push_back(libff::Fr<ppT>::random_element());
     inputs.push_back(libff::Fr<ppT>::random_element());
     inputs.push_back(libff::Fr<ppT>::random_element());
-    libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_inputs =
-        libsnark::r1cs_primary_input<libff::Fr<ppT>>(inputs);
 
     libzeth::extended_proof<ppT, libzeth::pghr13_snark<ppT>>
-        mock_extended_proof(proof, primary_inputs);
+        mock_extended_proof(std::move(proof), std::move(inputs));
 
     libsnark::r1cs_ppzksnark_proof<ppT> proofObj =
         mock_extended_proof.get_proof();
@@ -140,11 +138,9 @@ TEST(MainTests, ParseTransactionToAggregateGROTH16)
     inputs.push_back(libff::Fr<ppT>::random_element());
     inputs.push_back(libff::Fr<ppT>::random_element());
     inputs.push_back(libff::Fr<ppT>::random_element());
-    libsnark::r1cs_primary_input<libff::Fr<ppT>> primary_inputs =
-        libsnark::r1cs_primary_input<libff::Fr<ppT>>(inputs);
 
     libzeth::extended_proof<ppT, libzeth::groth16_snark<ppT>>
-        mock_extended_proof(proof, primary_inputs);
+        mock_extended_proof(std::move(proof), std::move(inputs));
 
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proofObj =
         mock_extended_proof.get_proof();
@@ -159,7 +155,7 @@ TEST(MainTests, ParseTransactionToAggregateGROTH16)
     b->CopyFrom(libzeth::point_g2_affine_to_proto<ppT>(proofObj.g_B)); // in G2
     c->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_C));
 
-    libsnark::r1cs_gg_ppzksnark_primary_input<ppT> pub_inputs =
+    const libsnark::r1cs_gg_ppzksnark_primary_input<ppT> &pub_inputs =
         mock_extended_proof.get_primary_inputs();
     std::string inputs_json =
         libzeth::primary_inputs_to_string<ppT>(pub_inputs);
