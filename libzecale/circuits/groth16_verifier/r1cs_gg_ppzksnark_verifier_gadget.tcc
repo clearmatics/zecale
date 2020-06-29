@@ -15,10 +15,12 @@ r1cs_gg_ppzksnark_proof_variable<ppT>::r1cs_gg_ppzksnark_proof_variable(
     libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
+#ifndef NDEBUG
     // g_A, g_C
     const size_t num_G1 = 2;
     // g_B
     const size_t num_G2 = 1;
+#endif
 
     g_A.reset(
         new libsnark::G1_variable<ppT>(pb, FMT(annotation_prefix, " g_A")));
@@ -104,10 +106,12 @@ r1cs_gg_ppzksnark_verification_key_variable<ppT>::
     , all_bits(all_bits)
     , input_size(input_size)
 {
+#ifndef NDEBUG
     // alpha_g1, ABC_g1
     const size_t num_G1 = 1 + (input_size + 1);
     // beta_g2, delta_g2
     const size_t num_G2 = 2;
+#endif
 
     assert(
         all_bits.size() ==
