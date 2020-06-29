@@ -10,6 +10,40 @@
 namespace libzecale
 {
 
+// Iterate through bits of loop_count, skipping the highest order bit.
+class bls12_377_miller_loop_bits
+{
+public:
+    inline bls12_377_miller_loop_bits()
+    {
+        // TODO: should not need to do this dynamically
+        ssize_t start_i = libff::bls12_377_ate_loop_count.max_bits();
+        while (!libff::bls12_377_ate_loop_count.test_bit(start_i--)) {
+        }
+        _i = start_i + 1;
+    }
+
+    inline bool next()
+    {
+        if (_i > 0) {
+            --_i;
+            return true;
+        }
+
+        return false;
+    }
+
+    inline bool current() const
+    {
+        return libff::bls12_377_ate_loop_count.test_bit(_i);
+    }
+
+    inline size_t index() const { return (size_t)_i; }
+
+private:
+    ssize_t _i;
+};
+
 // bls12_377_G2_proj methods
 
 template<typename ppT>
@@ -458,29 +492,24 @@ bls12_377_ate_precompute_gadget<ppT>::bls12_377_ate_precompute_gadget(
     // Track the R variable at each step. Initially it is _R0;
     const bls12_377_G2_proj<ppT> *currentR = &_R0;
 
-    // Iterate through bits of loop_count, skipping the highest order bit.
-    const libff::bigint<libff::bls12_377_Fq::num_limbs> &loop_count =
-        libff::bls12_377_ate_loop_count;
-    ssize_t i = loop_count.max_bits();
-    while (!loop_count.test_bit(i--)) {
-    }
-
-    // For each bit in turn, double. If the bit is set, add Q.
-    for (; i >= 0; --i) {
-        const bool bit = loop_count.test_bit(i);
+    // Iterate through bits of loop_count
+    bls12_377_miller_loop_bits bits;
+    while (bits.next()) {
         _ate_dbls.push_back(std::shared_ptr<bls12_377_ate_dbl_gadget<ppT>>(
             new bls12_377_ate_dbl_gadget<ppT>(
-                pb, *currentR, FMT(annotation_prefix, " dbl %zu", i))));
+                pb,
+                *currentR,
+                FMT(annotation_prefix, " dbl %zu", bits.index()))));
         currentR = &_ate_dbls.back()->out_R;
 
-        if (bit) {
+        if (bits.current()) {
             _ate_adds.push_back(std::shared_ptr<bls12_377_ate_add_gadget<ppT>>(
                 new bls12_377_ate_add_gadget<ppT>(
                     pb,
                     _Qx,
                     _Qy,
                     *currentR,
-                    FMT(annotation_prefix, " add %zu", i))));
+                    FMT(annotation_prefix, " add %zu", bits.index()))));
             currentR = &_ate_adds.back()->out_R;
         }
     }
@@ -497,15 +526,10 @@ void bls12_377_ate_precompute_gadget<ppT>::generate_r1cs_constraints()
     // the order of generation is not important). For now we do this to keep a
     // consistent loop in all methods.
 
-    const libff::bigint<libff::bls12_377_Fq::num_limbs> &loop_count =
-        libff::bls12_377_ate_loop_count;
-    ssize_t i = loop_count.max_bits();
-    while (!loop_count.test_bit(i--)) {
-    }
-    for (; i >= 0; --i) {
-        const bool bit = loop_count.test_bit(i);
+    bls12_377_miller_loop_bits bits;
+    while (bits.next()) {
         _ate_dbls[dbl_idx++]->generate_r1cs_constraints();
-        if (bit) {
+        if (bits.current()) {
             _ate_adds[add_idx++]->generate_r1cs_constraints();
         }
     }
@@ -520,16 +544,10 @@ void bls12_377_ate_precompute_gadget<ppT>::generate_r1cs_witness()
 
     size_t dbl_idx = 0;
     size_t add_idx = 0;
-    const libff::bigint<libff::bls12_377_Fq::num_limbs> &loop_count =
-        libff::bls12_377_ate_loop_count;
-    ssize_t i = loop_count.max_bits();
-    while (!loop_count.test_bit(i--)) {
-    }
-
-    for (; i >= 0; --i) {
-        const bool bit = loop_count.test_bit(i);
+    bls12_377_miller_loop_bits bits;
+    while (bits.next()) {
         _ate_dbls[dbl_idx++]->generate_r1cs_witness(two_inv);
-        if (bit) {
+        if (bits.current()) {
             _ate_adds[add_idx++]->generate_r1cs_witness();
         }
     }

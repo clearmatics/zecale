@@ -245,7 +245,7 @@ public:
     void generate_r1cs_constraints();
 
     /// The Qx and Qy variables passed to the constructor must have been
-    /// assigned
+    /// assigned.
     void generate_r1cs_witness();
 };
 
