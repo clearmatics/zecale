@@ -71,7 +71,6 @@ TEST(Fp6_3over2_Test, MulGadgetTest)
     ASSERT_EQ(a.c0 * b.c0, a0b0);
     ASSERT_EQ((a.c0 + a.c1) * (b.c0 + b.c1), a0a1_times_b0b1);
     ASSERT_EQ((a.c0 + a.c2) * (b.c0 + b.c2), a0a2_times_b0b2);
-    // ASSERT_EQ(c.c0, c_val.c0);
     ASSERT_EQ(c.c1, c_val.c1);
     ASSERT_EQ(c.c2, c_val.c2);
     ASSERT_EQ(c, c_val);
