@@ -68,6 +68,11 @@ public:
     bls12_377_G2_proj<ppT> in_R;
     bls12_377_G2_proj<ppT> out_R;
 
+    // TODO: Many of these intermediate Fqe_variables are only for clarity and
+    // replicate the references held by other gadgets (e.g. `A` refers to the
+    // same variable as `check_A.result`. Do an optimization pass and remove
+    // some of the redundancy.
+
     // A = Rx * Ry / 2
     libsnark::Fqe_variable<ppT> A;
     libsnark::Fqe_mul_gadget<ppT> check_A; // Rx * Ry = 2_times_A
