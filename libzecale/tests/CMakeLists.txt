@@ -27,6 +27,8 @@ function(zecale_test TEST_NAME)
     protobuf::libprotobuf
   )
 
+  target_include_directories(${TEST_NAME} PUBLIC zecale)
+
   # Add all tests to the 'build_tests' target
   add_dependencies(build_tests ${TEST_NAME})
 

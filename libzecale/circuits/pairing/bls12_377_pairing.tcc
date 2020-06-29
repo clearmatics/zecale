@@ -442,6 +442,99 @@ void bls12_377_ate_add_gadget<ppT>::generate_r1cs_witness()
     out_coeffs.evaluate();
 }
 
+// bls12_377_ate_precompute methods
+
+template<typename ppT>
+bls12_377_ate_precompute_gadget<ppT>::bls12_377_ate_precompute_gadget(
+    libsnark::protoboard<libff::Fr<ppT>> &pb,
+    const libsnark::Fqe_variable<ppT> &Qx,
+    const libsnark::Fqe_variable<ppT> &Qy,
+    const std::string &annotation_prefix)
+    : libsnark::gadget<libff::Fr<ppT>>(pb, annotation_prefix)
+    , _Qx(Qx)
+    , _Qy(Qy)
+    , _R0(Qx, Qy, libsnark::Fqe_variable<ppT>(pb, FqeT::one(), "Fqe(1)"))
+{
+    // Track the R variable at each step. Initially it is _R0;
+    const bls12_377_G2_proj<ppT> *currentR = &_R0;
+
+    // Iterate through bits of loop_count, skipping the highest order bit.
+    const libff::bigint<libff::bls12_377_Fq::num_limbs> &loop_count =
+        libff::bls12_377_ate_loop_count;
+    ssize_t i = loop_count.max_bits();
+    while (!loop_count.test_bit(i--)) {
+    }
+
+    // For each bit in turn, double. If the bit is set, add Q.
+    for (; i >= 0; --i) {
+        const bool bit = loop_count.test_bit(i);
+        _ate_dbls.push_back(std::shared_ptr<bls12_377_ate_dbl_gadget<ppT>>(
+            new bls12_377_ate_dbl_gadget<ppT>(
+                pb, *currentR, FMT(annotation_prefix, " dbl %zu", i))));
+        currentR = &_ate_dbls.back()->out_R;
+
+        if (bit) {
+            _ate_adds.push_back(std::shared_ptr<bls12_377_ate_add_gadget<ppT>>(
+                new bls12_377_ate_add_gadget<ppT>(
+                    pb,
+                    _Qx,
+                    _Qy,
+                    *currentR,
+                    FMT(annotation_prefix, " add %zu", i))));
+            currentR = &_ate_adds.back()->out_R;
+        }
+    }
+}
+
+template<typename ppT>
+void bls12_377_ate_precompute_gadget<ppT>::generate_r1cs_constraints()
+{
+    size_t dbl_idx = 0;
+    size_t add_idx = 0;
+
+    // TODO: There should be no need to loop through the bits of loop_count
+    // when generating the constraints (all variables have been allocated, so
+    // the order of generation is not important). For now we do this to keep a
+    // consistent loop in all methods.
+
+    const libff::bigint<libff::bls12_377_Fq::num_limbs> &loop_count =
+        libff::bls12_377_ate_loop_count;
+    ssize_t i = loop_count.max_bits();
+    while (!loop_count.test_bit(i--)) {
+    }
+    for (; i >= 0; --i) {
+        const bool bit = loop_count.test_bit(i);
+        _ate_dbls[dbl_idx++]->generate_r1cs_constraints();
+        if (bit) {
+            _ate_adds[add_idx++]->generate_r1cs_constraints();
+        }
+    }
+}
+
+template<typename ppT>
+void bls12_377_ate_precompute_gadget<ppT>::generate_r1cs_witness()
+{
+    _R0.evaluate();
+
+    const libff::bls12_377_Fq two_inv = libff::bls12_377_Fq("2").inverse();
+
+    size_t dbl_idx = 0;
+    size_t add_idx = 0;
+    const libff::bigint<libff::bls12_377_Fq::num_limbs> &loop_count =
+        libff::bls12_377_ate_loop_count;
+    ssize_t i = loop_count.max_bits();
+    while (!loop_count.test_bit(i--)) {
+    }
+
+    for (; i >= 0; --i) {
+        const bool bit = loop_count.test_bit(i);
+        _ate_dbls[dbl_idx++]->generate_r1cs_witness(two_inv);
+        if (bit) {
+            _ate_adds[add_idx++]->generate_r1cs_witness();
+        }
+    }
+}
+
 } // namespace libzecale
 
 #endif // __ZECALE_CIRCUITS_PAIRING_BLS12_377_PAIRING_TCC__

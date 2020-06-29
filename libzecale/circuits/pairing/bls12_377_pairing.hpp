@@ -221,6 +221,34 @@ public:
     void generate_r1cs_witness();
 };
 
+/// Holds the relationship between an (affine) pairing parameter Q in G2, and
+/// the precomputed double and add gadgets.
+template<typename ppT>
+class bls12_377_ate_precompute_gadget : libsnark::gadget<libff::Fr<ppT>>
+{
+public:
+    using FqeT = libff::Fqe<libsnark::other_curve<ppT>>;
+
+    libsnark::Fqe_variable<ppT> _Qx;
+    libsnark::Fqe_variable<ppT> _Qy;
+    bls12_377_G2_proj<ppT> _R0;
+
+    std::vector<std::shared_ptr<bls12_377_ate_dbl_gadget<ppT>>> _ate_dbls;
+    std::vector<std::shared_ptr<bls12_377_ate_add_gadget<ppT>>> _ate_adds;
+
+    bls12_377_ate_precompute_gadget(
+        libsnark::protoboard<libff::Fr<ppT>> &pb,
+        const libsnark::Fqe_variable<ppT> &Qx,
+        const libsnark::Fqe_variable<ppT> &Qy,
+        const std::string &annotation_prefix);
+
+    void generate_r1cs_constraints();
+
+    /// The Qx and Qy variables passed to the constructor must have been
+    /// assigned
+    void generate_r1cs_witness();
+};
+
 } // namespace libzecale
 
 #include "libzecale/circuits/pairing/bls12_377_pairing.tcc"

@@ -10,6 +10,7 @@
 #endif
 
 #include <gtest/gtest.h>
+#include <libff/algebra/curves/bls12_377/bls12_377_pairing.hpp>
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
 #include <libff/algebra/curves/bw6_761/bw6_761_pp.hpp>
 #include <libsnark/gadgetlib1/gadgets/fields/fp2_gadgets.hpp>
@@ -231,6 +232,87 @@ TEST(BLS12_377_PairingTest, PrecomputeAddGadgetTest)
 
     // Generate and check the proof
 
+    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    libsnark::r1cs_primary_input<libff::Fr<ppp>> primary_input =
+        pb.primary_input();
+    libsnark::r1cs_auxiliary_input<libff::Fr<ppp>> auxiliary_input =
+        pb.auxiliary_input();
+    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
+}
+
+template<typename ppT>
+static void assert_ate_coeffs_eq(
+    const libff::bls12_377_ate_ell_coeffs &native,
+    const libzecale::bls12_377_ate_ell_coeffs<ppT> &circuit,
+    const std::string &type,
+    size_t idx)
+{
+    ASSERT_EQ(native.ell_0, circuit.ell_0.get_element())
+        << type << " ell_0 " << std::to_string(idx) << "\n";
+    ASSERT_EQ(native.ell_VW, circuit.ell_vw.get_element())
+        << type << " ell_vw " << std::to_string(idx) << "\n";
+    ASSERT_EQ(native.ell_VV, circuit.ell_vv.get_element())
+        << type << " ell_vv " << std::to_string(idx) << "\n";
+}
+
+TEST(BLS12_377_PairingTest, PrecomputeGadget)
+{
+    // Native precompute
+    libff::bls12_377_G2 Q =
+        libff::bls12_377_Fr("7") * libff::bls12_377_G2::one();
+    Q.to_affine_coordinates();
+
+    const libff::bls12_377_ate_G2_precomp native_precomp =
+        libff::bls12_377_ate_precompute_G2(Q);
+
+    // Circuit with precompute gadget
+    libsnark::protoboard<libff::Fr<ppp>> pb;
+    libsnark::Fqe_variable<ppp> Qx(pb, " Qx");
+    libsnark::Fqe_variable<ppp> Qy(pb, " Qy");
+    const size_t num_primary_inputs = pb.num_inputs();
+    pb.set_input_sizes(num_primary_inputs);
+    libzecale::bls12_377_ate_precompute_gadget<ppp> precompute_gadget(
+        pb, Qx, Qy, "bls12_317 precompute gadget");
+
+    precompute_gadget.generate_r1cs_constraints();
+
+    Qx.generate_r1cs_witness(Q.X);
+    Qy.generate_r1cs_witness(Q.Y);
+    precompute_gadget.generate_r1cs_witness();
+
+    // Iterate through non-zero bits of loop_count, highest order first,
+    // skipping the first.
+    const libff::bigint<libff::bls12_377_Fq::num_limbs> &loop_count =
+        libff::bls12_377_ate_loop_count;
+    size_t native_coeffs_idx = 0;
+    size_t dbl_idx = 0;
+    size_t add_idx = 0;
+    ssize_t i = loop_count.max_bits();
+    while (!loop_count.test_bit(i--)) {
+    }
+    for (; i >= 0; --i) {
+        const bool bit = loop_count.test_bit(i);
+
+        // Check the coeffs from the double
+        assert_ate_coeffs_eq(
+            native_precomp.coeffs[native_coeffs_idx++],
+            precompute_gadget._ate_dbls[dbl_idx]->out_coeffs,
+            "dbl",
+            dbl_idx);
+        dbl_idx++;
+
+        if (bit) {
+            assert_ate_coeffs_eq(
+                native_precomp.coeffs[native_coeffs_idx++],
+                precompute_gadget._ate_adds[add_idx]->out_coeffs,
+                "add",
+                add_idx);
+            add_idx++;
+        }
+    }
+
+    // Generate and check the proof
     const typename snark::KeypairT keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<libff::Fr<ppp>> primary_input =
         pb.primary_input();
