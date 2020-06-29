@@ -41,6 +41,7 @@ public:
 
     Fp12_2over3over2_variable<Fp12T> operator*(const Fp2T &fp2_const) const;
     Fp12_2over3over2_variable<Fp12T> frobenius_map(size_t power) const;
+    Fp12_2over3over2_variable<Fp12T> unitary_inverse() const;
     void evaluate() const;
     void generate_r1cs_witness(const Fp12T &el);
     Fp12T get_element() const;

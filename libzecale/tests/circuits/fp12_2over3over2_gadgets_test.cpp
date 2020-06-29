@@ -36,6 +36,7 @@ TEST(Fp12_2over3over2_Test, ConstantOperations)
             Fp2T(FieldT("23"), FieldT("24")),
             Fp2T(FieldT("25"), FieldT("26"))));
     const Fp2T fp2(FieldT("7"), FieldT("8"));
+    const Fp12T unitary = libff::bls12_377_final_exponentiation_first_chunk(a);
 
     const Fp12T a_frob_1 = a.Frobenius_map(1);
     const Fp12T a_frob_2 = a.Frobenius_map(2);
@@ -43,27 +44,33 @@ TEST(Fp12_2over3over2_Test, ConstantOperations)
     const Fp12T a_frob_6 = a.Frobenius_map(6);
     const Fp12T a_frob_12 = a.Frobenius_map(12);
     const Fp12T a_times_fp2 = fp2 * a;
+    const Fp12T unitary_inv = unitary.unitary_inverse();
 
     // Operations in a circuit
     libsnark::protoboard<FieldT> pb;
     Fp12_variable a_var(pb, "a");
+    Fp12_variable unitary_var(pb, "unitary");
     Fp12_variable a_frob_1_var = a_var.frobenius_map(1);
     Fp12_variable a_frob_2_var = a_var.frobenius_map(2);
     Fp12_variable a_frob_3_var = a_var.frobenius_map(3);
     Fp12_variable a_frob_6_var = a_var.frobenius_map(6);
     Fp12_variable a_frob_12_var = a_var.frobenius_map(12);
     Fp12_variable a_times_fp2_var = a_var * fp2;
+    Fp12_variable unitary_inv_var = unitary_var.unitary_inverse();
+
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
 
     // Values
     a_var.generate_r1cs_witness(a);
+    unitary_var.generate_r1cs_witness(unitary);
     a_frob_1_var.evaluate();
     a_frob_2_var.evaluate();
     a_frob_3_var.evaluate();
     a_frob_6_var.evaluate();
     a_frob_12_var.evaluate();
     a_times_fp2_var.evaluate();
+    unitary_inv_var.evaluate();
 
     ASSERT_EQ(a_frob_1, a_frob_1_var.get_element());
     ASSERT_EQ(a_frob_2, a_frob_2_var.get_element());
@@ -72,6 +79,7 @@ TEST(Fp12_2over3over2_Test, ConstantOperations)
     ASSERT_EQ(a_frob_12, a_frob_12_var.get_element());
     ASSERT_EQ(a, a_frob_12);
     ASSERT_EQ(a_times_fp2, a_times_fp2_var.get_element());
+    ASSERT_EQ(unitary_inv, unitary_inv_var.get_element());
 }
 
 TEST(Fp12_2over3over2_Test, SquareGadgetTest)

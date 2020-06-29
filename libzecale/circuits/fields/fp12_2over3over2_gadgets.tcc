@@ -64,6 +64,14 @@ Fp12_2over3over2_variable<Fp12T> Fp12_2over3over2_variable<
         FMT(this->annotation_prefix, " fp12_frobenius_map"));
 }
 
+template<typename Fp12T>
+Fp12_2over3over2_variable<Fp12T> Fp12_2over3over2_variable<
+    Fp12T>::unitary_inverse() const
+{
+    return Fp12_2over3over2_variable(
+        this->pb, _c0, -_c1, FMT(this->annotation_prefix, " fp12_unitary_inv"));
+}
+
 template<typename Fp12T> void Fp12_2over3over2_variable<Fp12T>::evaluate() const
 {
     _c0.evaluate();
