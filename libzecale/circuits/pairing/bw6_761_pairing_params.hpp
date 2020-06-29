@@ -5,6 +5,7 @@
 #ifndef __ZECALE_CIRCUITS_PAIRING_BW6_761_PAIRING_PARAMS_HPP__
 #define __ZECALE_CIRCUITS_PAIRING_BW6_761_PAIRING_PARAMS_HPP__
 
+#include "libzecale/circuits/fields/fp12_2over3over2_gadgets.hpp"
 #include "libzecale/circuits/pairing/pairing_params.hpp"
 
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
@@ -35,11 +36,11 @@ public:
     typedef libsnark::Fp2_mul_by_lc_gadget<FqeT> Fqe_mul_by_lc_gadget_type;
     typedef libsnark::Fp2_sqr_gadget<FqeT> Fqe_sqr_gadget_type;
 
-    // typedef libsnark::Fp12_variable<FqkT> Fqk_variable_type;
+    typedef Fp12_2over3over2_variable<FqkT> Fqk_variable_type;
     // typedef libsnark::Fp12_mul_gadget<FqkT> Fqk_mul_gadget_type;
     // typedef libsnark::Fp12_mul_by_2345_gadget<FqkT>
-    // Fqk_special_mul_gadget_type; typedef libsnark::Fp12_sqr_gadget<FqkT>
-    // Fqk_sqr_gadget_type;
+    typedef Fp12_2over3over2_mul_by_024_gadget<FqkT> Fqk_mul_by_024_gadget_type;
+    typedef Fp12_2over3over2_square_gadget<FqkT> Fqk_sqr_gadget_type;
 
     typedef libff::bls12_377_pp other_curve_type;
 

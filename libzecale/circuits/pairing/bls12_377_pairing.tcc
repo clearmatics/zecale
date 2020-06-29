@@ -553,6 +553,180 @@ void bls12_377_ate_precompute_gadget<ppT>::generate_r1cs_witness()
     }
 }
 
+// bls12_377_ate_compute_f_ell_P methods
+
+template<typename ppT>
+bls12_377_ate_compute_f_ell_P<ppT>::bls12_377_ate_compute_f_ell_P(
+    libsnark::protoboard<FieldT> &pb,
+    const libsnark::pb_variable<FieldT> &Px,
+    const libsnark::pb_variable<FieldT> &Py,
+    const bls12_377_ate_ell_coeffs<ppT> &ell_coeffs,
+    const Fp12_2over3over2_variable<FqkT> &f,
+    const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , _ell_vv_times_Px(
+          pb,
+          ell_coeffs.ell_vv,
+          Px,
+          libsnark::Fqe_variable<ppT>(pb, FMT(annotation_prefix, "Px.ell_vv")),
+          FMT(annotation_prefix, "check Px.ell_vv"))
+    , _ell_vw_times_Py(
+          pb,
+          ell_coeffs.ell_vw,
+          Py,
+          libsnark::Fqe_variable<ppT>(pb, FMT(annotation_prefix, "Py.ell_vw")),
+          FMT(annotation_prefix, "check Py.ell_vw"))
+    , _f_mul_ell_P(
+          pb,
+          f,
+          ell_coeffs.ell_0,
+          _ell_vv_times_Px.result,
+          _ell_vw_times_Py.result,
+          Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, "new f")),
+          FMT(annotation_prefix, " f.ell(P)"))
+{
+}
+
+template<typename ppT>
+const Fp12_2over3over2_variable<libff::Fqk<libsnark::other_curve<ppT>>>
+    &bls12_377_ate_compute_f_ell_P<ppT>::result() const
+{
+    return _f_mul_ell_P.result();
+}
+
+template<typename ppT>
+void bls12_377_ate_compute_f_ell_P<ppT>::generate_r1cs_constraints()
+{
+    _ell_vv_times_Px.generate_r1cs_constraints();
+    _ell_vw_times_Py.generate_r1cs_constraints();
+    _f_mul_ell_P.generate_r1cs_constraints();
+}
+
+template<typename ppT>
+void bls12_377_ate_compute_f_ell_P<ppT>::generate_r1cs_witness()
+{
+    _ell_vv_times_Px.generate_r1cs_witness();
+    _ell_vw_times_Py.generate_r1cs_witness();
+    _f_mul_ell_P.generate_r1cs_witness();
+}
+
+// bls12_377_ate_miller_loop_gadget methods
+
+template<typename ppT>
+bls12_377_ate_miller_loop_gadget<ppT>::bls12_377_ate_miller_loop_gadget(
+    libsnark::protoboard<FieldT> &pb,
+    const libsnark::pb_variable<FieldT> &Px,
+    const libsnark::pb_variable<FieldT> &Py,
+    const libsnark::Fqe_variable<ppT> &Qx,
+    const libsnark::Fqe_variable<ppT> &Qy,
+    const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , _Px(Px)
+    , _Py(Py)
+    , _Qx(Qx)
+    , _Qy(Qy)
+    , _Q_precomp(pb, Qx, Qy, FMT(annotation_prefix, " preecompute"))
+    , _f0(pb, FqkT::one(), FMT(annotation_prefix, "f0"))
+{
+    const std::vector<std::shared_ptr<bls12_377_ate_dbl_gadget<ppT>>>
+        &ate_dbls = _Q_precomp._ate_dbls;
+    const std::vector<std::shared_ptr<bls12_377_ate_add_gadget<ppT>>>
+        &ate_adds = _Q_precomp._ate_adds;
+
+    size_t dbl_idx = 0;
+    size_t add_idx = 0;
+
+    const Fp12_2over3over2_variable<FqkT> *f = &_f0;
+
+    bls12_377_miller_loop_bits bits;
+    while (bits.next()) {
+        // f <- f^2
+        Fp12_2over3over2_variable<FqkT> f_squared(
+            pb, FMT(annotation_prefix, " f^2"));
+        _f_squared.push_back(
+            std::shared_ptr<Fp12_2over3over2_square_gadget<FqkT>>(
+                new Fp12_2over3over2_square_gadget<FqkT>(
+                    pb, *f, f_squared, FMT(annotation_prefix, " comp f^2"))));
+
+        // f <- f^2 * ell(P)
+        _f_ell_P.push_back(std::shared_ptr<bls12_377_ate_compute_f_ell_P<ppT>>(
+            new bls12_377_ate_compute_f_ell_P<ppT>(
+                pb,
+                Px,
+                Py,
+                ate_dbls[dbl_idx++]->out_coeffs,
+                f_squared,
+                FMT(annotation_prefix, "check f^2*ell(P)"))));
+        f = &_f_ell_P.back()->result();
+
+        if (bits.current()) {
+            // f <- f * ell(P)
+            _f_ell_P.push_back(
+                std::shared_ptr<bls12_377_ate_compute_f_ell_P<ppT>>(
+                    new bls12_377_ate_compute_f_ell_P<ppT>(
+                        pb,
+                        Px,
+                        Py,
+                        ate_adds[add_idx++]->out_coeffs,
+                        *f,
+                        FMT(annotation_prefix, "check f*ell(P)"))));
+            f = &_f_ell_P.back()->result();
+        }
+    }
+}
+
+template<typename ppT>
+const Fp12_2over3over2_variable<libff::Fqk<libsnark::other_curve<ppT>>>
+    &bls12_377_ate_miller_loop_gadget<ppT>::result() const
+{
+    return _f_ell_P.back()->result();
+}
+
+template<typename ppT>
+void bls12_377_ate_miller_loop_gadget<ppT>::generate_r1cs_constraints()
+{
+    // Precompute step
+    _Q_precomp.generate_r1cs_constraints();
+
+    // TODO: everything is allocated, so constraint generation does not need to
+    // be done in this order. For now, keep a consistent loop.
+
+    size_t sqr_idx = 0;
+    size_t f_ell_P_idx = 0;
+    bls12_377_miller_loop_bits bits;
+    while (bits.next()) {
+        _f_squared[sqr_idx++]->generate_r1cs_constraints();
+        _f_ell_P[f_ell_P_idx++]->generate_r1cs_constraints();
+        if (bits.current()) {
+            _f_ell_P[f_ell_P_idx++]->generate_r1cs_constraints();
+        }
+    }
+
+    assert(sqr_idx == _f_squared.size());
+    assert(f_ell_P_idx == _f_ell_P.size());
+}
+
+template<typename ppT>
+void bls12_377_ate_miller_loop_gadget<ppT>::generate_r1cs_witness()
+{
+    // Precompute step
+    _Q_precomp.generate_r1cs_witness();
+
+    size_t sqr_idx = 0;
+    size_t f_ell_P_idx = 0;
+    bls12_377_miller_loop_bits bits;
+    while (bits.next()) {
+        _f_squared[sqr_idx++]->generate_r1cs_witness();
+        _f_ell_P[f_ell_P_idx++]->generate_r1cs_witness();
+        if (bits.current()) {
+            _f_ell_P[f_ell_P_idx++]->generate_r1cs_witness();
+        }
+    }
+
+    assert(sqr_idx == _f_squared.size());
+    assert(f_ell_P_idx == _f_ell_P.size());
+}
+
 } // namespace libzecale
 
 #endif // __ZECALE_CIRCUITS_PAIRING_BLS12_377_PAIRING_TCC__

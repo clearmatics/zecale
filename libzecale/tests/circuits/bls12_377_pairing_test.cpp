@@ -2,18 +2,13 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzecale/circuits/fields/fp12_2over3over2_gadgets.hpp"
 #include "libzecale/circuits/pairing/bls12_377_pairing.hpp"
 #include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
 
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-
 #include <gtest/gtest.h>
-#include <libff/algebra/curves/bls12_377/bls12_377_pairing.hpp>
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
 #include <libff/algebra/curves/bw6_761/bw6_761_pp.hpp>
-#include <libsnark/gadgetlib1/gadgets/fields/fp2_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/pairing/pairing_params.hpp>
 #include <libzeth/snarks/groth16/groth16_snark.hpp>
 
@@ -123,7 +118,6 @@ TEST(BLS12_377_PairingTest, PrecomputeDoubleGadgetTest)
     ASSERT_EQ(R1_coeffs.ell_VV, R1_coeffs_var.ell_vv.get_element());
 
     // Generate and check the proof
-
     const typename snark::KeypairT keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<libff::Fr<ppp>> primary_input =
         pb.primary_input();
@@ -256,7 +250,7 @@ static void assert_ate_coeffs_eq(
         << type << " ell_vv " << std::to_string(idx) << "\n";
 }
 
-TEST(BLS12_377_PairingTest, PrecomputeGadget)
+TEST(BLS12_377_PairingTest, PrecomputeGadgetTest)
 {
     // Native precompute
     libff::bls12_377_G2 Q =
@@ -283,16 +277,12 @@ TEST(BLS12_377_PairingTest, PrecomputeGadget)
 
     // Iterate through non-zero bits of loop_count, highest order first,
     // skipping the first.
-    const libff::bigint<libff::bls12_377_Fq::num_limbs> &loop_count =
-        libff::bls12_377_ate_loop_count;
     size_t native_coeffs_idx = 0;
     size_t dbl_idx = 0;
     size_t add_idx = 0;
-    ssize_t i = loop_count.max_bits();
-    while (!loop_count.test_bit(i--)) {
-    }
-    for (; i >= 0; --i) {
-        const bool bit = loop_count.test_bit(i);
+    libzecale::bls12_377_miller_loop_bits bits;
+    while (bits.next()) {
+        const bool bit = bits.current();
 
         // Check the coeffs from the double
         assert_ate_coeffs_eq(
@@ -311,6 +301,64 @@ TEST(BLS12_377_PairingTest, PrecomputeGadget)
             add_idx++;
         }
     }
+
+    // Generate and check the proof
+    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    libsnark::r1cs_primary_input<libff::Fr<ppp>> primary_input =
+        pb.primary_input();
+    libsnark::r1cs_auxiliary_input<libff::Fr<ppp>> auxiliary_input =
+        pb.auxiliary_input();
+    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
+}
+
+TEST(BLS12_377_PairingTest, MillerLoopGadgetTest)
+{
+    // Native calculation
+    libff::bls12_377_G1 P =
+        libff::bls12_377_Fr("13") * libff::bls12_377_G1::one();
+    libff::bls12_377_G2 Q =
+        libff::bls12_377_Fr("7") * libff::bls12_377_G2::one();
+
+    libff::bls12_377_Fq12 miller;
+    {
+        libff::bls12_377_G1_precomp G1_precomp =
+            libff::bls12_377_ate_precompute_G1(P);
+        libff::bls12_377_G2_precomp G2_precomp =
+            libff::bls12_377_ate_precompute_G2(Q);
+        miller = libff::bls12_377_ate_miller_loop(G1_precomp, G2_precomp);
+    }
+
+    // Circuit with Miller loop gadget
+    libsnark::protoboard<libff::Fr<ppp>> pb;
+    libsnark::pb_variable<libff::Fr<ppp>> Px;
+    Px.allocate(pb, "Px");
+    libsnark::pb_variable<libff::Fr<ppp>> Py;
+    Py.allocate(pb, "Py");
+    libsnark::Fqe_variable<ppp> Qx(pb, " Qx");
+    libsnark::Fqe_variable<ppp> Qy(pb, " Qy");
+    const size_t num_primary_inputs = pb.num_inputs();
+    pb.set_input_sizes(num_primary_inputs);
+
+    libzecale::bls12_377_ate_miller_loop_gadget<ppp> miller_loop_gadget(
+        pb, Px, Py, Qx, Qy, "miller loop");
+
+    miller_loop_gadget.generate_r1cs_constraints();
+
+    // Set affine values
+    P.to_affine_coordinates();
+    Q.to_affine_coordinates();
+
+    pb.val(Px) = P.X;
+    pb.val(Py) = P.Y;
+    Qx.generate_r1cs_witness(Q.X);
+    Qy.generate_r1cs_witness(Q.Y);
+    miller_loop_gadget.generate_r1cs_witness();
+
+    // Check values
+    libff::bls12_377_Fq12 circuit_miller =
+        miller_loop_gadget.result().get_element();
+    ASSERT_EQ(miller, circuit_miller);
 
     // Generate and check the proof
     const typename snark::KeypairT keypair = snark::generate_setup(pb);

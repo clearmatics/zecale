@@ -5,6 +5,8 @@
 #ifndef __ZECALE_CIRCUITS_PAIRING_BLS12_377_PAIRING_HPP__
 #define __ZECALE_CIRCUITS_PAIRING_BLS12_377_PAIRING_HPP__
 
+#include "libzecale/circuits/fields/fp12_2over3over2_gadgets.hpp"
+
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
 #include <libsnark/gadgetlib1/gadgets/fields/fp2_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/pairing/pairing_params.hpp>
@@ -224,7 +226,7 @@ public:
 /// Holds the relationship between an (affine) pairing parameter Q in G2, and
 /// the precomputed double and add gadgets.
 template<typename ppT>
-class bls12_377_ate_precompute_gadget : libsnark::gadget<libff::Fr<ppT>>
+class bls12_377_ate_precompute_gadget : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     using FqeT = libff::Fqe<libsnark::other_curve<ppT>>;
@@ -246,6 +248,75 @@ public:
 
     /// The Qx and Qy variables passed to the constructor must have been
     /// assigned.
+    void generate_r1cs_witness();
+};
+
+/// Given some current f in Fqk, the pairing parameter P in G1, and the
+/// precomputed coefficients for the function of some line function ell(),
+/// compute:
+///   f * ell(P)
+/// Note that this gadget allocates the variable to hold the resulting value of
+/// f.
+template<typename ppT>
+class bls12_377_ate_compute_f_ell_P : public libsnark::gadget<libff::Fr<ppT>>
+{
+public:
+    using FieldT = libff::Fr<ppT>;
+    using FqkT = libff::Fqk<libsnark::other_curve<ppT>>;
+
+    libsnark::Fqe_mul_by_lc_gadget<ppT> _ell_vv_times_Px;
+    libsnark::Fqe_mul_by_lc_gadget<ppT> _ell_vw_times_Py;
+    Fp12_2over3over2_mul_by_024_gadget<FqkT> _f_mul_ell_P;
+
+    bls12_377_ate_compute_f_ell_P(
+        libsnark::protoboard<FieldT> &pb,
+        const libsnark::pb_variable<FieldT> &Px,
+        const libsnark::pb_variable<FieldT> &Py,
+        const bls12_377_ate_ell_coeffs<ppT> &ell_coeffs,
+        const Fp12_2over3over2_variable<FqkT> &f,
+        const std::string &annotation_prefix);
+
+    const Fp12_2over3over2_variable<FqkT> &result() const;
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
+};
+
+template<typename ppT>
+class bls12_377_ate_miller_loop_gadget : public libsnark::gadget<libff::Fr<ppT>>
+{
+public:
+    using FieldT = libff::Fr<ppT>;
+    using FqeT = libff::Fqe<libsnark::other_curve<ppT>>;
+    using FqkT = libff::Fqk<libsnark::other_curve<ppT>>;
+    using Fq6T = typename FqkT::my_Fp6;
+
+    libsnark::pb_variable<FieldT> _Px;
+    libsnark::pb_variable<FieldT> _Py;
+    libsnark::Fqe_variable<ppT> _Qx;
+    libsnark::Fqe_variable<ppT> _Qy;
+
+    bls12_377_ate_precompute_gadget<ppT> _Q_precomp;
+    Fp12_2over3over2_variable<FqkT> _f0;
+
+    // Squaring of f
+    std::vector<std::shared_ptr<Fp12_2over3over2_square_gadget<FqkT>>>
+        _f_squared;
+
+    // f * ell(P) (for both double and add steps)
+    std::vector<std::shared_ptr<bls12_377_ate_compute_f_ell_P<ppT>>> _f_ell_P;
+
+    bls12_377_ate_miller_loop_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const libsnark::pb_variable<FieldT> &PX,
+        const libsnark::pb_variable<FieldT> &PY,
+        const libsnark::Fqe_variable<ppT> &QX,
+        const libsnark::Fqe_variable<ppT> &QY,
+        const std::string &annotation_prefix);
+
+    const Fp12_2over3over2_variable<FqkT> &result() const;
+
+    void generate_r1cs_constraints();
+
     void generate_r1cs_witness();
 };
 
