@@ -532,6 +532,170 @@ void Fp12_2over3over2_inv_gadget<Fp12T>::generate_r1cs_witness()
     _A_times_result.generate_r1cs_witness();
 }
 
+// Fp12_2over3over2_cyclotomic_square_gadget methods
+
+template<typename Fp12T>
+Fp12_2over3over2_cyclotomic_square_gadget<Fp12T>::
+    Fp12_2over3over2_cyclotomic_square_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const Fp12_2over3over2_variable<Fp12T> &A,
+        const Fp12_2over3over2_variable<Fp12T> &result,
+        const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , _A(A)
+    , _result(result)
+    // z0z4 = 6^{-1} * (result4 - 2*z4)
+    , _z0z4(
+          pb,
+          _A._c0._c0,
+          _A._c1._c1,
+          (_result._c1._c1 - _A._c1._c1 - _A._c1._c1) * FieldT(6).inverse(),
+          FMT(annotation_prefix, " _z0z4"))
+    // 3*(z0 + z4) * (z0 + non_residue * z4)
+    //       = result0 + 3*(1 + non_residue)*z0z4 + 2*z0
+    , _check_result_0(
+          pb,
+          (_A._c0._c0 + _A._c1._c1) * FieldT(3),
+          _A._c0._c0 + _A._c1._c1 * Fp6T::non_residue,
+          _result._c0._c0 + _A._c0._c0 + _A._c0._c0 +
+              _z0z4.result * (Fp2T::one() + Fp6T::non_residue) * FieldT(3),
+          FMT(annotation_prefix, " _check_result_0"))
+    // z3z2 = 6^{-1} * (result5 - 2*z5)
+    , _z3z2(
+          pb,
+          _A._c1._c0,
+          _A._c0._c2,
+          (_result._c1._c2 - _A._c1._c2 - _A._c1._c2) * FieldT(6).inverse(),
+          FMT(annotation_prefix, " _z3z2"))
+    // 3*(z3 + z2)*(z3 + non_residue * z2)
+    //       = result1 + 3*(1 + non_residue)*_z3z2 + 2*z1
+    , _check_result_1(
+          pb,
+          (_A._c1._c0 + _A._c0._c2) * FieldT(3),
+          _A._c1._c0 + _A._c0._c2 * Fp6T::non_residue,
+          _result._c0._c1 + _A._c0._c1 + _A._c0._c1 +
+              _z3z2.result * (Fp2T::one() + Fp6T::non_residue) * FieldT(3),
+          FMT(annotation_prefix, " _check_result_1"))
+    // z1z5 = 6^{-1} * non_residue^{-1} * (result3 - 2*z3)
+    , _z1z5(
+          pb,
+          _A._c0._c1,
+          _A._c1._c2,
+          (_result._c1._c0 - _A._c1._c0 - _A._c1._c0) *
+              Fp6T::non_residue.inverse() * FieldT(6).inverse(),
+          FMT(annotation_prefix, " _z1z5"))
+    // 3*(z1 + z5)*(z1 + non_residue * z5)
+    //       = result2 + 3*(1 + non_residue)*z1z5 + 2*z2
+    , _check_result_2(
+          pb,
+          (_A._c0._c1 + _A._c1._c2) * FieldT(3),
+          _A._c0._c1 + _A._c1._c2 * Fp6T::non_residue,
+          _result._c0._c2 + _A._c0._c2 + _A._c0._c2 +
+              _z1z5.result * (Fp2T::one() + Fp6T::non_residue) * FieldT(3),
+          FMT(annotation_prefix, " _check_result_2"))
+{
+}
+
+template<typename Fp12T>
+const Fp12_2over3over2_variable<Fp12T>
+    &Fp12_2over3over2_cyclotomic_square_gadget<Fp12T>::result() const
+{
+    return _result;
+}
+
+template<typename Fp12T>
+void Fp12_2over3over2_cyclotomic_square_gadget<
+    Fp12T>::generate_r1cs_constraints()
+{
+    _z0z4.generate_r1cs_constraints();
+    _check_result_0.generate_r1cs_constraints();
+    _z3z2.generate_r1cs_constraints();
+    _check_result_1.generate_r1cs_constraints();
+    _z1z5.generate_r1cs_constraints();
+    _check_result_2.generate_r1cs_constraints();
+}
+
+template<typename Fp12T>
+void Fp12_2over3over2_cyclotomic_square_gadget<Fp12T>::generate_r1cs_witness()
+{
+    const Fp2T z0 = _A._c0._c0.get_element();
+    const Fp2T z1 = _A._c0._c1.get_element();
+    const Fp2T z2 = _A._c0._c2.get_element();
+    const Fp2T z3 = _A._c1._c0.get_element();
+    const Fp2T z4 = _A._c1._c1.get_element();
+    const Fp2T z5 = _A._c1._c2.get_element();
+
+    // result4 = 6 * z0z4 + 2 * z4
+    // <=> z0z4 = 6^{-1} * (result4 - 2*z4)
+    const Fp2T z0z4 = z0 * z4;
+    const Fp2T z0z4_2 = z0z4 + z0z4;
+    _result._c1._c1.generate_r1cs_witness(z0z4_2 + z0z4_2 + z0z4_2 + z4 + z4);
+    _z0z4.result.evaluate();
+    _z0z4.generate_r1cs_witness();
+
+    // result0 = 3*t0_L - 3*t0_R - 2*z0
+    //   where
+    //     t0_L = (z0 + z4) * (z0 + non_residue * z4)
+    //     t0_R = z0z4 * (my_Fp2::one() + my_Fp6::non_residue)
+    // <=> 3*(z0 + z4) * (z0 + non_residue * z4)
+    //       = result0 + 3*(1 + non_residue)*z0z4 + 2*z0
+    const Fp2T t0_L = (z0 + z4) * (z0 + Fp6T::non_residue * z4);
+    const Fp2T t0_R = z0z4 * (Fp2T::one() + Fp6T::non_residue);
+    _result._c0._c0.generate_r1cs_witness(
+        t0_L + t0_L + t0_L - t0_R - t0_R - t0_R - z0 - z0);
+    _check_result_0.A.evaluate();
+    _check_result_0.B.evaluate();
+    _check_result_0.result.evaluate();
+    _check_result_0.generate_r1cs_witness();
+
+    // result5 = 6 * z3z2 + 2 * z5
+    // <=> z3z2 = 6^{-1} * (result5 - 2*z5)
+    const Fp2T z3z2 = z3 * z2;
+    const Fp2T z3z2_2 = z3z2 + z3z2;
+    _result._c1._c2.generate_r1cs_witness(z3z2_2 + z3z2_2 + z3z2_2 + z5 + z5);
+    _z3z2.result.evaluate();
+    _z3z2.generate_r1cs_witness();
+
+    // result1 = 3*t2_L - 3*t2_R - 2*z1
+    //   where
+    //     t2_L = (z3 + z2) * (z3 + non_residue * z2)
+    //     t2_R = z3z2 * (1 + non_residue)
+    // <=> 3*(z3 + z2)*(z3 + non_residue * z2)
+    //       = result1 + 3*(1 + non_residue)*_z3z2 + 2*z1
+    const Fp2T t2_L = (z3 + z2) * (z3 + Fp6T::non_residue * z2);
+    const Fp2T t2_R = z3z2 * (Fp2T::one() + Fp6T::non_residue);
+    _result._c0._c1.generate_r1cs_witness(
+        t2_L + t2_L + t2_L - t2_R - t2_R - t2_R - z1 - z1);
+    _check_result_1.A.evaluate();
+    _check_result_1.B.evaluate();
+    _check_result_1.result.evaluate();
+    _check_result_1.generate_r1cs_witness();
+
+    // result3 = 6 * non_residue * z1z5 + 2*z3
+    // <=> z1z5 = 6^{-1} * non_residue^{-1} * (out3 - 2*z3)
+    const Fp2T z1z5 = z1 * z5;
+    const Fp2T z1z5_2 = z1z5 + z1z5;
+    _result._c1._c0.generate_r1cs_witness(
+        (z1z5_2 + z1z5_2 + z1z5_2) * Fp6T::non_residue + z3 + z3);
+    _z1z5.result.evaluate();
+    _z1z5.generate_r1cs_witness();
+
+    // result2 = 3*t4_L - 3*t4_R - 2*z2
+    //   where
+    //     t4_L = (z1 + z5) * (z1 + non_residue * z5)
+    //     t4_R = z1z5 * (1 + non_residue);
+    // <=> 3*(z1 + z5)*(z1 + non_residue * z5)
+    //       = result2 + 3*(1 + non_residue)*z1z5 + 2*z2
+    const Fp2T t4_L = (z1 + z5) * (z1 + Fp6T::non_residue * z5);
+    const Fp2T t4_R = z1z5 * (Fp2T::one() + Fp6T::non_residue);
+    _result._c0._c2.generate_r1cs_witness(
+        t4_L + t4_L + t4_L - t4_R - t4_R - t4_R - z2 - z2);
+    _check_result_2.A.evaluate();
+    _check_result_2.B.evaluate();
+    _check_result_2.result.evaluate();
+    _check_result_2.generate_r1cs_witness();
+}
+
 } // namespace libzecale
 
 #endif // __ZECALE_CIRCUITS_FIELDS_FP12_2OVER3OVER2_GADGETS_TCC__

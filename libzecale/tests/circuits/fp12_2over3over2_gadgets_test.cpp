@@ -365,6 +365,94 @@ TEST(Fp12_2over3over2_Test, InvGadgetTest)
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
+TEST(Fp12_2over3over2_Test, CyclotomicSquareGadget)
+{
+    using Fp12T = libff::bls12_377_Fq12;
+    using FieldT = typename Fp12T::my_Fp;
+    using Fp2T = typename Fp12T::my_Fp2;
+    using Fp6T = typename Fp12T::my_Fp6;
+
+    // Native Frobenius calculation (check 1, 2, 6, and 12)
+    const Fp12T a(
+        Fp6T(
+            Fp2T(FieldT("1"), FieldT("2")),
+            Fp2T(FieldT("3"), FieldT("4")),
+            Fp2T(FieldT("5"), FieldT("6"))),
+        Fp6T(
+            Fp2T(FieldT("21"), FieldT("22")),
+            Fp2T(FieldT("23"), FieldT("24")),
+            Fp2T(FieldT("25"), FieldT("26"))));
+    const Fp12T u = libff::bls12_377_final_exponentiation_first_chunk(a);
+    const Fp12T u_squared = u.cyclotomic_squared();
+
+    // Inversion in a circuit
+    libsnark::protoboard<FieldT> pb;
+    libzecale::Fp12_2over3over2_variable<Fp12T> u_var(pb, "u");
+    libzecale::Fp12_2over3over2_variable<Fp12T> u_squared_var(pb, "u_squared");
+    const size_t num_primary_inputs = pb.num_inputs();
+    pb.set_input_sizes(num_primary_inputs);
+    libzecale::Fp12_2over3over2_cyclotomic_square_gadget<Fp12T>
+        cyclotomic_square_gadget(
+            pb, u_var, u_squared_var, "compute_cyclotomic_square");
+
+    // Constraints
+    cyclotomic_square_gadget.generate_r1cs_constraints();
+
+    // Values
+    u_var.generate_r1cs_witness(u);
+    cyclotomic_square_gadget.generate_r1cs_witness();
+
+    const Fp2T z0 = cyclotomic_square_gadget._A._c0._c0.get_element();
+    const Fp2T z1 = cyclotomic_square_gadget._A._c0._c1.get_element();
+    const Fp2T z2 = cyclotomic_square_gadget._A._c0._c2.get_element();
+    const Fp2T z3 = cyclotomic_square_gadget._A._c1._c0.get_element();
+    const Fp2T z4 = cyclotomic_square_gadget._A._c1._c1.get_element();
+    const Fp2T z5 = cyclotomic_square_gadget._A._c1._c2.get_element();
+
+    ASSERT_EQ(u.c0.c0, z0);
+    ASSERT_EQ(u.c0.c1, z1);
+    ASSERT_EQ(u.c0.c2, z2);
+    ASSERT_EQ(u.c1.c0, z3);
+    ASSERT_EQ(u.c1.c1, z4);
+    ASSERT_EQ(u.c1.c2, z5);
+
+    ASSERT_EQ(z0, cyclotomic_square_gadget._z0z4.A.get_element());
+    ASSERT_EQ(z4, cyclotomic_square_gadget._z0z4.B.get_element());
+    ASSERT_EQ(z0 * z4, cyclotomic_square_gadget._z0z4.result.get_element());
+    ASSERT_EQ(FieldT(6).inverse() * (u_squared.c1.c1 - z4 - z4), z0 * z4);
+
+    ASSERT_EQ(
+        FieldT(3) * (z0 + z4),
+        cyclotomic_square_gadget._check_result_0.A.get_element());
+    ASSERT_EQ(
+        z0 + Fp6T::non_residue * z4,
+        cyclotomic_square_gadget._check_result_0.B.get_element());
+    ASSERT_EQ(
+        FieldT(3) * (z0 + z4) * (z0 + Fp6T::non_residue * z4),
+        cyclotomic_square_gadget._check_result_0.result.get_element());
+    ASSERT_EQ(
+        FieldT(3) * (z0 + z4) * (z0 + Fp6T::non_residue * z4),
+        u_squared.c0.c0 + u.c0.c0 + u.c0.c0 +
+            FieldT(3) * z0 * z4 * (Fp2T::one() + Fp6T::non_residue));
+
+    ASSERT_EQ(u_squared.c0.c0, u_squared_var._c0._c0.get_element());
+    ASSERT_EQ(u_squared.c0.c1, u_squared_var._c0._c1.get_element());
+    ASSERT_EQ(u_squared.c0.c2, u_squared_var._c0._c2.get_element());
+    ASSERT_EQ(u_squared.c1.c0, u_squared_var._c1._c0.get_element());
+    ASSERT_EQ(u_squared.c1.c1, u_squared_var._c1._c1.get_element());
+    ASSERT_EQ(u_squared.c1.c2, u_squared_var._c1._c2.get_element());
+    ASSERT_EQ(u_squared, u_squared_var.get_element());
+
+    // Generate and check the proof
+    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    libsnark::r1cs_primary_input<libff::Fr<ppp>> primary_input =
+        pb.primary_input();
+    libsnark::r1cs_auxiliary_input<libff::Fr<ppp>> auxiliary_input =
+        pb.auxiliary_input();
+    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
+}
+
 } // namespace
 
 int main(int argc, char **argv)
