@@ -83,6 +83,18 @@ Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator+(
             other.annotation_prefix.c_str()));
 }
 
+template<typename Fp6T>
+Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator-(
+    const Fp6_3over2_variable<Fp6T> &other)
+{
+    return Fp6_3over2_variable<Fp6T>(
+        this->pb,
+        _c0 - other._c0,
+        _c1 - other._c1,
+        _c2 - other._c2,
+        FMT(this->annotation_prefix, " -other"));
+}
+
 template<typename Fp6T> void Fp6_3over2_variable<Fp6T>::evaluate() const
 {
     _c0.evaluate();

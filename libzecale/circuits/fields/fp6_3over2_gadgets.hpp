@@ -45,6 +45,7 @@ public:
 
     Fp6_3over2_variable<Fp6T> operator*(const FieldT &scalar);
     Fp6_3over2_variable<Fp6T> operator+(const Fp6_3over2_variable<Fp6T> &other);
+    Fp6_3over2_variable<Fp6T> operator-(const Fp6_3over2_variable<Fp6T> &other);
 
     void evaluate() const;
     void generate_r1cs_witness(const Fp6T &el);
