@@ -22,6 +22,7 @@ class Fp12_2over3over2_variable : public libsnark::gadget<typename Fp12T::my_Fp>
 public:
     using FieldT = typename Fp12T::my_Fp;
     using Fp6T = typename Fp12T::my_Fp6;
+    using Fp2T = typename Fp12T::my_Fp2;
 
     Fp6_3over2_variable<Fp6T> _c0;
     Fp6_3over2_variable<Fp6T> _c1;
@@ -32,15 +33,17 @@ public:
         libsnark::protoboard<FieldT> &pb,
         const Fp12T &el,
         const std::string &annotation_prefix);
-
     Fp12_2over3over2_variable(
         libsnark::protoboard<FieldT> &pb,
         const Fp6_3over2_variable<Fp6T> &c0,
         const Fp6_3over2_variable<Fp6T> &c1,
         const std::string &annotation_prefix);
 
-    Fp12T get_element() const;
+    Fp12_2over3over2_variable<Fp12T> operator*(const Fp2T &fp2_const) const;
+    Fp12_2over3over2_variable<Fp12T> frobenius_map(size_t power) const;
+    void evaluate() const;
     void generate_r1cs_witness(const Fp12T &el);
+    Fp12T get_element() const;
 };
 
 /// Multiply an element in Fq6 by Fq12::non_residue. Let c = c0 + c1 * v +
@@ -219,23 +222,6 @@ public:
     Fp12_2over3over2_mul_gadget<Fp12T> _A_times_result;
 
     Fp12_2over3over2_inv_gadget(
-        libsnark::protoboard<FieldT> &pb,
-        const Fp12_2over3over2_variable<Fp12T> &A,
-        const Fp12_2over3over2_variable<Fp12T> &result,
-        const std::string &annotation_prefix);
-    const Fp12_2over3over2_variable<Fp12T> &result() const;
-    void generate_r1cs_constraints();
-    void generate_r1cs_witness();
-};
-
-template<typename Fp12T, size_t power>
-class Fp12_2over3over2_frobenius_gadget
-    : public libsnark::gadget<typename Fp12T::my_Fp>
-{
-public:
-    using FieldT = typename Fp12T::my_Fp;
-
-    Fp12_2over3over2_frobenius_gadget(
         libsnark::protoboard<FieldT> &pb,
         const Fp12_2over3over2_variable<Fp12T> &A,
         const Fp12_2over3over2_variable<Fp12T> &result,

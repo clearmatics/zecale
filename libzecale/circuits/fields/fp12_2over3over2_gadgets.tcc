@@ -43,9 +43,31 @@ Fp12_2over3over2_variable<Fp12T>::Fp12_2over3over2_variable(
 }
 
 template<typename Fp12T>
-Fp12T Fp12_2over3over2_variable<Fp12T>::get_element() const
+Fp12_2over3over2_variable<Fp12T> Fp12_2over3over2_variable<Fp12T>::operator*(
+    const Fp2T &fp2_const) const
 {
-    return Fp12T(_c0.get_element(), _c1.get_element());
+    return Fp12_2over3over2_variable(
+        this->pb,
+        _c0 * fp2_const,
+        _c1 * fp2_const,
+        FMT(this->annotation_prefix, " fp12_var*fp2_const"));
+}
+
+template<typename Fp12T>
+Fp12_2over3over2_variable<Fp12T> Fp12_2over3over2_variable<
+    Fp12T>::frobenius_map(size_t power) const
+{
+    return Fp12_2over3over2_variable(
+        this->pb,
+        _c0.frobenius_map(power),
+        _c1.frobenius_map(power) * Fp12T::Frobenius_coeffs_c1[power % 12],
+        FMT(this->annotation_prefix, " fp12_frobenius_map"));
+}
+
+template<typename Fp12T> void Fp12_2over3over2_variable<Fp12T>::evaluate() const
+{
+    _c0.evaluate();
+    _c1.evaluate();
 }
 
 template<typename Fp12T>
@@ -53,6 +75,12 @@ void Fp12_2over3over2_variable<Fp12T>::generate_r1cs_witness(const Fp12T &el)
 {
     _c0.generate_r1cs_witness(el.c0);
     _c1.generate_r1cs_witness(el.c1);
+}
+
+template<typename Fp12T>
+Fp12T Fp12_2over3over2_variable<Fp12T>::get_element() const
+{
+    return Fp12T(_c0.get_element(), _c1.get_element());
 }
 
 // Multiplication of Fp6 elements by Fp12::non-residue and

@@ -17,6 +17,63 @@ using snark = libzeth::groth16_snark<ppp>;
 namespace
 {
 
+TEST(Fp12_2over3over2_Test, ConstantOperations)
+{
+    using Fp12T = libff::bls12_377_Fq12;
+    using FieldT = typename Fp12T::my_Fp;
+    using Fp2T = typename Fp12T::my_Fp2;
+    using Fp6T = typename Fp12T::my_Fp6;
+    using Fp12_variable = libzecale::Fp12_2over3over2_variable<Fp12T>;
+
+    // Native Frobenius calculation (check 1, 2, 6, and 12)
+    const Fp12T a(
+        Fp6T(
+            Fp2T(FieldT("1"), FieldT("2")),
+            Fp2T(FieldT("3"), FieldT("4")),
+            Fp2T(FieldT("5"), FieldT("6"))),
+        Fp6T(
+            Fp2T(FieldT("21"), FieldT("22")),
+            Fp2T(FieldT("23"), FieldT("24")),
+            Fp2T(FieldT("25"), FieldT("26"))));
+    const Fp2T fp2(FieldT("7"), FieldT("8"));
+
+    const Fp12T a_frob_1 = a.Frobenius_map(1);
+    const Fp12T a_frob_2 = a.Frobenius_map(2);
+    const Fp12T a_frob_3 = a.Frobenius_map(3);
+    const Fp12T a_frob_6 = a.Frobenius_map(6);
+    const Fp12T a_frob_12 = a.Frobenius_map(12);
+    const Fp12T a_times_fp2 = fp2 * a;
+
+    // Operations in a circuit
+    libsnark::protoboard<FieldT> pb;
+    Fp12_variable a_var(pb, "a");
+    Fp12_variable a_frob_1_var = a_var.frobenius_map(1);
+    Fp12_variable a_frob_2_var = a_var.frobenius_map(2);
+    Fp12_variable a_frob_3_var = a_var.frobenius_map(3);
+    Fp12_variable a_frob_6_var = a_var.frobenius_map(6);
+    Fp12_variable a_frob_12_var = a_var.frobenius_map(12);
+    Fp12_variable a_times_fp2_var = a_var * fp2;
+    const size_t num_primary_inputs = pb.num_inputs();
+    pb.set_input_sizes(num_primary_inputs);
+
+    // Values
+    a_var.generate_r1cs_witness(a);
+    a_frob_1_var.evaluate();
+    a_frob_2_var.evaluate();
+    a_frob_3_var.evaluate();
+    a_frob_6_var.evaluate();
+    a_frob_12_var.evaluate();
+    a_times_fp2_var.evaluate();
+
+    ASSERT_EQ(a_frob_1, a_frob_1_var.get_element());
+    ASSERT_EQ(a_frob_2, a_frob_2_var.get_element());
+    ASSERT_EQ(a_frob_3, a_frob_3_var.get_element());
+    ASSERT_EQ(a_frob_6, a_frob_6_var.get_element());
+    ASSERT_EQ(a_frob_12, a_frob_12_var.get_element());
+    ASSERT_EQ(a, a_frob_12);
+    ASSERT_EQ(a_times_fp2, a_times_fp2_var.get_element());
+}
+
 TEST(Fp12_2over3over2_Test, SquareGadgetTest)
 {
     using Fp12T = libff::bls12_377_Fq12;
@@ -289,82 +346,6 @@ TEST(Fp12_2over3over2_Test, InvGadgetTest)
 
     const Fp12T a_inv_value = a_inv_var.get_element();
     ASSERT_EQ(a_inv, a_inv_value);
-
-    // Generate and check the proof
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
-    libsnark::r1cs_primary_input<libff::Fr<ppp>> primary_input =
-        pb.primary_input();
-    libsnark::r1cs_auxiliary_input<libff::Fr<ppp>> auxiliary_input =
-        pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
-    ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
-}
-
-TEST(Fp12_2over3over2_Test, FrobeniusGadgetTest)
-{
-    using Fp12T = libff::bls12_377_Fq12;
-    using FieldT = typename Fp12T::my_Fp;
-    using Fp2T = typename Fp12T::my_Fp2;
-    using Fp6T = typename Fp12T::my_Fp6;
-
-    // Native Frobenius calculation (check 1, 2, 6, and 12)
-    const Fp12T a(
-        Fp6T(
-            Fp2T(FieldT("1"), FieldT("2")),
-            Fp2T(FieldT("3"), FieldT("4")),
-            Fp2T(FieldT("5"), FieldT("6"))),
-        Fp6T(
-            Fp2T(FieldT("21"), FieldT("22")),
-            Fp2T(FieldT("23"), FieldT("24")),
-            Fp2T(FieldT("25"), FieldT("26"))));
-    const Fp12T a_frob_1 = a.Frobenius_map(1);
-    const Fp12T a_frob_2 = a.Frobenius_map(2);
-    const Fp12T a_frob_3 = a.Frobenius_map(3);
-    const Fp12T a_frob_6 = a.Frobenius_map(6);
-    const Fp12T a_frob_12 = a.Frobenius_map(12);
-
-    // Inversion in a circuit
-    libsnark::protoboard<FieldT> pb;
-    libzecale::Fp12_2over3over2_variable<Fp12T> a_var(pb, "a");
-    libzecale::Fp12_2over3over2_variable<Fp12T> a_frob_1_var(pb, "a_frob_1");
-    libzecale::Fp12_2over3over2_variable<Fp12T> a_frob_2_var(pb, "a_frob_2");
-    libzecale::Fp12_2over3over2_variable<Fp12T> a_frob_3_var(pb, "a_frob_3");
-    libzecale::Fp12_2over3over2_variable<Fp12T> a_frob_6_var(pb, "a_frob_6");
-    libzecale::Fp12_2over3over2_variable<Fp12T> a_frob_12_var(pb, "a_frob_12");
-    const size_t num_primary_inputs = pb.num_inputs();
-    pb.set_input_sizes(num_primary_inputs);
-    libzecale::Fp12_2over3over2_frobenius_gadget<Fp12T, 1> a_frob_1_gadget(
-        pb, a_var, a_frob_1_var, " a_frob_1_gadget");
-    libzecale::Fp12_2over3over2_frobenius_gadget<Fp12T, 2> a_frob_2_gadget(
-        pb, a_var, a_frob_2_var, " a_frob_2_gadget");
-    libzecale::Fp12_2over3over2_frobenius_gadget<Fp12T, 3> a_frob_3_gadget(
-        pb, a_var, a_frob_3_var, " a_frob_3_gadget");
-    libzecale::Fp12_2over3over2_frobenius_gadget<Fp12T, 6> a_frob_6_gadget(
-        pb, a_var, a_frob_6_var, " a_frob_6_gadget");
-    libzecale::Fp12_2over3over2_frobenius_gadget<Fp12T, 12> a_frob_12_gadget(
-        pb, a_var, a_frob_12_var, " a_frob_12_gadget");
-
-    // Constraints
-    a_frob_1_gadget.generate_r1cs_constraints();
-    a_frob_2_gadget.generate_r1cs_constraints();
-    a_frob_3_gadget.generate_r1cs_constraints();
-    a_frob_6_gadget.generate_r1cs_constraints();
-    a_frob_12_gadget.generate_r1cs_constraints();
-
-    // Values
-    a_var.generate_r1cs_witness(a);
-    a_frob_1_gadget.generate_r1cs_witness();
-    a_frob_2_gadget.generate_r1cs_witness();
-    a_frob_3_gadget.generate_r1cs_witness();
-    a_frob_6_gadget.generate_r1cs_witness();
-    a_frob_12_gadget.generate_r1cs_witness();
-
-    ASSERT_EQ(a_frob_1, a_frob_1_var.get_element());
-    ASSERT_EQ(a_frob_2, a_frob_2_var.get_element());
-    ASSERT_EQ(a_frob_3, a_frob_3_var.get_element());
-    ASSERT_EQ(a_frob_6, a_frob_6_var.get_element());
-    ASSERT_EQ(a_frob_12, a_frob_12_var.get_element());
-    ASSERT_EQ(a, a_frob_12);
 
     // Generate and check the proof
     const typename snark::KeypairT keypair = snark::generate_setup(pb);
