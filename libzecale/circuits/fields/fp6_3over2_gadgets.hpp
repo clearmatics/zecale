@@ -43,9 +43,14 @@ public:
         const libsnark::Fp2_variable<Fp2T> &c2,
         const std::string &annotation_prefix);
 
-    Fp6_3over2_variable<Fp6T> operator*(const FieldT &scalar);
-    Fp6_3over2_variable<Fp6T> operator+(const Fp6_3over2_variable<Fp6T> &other);
-    Fp6_3over2_variable<Fp6T> operator-(const Fp6_3over2_variable<Fp6T> &other);
+    Fp6_3over2_variable<Fp6T> operator*(const FieldT &scalar) const;
+    Fp6_3over2_variable<Fp6T> operator*(const Fp2T &fp2_constant) const;
+    Fp6_3over2_variable<Fp6T> operator*(const Fp6T &fp6_constant) const;
+    Fp6_3over2_variable<Fp6T> operator+(
+        const Fp6_3over2_variable<Fp6T> &other) const;
+    Fp6_3over2_variable<Fp6T> operator-(
+        const Fp6_3over2_variable<Fp6T> &other) const;
+    Fp6_3over2_variable<Fp6T> frobenius_map(size_t power) const;
 
     void evaluate() const;
     void generate_r1cs_witness(const Fp6T &el);

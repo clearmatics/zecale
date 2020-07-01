@@ -16,6 +16,64 @@ using snark = libzeth::groth16_snark<ppp>;
 namespace
 {
 
+TEST(Fp6_3over2_Test, ConstantOperations)
+{
+    using Fp6T = libff::bls12_377_Fq6;
+    using Fp2T = typename Fp6T::my_Fp2;
+    using FieldT = typename Fp6T::my_Fp;
+    using Fp6_variable = libzecale::Fp6_3over2_variable<Fp6T>;
+
+    // Native operations
+    const Fp6T a(
+        Fp2T(FieldT("1"), FieldT("2")),
+        Fp2T(FieldT("3"), FieldT("4")),
+        Fp2T(FieldT("5"), FieldT("6")));
+    const Fp6T b(
+        Fp2T(FieldT("21"), FieldT("22")),
+        Fp2T(FieldT("23"), FieldT("24")),
+        Fp2T(FieldT("25"), FieldT("26")));
+    const Fp2T fp2(FieldT("7"), FieldT("8"));
+    const Fp6T a_frob_1 = a.Frobenius_map(1);
+    const Fp6T a_frob_2 = a.Frobenius_map(2);
+    const Fp6T a_frob_3 = a.Frobenius_map(3);
+    const Fp6T a_frob_6 = a.Frobenius_map(6);
+    const Fp6T a_frob_12 = a.Frobenius_map(12);
+    const Fp6T a_times_b = a * b;
+    const Fp6T a_times_fp2 = fp2 * a;
+
+    // Frobenius map in a circuit
+    libsnark::protoboard<FieldT> pb;
+    Fp6_variable a_var(pb, "a");
+    Fp6_variable a_frob_1_var = a_var.frobenius_map(1);
+    Fp6_variable a_frob_2_var = a_var.frobenius_map(2);
+    Fp6_variable a_frob_3_var = a_var.frobenius_map(3);
+    Fp6_variable a_frob_6_var = a_var.frobenius_map(6);
+    Fp6_variable a_frob_12_var = a_var.frobenius_map(12);
+    Fp6_variable a_times_b_var = a_var * b;
+    Fp6_variable a_times_fp2_var = a_var * fp2;
+    const size_t num_primary_inputs = pb.num_inputs();
+    pb.set_input_sizes(num_primary_inputs);
+
+    // Values
+    a_var.generate_r1cs_witness(a);
+    a_frob_1_var.evaluate();
+    a_frob_2_var.evaluate();
+    a_frob_3_var.evaluate();
+    a_frob_6_var.evaluate();
+    a_frob_12_var.evaluate();
+    a_times_b_var.evaluate();
+    a_times_fp2_var.evaluate();
+
+    ASSERT_EQ(a_frob_1, a_frob_1_var.get_element());
+    ASSERT_EQ(a_frob_2, a_frob_2_var.get_element());
+    ASSERT_EQ(a_frob_3, a_frob_3_var.get_element());
+    ASSERT_EQ(a_frob_6, a_frob_6_var.get_element());
+    ASSERT_EQ(a_frob_12, a_frob_12_var.get_element());
+    ASSERT_EQ(a, a_frob_12);
+    ASSERT_EQ(a_times_b, a_times_b_var.get_element());
+    ASSERT_EQ(a_times_fp2, a_times_fp2_var.get_element());
+}
+
 TEST(Fp6_3over2_Test, MulGadgetTest)
 {
     using Fp6T = libff::bls12_377_Fq6;

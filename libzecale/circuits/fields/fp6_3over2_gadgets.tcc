@@ -59,19 +59,48 @@ Fp6_3over2_variable<Fp6T>::Fp6_3over2_variable(
 
 template<typename Fp6T>
 Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator*(
-    const FieldT &scalar)
+    const FieldT &scalar) const
 {
     return Fp6_3over2_variable<Fp6T>(
         this->pb,
         _c0 * scalar,
         _c1 * scalar,
         _c2 * scalar,
-        FMT(this->annotation_prefix, " *Fp"));
+        FMT(this->annotation_prefix, " Fp6_var*Fp"));
+}
+
+template<typename Fp6T>
+Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator*(
+    const Fp2T &fp2_const) const
+{
+    return Fp6_3over2_variable<Fp6T>(
+        this->pb,
+        _c0 * fp2_const,
+        _c1 * fp2_const,
+        _c2 * fp2_const,
+        FMT(this->annotation_prefix, " Fp6_var*Fp2"));
+}
+
+template<typename Fp6T>
+Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator*(
+    const Fp6T &fp6_const) const
+{
+    // c0 = a0*b0 + non_residue * (a1*b2 + a2*b1)
+    // c1 = a0*b1 + a1*b0 + non_residue * a2*b2
+    // c3 = a0*b2 + a1*b1 + a2*b0
+    return Fp6_3over2_variable<Fp6T>(
+        this->pb,
+        _c0 * fp6_const.c0 +
+            (_c1 * fp6_const.c2 + _c2 * fp6_const.c1) * Fp6T::non_residue,
+        _c0 * fp6_const.c1 + _c1 * fp6_const.c0 +
+            _c2 * fp6_const.c2 * Fp6T::non_residue,
+        _c0 * fp6_const.c2 + _c1 * fp6_const.c1 + _c2 * fp6_const.c0,
+        FMT(this->annotation_prefix, " Fp6_var*Fp6"));
 }
 
 template<typename Fp6T>
 Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator+(
-    const Fp6_3over2_variable<Fp6T> &other)
+    const Fp6_3over2_variable<Fp6T> &other) const
 {
     return Fp6_3over2_variable<Fp6T>(
         this->pb,
@@ -85,7 +114,7 @@ Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator+(
 
 template<typename Fp6T>
 Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator-(
-    const Fp6_3over2_variable<Fp6T> &other)
+    const Fp6_3over2_variable<Fp6T> &other) const
 {
     return Fp6_3over2_variable<Fp6T>(
         this->pb,
@@ -93,6 +122,18 @@ Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator-(
         _c1 - other._c1,
         _c2 - other._c2,
         FMT(this->annotation_prefix, " -other"));
+}
+
+template<typename Fp6T>
+Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::frobenius_map(
+    size_t power) const
+{
+    return Fp6_3over2_variable<Fp6T>(
+        this->pb,
+        _c0.frobenius_map(power),
+        _c1.frobenius_map(power) * Fp6T::Frobenius_coeffs_c1[power % 6],
+        _c2.frobenius_map(power) * Fp6T::Frobenius_coeffs_c2[power % 6],
+        FMT(this->annotation_prefix, " frobenius"));
 }
 
 template<typename Fp6T> void Fp6_3over2_variable<Fp6T>::evaluate() const

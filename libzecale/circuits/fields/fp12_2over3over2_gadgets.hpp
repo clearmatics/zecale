@@ -228,6 +228,23 @@ public:
     void generate_r1cs_witness();
 };
 
+template<typename Fp12T, size_t power>
+class Fp12_2over3over2_frobenius_gadget
+    : public libsnark::gadget<typename Fp12T::my_Fp>
+{
+public:
+    using FieldT = typename Fp12T::my_Fp;
+
+    Fp12_2over3over2_frobenius_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const Fp12_2over3over2_variable<Fp12T> &A,
+        const Fp12_2over3over2_variable<Fp12T> &result,
+        const std::string &annotation_prefix);
+    const Fp12_2over3over2_variable<Fp12T> &result() const;
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
+};
+
 } // namespace libzecale
 
 #include "libzecale/circuits/fields/fp12_2over3over2_gadgets.tcc"
