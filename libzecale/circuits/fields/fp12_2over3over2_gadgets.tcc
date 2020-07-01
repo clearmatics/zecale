@@ -376,6 +376,80 @@ void Fp12_2over3over2_mul_by_024_gadget<Fp12T>::generate_r1cs_witness()
     _z1z3z5_times_x0x2x4.generate_r1cs_witness();
 }
 
+// Fp12_2over3over2_mul_gadget methods
+
+template<typename Fp12T>
+Fp12_2over3over2_mul_gadget<Fp12T>::Fp12_2over3over2_mul_gadget(
+    libsnark::protoboard<FieldT> &pb,
+    const Fp12_2over3over2_variable<Fp12T> &A,
+    const Fp12_2over3over2_variable<Fp12T> &B,
+    const Fp12_2over3over2_variable<Fp12T> &result,
+    const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , _A(A)
+    , _B(B)
+    , _result(result)
+    , _v0(pb,
+          A._c0,
+          B._c0,
+          Fp6_3over2_variable<Fp6T>(pb, FMT(annotation_prefix, " a0*b0")),
+          " _v0")
+    // result0 = a0*b0 + non_residue*a1*b1
+    //   <=> a1*b1 = (result0 - a0*b0) * non_residue.inverse
+    , _v1(pb,
+          A._c1,
+          B._c1,
+          fp6_mul_by_non_residue_inverse<Fp12T>(
+              pb, _result._c0 - _v0._result, FMT(annotation_prefix, " a1*b1")),
+          FMT(annotation_prefix, " _v1"))
+    // result1 = a0*b1 + a1*b0 = (a0 + a1)*(b0 + b1) - a0*b0 - a1*b1
+    //   <=> (a0 + a1)(b0 + b1) = result1 + a0*b0 + a1*b1
+    , _a0_plus_a1_times_b0_plus_b1(
+          pb,
+          A._c0 + A._c1,
+          B._c0 + B._c1,
+          _result._c1 + _v0._result + _v1._result,
+          FMT(annotation_prefix, " _a0_plus_a1_times_b0_plus_b1"))
+{
+}
+
+template<typename Fp12T>
+const Fp12_2over3over2_variable<Fp12T>
+    &Fp12_2over3over2_mul_gadget<Fp12T>::result() const
+{
+    return _result;
+}
+
+template<typename Fp12T>
+void Fp12_2over3over2_mul_gadget<Fp12T>::generate_r1cs_constraints()
+{
+    _v0.generate_r1cs_constraints();
+    _v1.generate_r1cs_constraints();
+    _a0_plus_a1_times_b0_plus_b1.generate_r1cs_constraints();
+}
+
+template<typename Fp12T>
+void Fp12_2over3over2_mul_gadget<Fp12T>::generate_r1cs_witness()
+{
+    _v0.generate_r1cs_witness();
+    const Fp6T a0 = _v0._A.get_element();
+    const Fp6T a1 = _v1._A.get_element();
+    const Fp6T b0 = _v0._B.get_element();
+    const Fp6T b1 = _v1._B.get_element();
+    const Fp6T a0b0 = _v0._result.get_element();
+    const Fp6T a1b1 = a1 * b1;
+
+    _result._c0.generate_r1cs_witness(a0b0 + Fp12T::mul_by_non_residue(a1b1));
+    _v1._result.evaluate();
+    _v1.generate_r1cs_witness();
+
+    _result._c1.generate_r1cs_witness((a0 + a1) * (b0 + b1) - a0b0 - a1b1);
+
+    _a0_plus_a1_times_b0_plus_b1._A.evaluate();
+    _a0_plus_a1_times_b0_plus_b1._B.evaluate();
+    _a0_plus_a1_times_b0_plus_b1.generate_r1cs_witness();
+}
+
 } // namespace libzecale
 
 #endif // __ZECALE_CIRCUITS_FIELDS_FP12_2OVER3OVER2_GADGETS_TCC__

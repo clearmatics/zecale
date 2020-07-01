@@ -169,6 +169,89 @@ TEST(Fp12_2over3over2_Test, MulBy024GadgetTest)
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
+TEST(Fp12_2over3over2_Test, MulGadgetTest)
+{
+    using Fp12T = libff::bls12_377_Fq12;
+    using FieldT = typename Fp12T::my_Fp;
+    using Fp2T = typename Fp12T::my_Fp2;
+    using Fp6T = typename Fp12T::my_Fp6;
+
+    // Native multiplication
+    const Fp12T a(
+        Fp6T(
+            Fp2T(FieldT("1"), FieldT("2")),
+            Fp2T(FieldT("3"), FieldT("4")),
+            Fp2T(FieldT("5"), FieldT("6"))),
+        Fp6T(
+            Fp2T(FieldT("21"), FieldT("22")),
+            Fp2T(FieldT("23"), FieldT("24")),
+            Fp2T(FieldT("25"), FieldT("26"))));
+    const Fp12T b(
+        Fp6T(
+            Fp2T(FieldT("7"), FieldT("8")),
+            Fp2T(FieldT("9"), FieldT("10")),
+            Fp2T(FieldT("11"), FieldT("12"))),
+        Fp6T(
+            Fp2T(FieldT("27"), FieldT("28")),
+            Fp2T(FieldT("39"), FieldT("30")),
+            Fp2T(FieldT("31"), FieldT("32"))));
+    const Fp12T c = a * b;
+
+    // Multiplication in a circuit
+    libsnark::protoboard<FieldT> pb;
+    libzecale::Fp12_2over3over2_variable<Fp12T> a_var(pb, "a");
+    libzecale::Fp12_2over3over2_variable<Fp12T> b_var(pb, "b");
+    libzecale::Fp12_2over3over2_variable<Fp12T> c_var(pb, "c");
+    const size_t num_primary_inputs = pb.num_inputs();
+    pb.set_input_sizes(num_primary_inputs);
+    libzecale::Fp12_2over3over2_mul_gadget<Fp12T> a_times_b(
+        pb, a_var, b_var, c_var, "a*b=c");
+
+    // Constraints
+    a_times_b.generate_r1cs_constraints();
+
+    // Values
+    a_var.generate_r1cs_witness(a);
+    b_var.generate_r1cs_witness(b);
+    a_times_b.generate_r1cs_witness();
+
+    const Fp6T a0b0 = a_times_b._v0._result.get_element();
+    const Fp6T a1b1 = a_times_b._v1._result.get_element();
+    const Fp12T c_value = c_var.get_element();
+    const Fp6T expect_a1b1_result = a.c1 * b.c1;
+
+    ASSERT_EQ(a.c0 * b.c0, a0b0);
+    ASSERT_EQ(a.c1, a_times_b._v1._A.get_element());
+    ASSERT_EQ(b.c1, a_times_b._v1._B.get_element());
+    ASSERT_EQ(expect_a1b1_result, a1b1);
+
+    const Fp6T expect_a0a1_times_b0b1_A = a.c0 + a.c1;
+    const Fp6T expect_a0a1_times_b0b1_B = b.c0 + b.c1;
+    const Fp6T expect_a0a1_times_b0b1_result = c.c1 + a0b0 + a1b1;
+
+    ASSERT_EQ(
+        expect_a0a1_times_b0b1_A,
+        a_times_b._a0_plus_a1_times_b0_plus_b1._A.get_element());
+    ASSERT_EQ(
+        expect_a0a1_times_b0b1_B,
+        a_times_b._a0_plus_a1_times_b0_plus_b1._B.get_element());
+    ASSERT_EQ(
+        expect_a0a1_times_b0b1_result,
+        a_times_b._a0_plus_a1_times_b0_plus_b1._result.get_element());
+
+    ASSERT_EQ(c.c0, c_value.c0);
+    ASSERT_EQ(c.c1, c_value.c1);
+
+    // Generate and check the proof
+    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    libsnark::r1cs_primary_input<libff::Fr<ppp>> primary_input =
+        pb.primary_input();
+    libsnark::r1cs_auxiliary_input<libff::Fr<ppp>> auxiliary_input =
+        pb.auxiliary_input();
+    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
+}
+
 } // namespace
 
 int main(int argc, char **argv)

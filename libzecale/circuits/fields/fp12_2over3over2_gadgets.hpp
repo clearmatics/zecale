@@ -177,6 +177,33 @@ public:
     void generate_r1cs_witness();
 };
 
+/// Full multiplication of Fp12 variables.
+template<typename Fp12T>
+class Fp12_2over3over2_mul_gadget
+    : public libsnark::gadget<typename Fp12T::my_Fp>
+{
+public:
+    using FieldT = typename Fp12T::my_Fp;
+    using Fp6T = typename Fp12T::my_Fp6;
+
+    Fp12_2over3over2_variable<Fp12T> _A;
+    Fp12_2over3over2_variable<Fp12T> _B;
+    Fp12_2over3over2_variable<Fp12T> _result;
+    Fp6_3over2_mul_gadget<Fp6T> _v0;
+    Fp6_3over2_mul_gadget<Fp6T> _v1;
+    Fp6_3over2_mul_gadget<Fp6T> _a0_plus_a1_times_b0_plus_b1;
+
+    Fp12_2over3over2_mul_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const Fp12_2over3over2_variable<Fp12T> &A,
+        const Fp12_2over3over2_variable<Fp12T> &B,
+        const Fp12_2over3over2_variable<Fp12T> &result,
+        const std::string &annotation_prefix);
+    const Fp12_2over3over2_variable<Fp12T> &result() const;
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
+};
+
 } // namespace libzecale
 
 #include "libzecale/circuits/fields/fp12_2over3over2_gadgets.tcc"
