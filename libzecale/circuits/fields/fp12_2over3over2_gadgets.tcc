@@ -55,6 +55,33 @@ void Fp12_2over3over2_variable<Fp12T>::generate_r1cs_witness(const Fp12T &el)
     _c1.generate_r1cs_witness(el.c1);
 }
 
+// Multiplication of Fp6 elements by Fp12::non-residue and
+// Fp12::non-residue^{-1}.
+
+template<typename Fp12T>
+Fp6_3over2_variable<typename Fp12T::my_Fp6> fp6_mul_by_non_residue(
+    libsnark::protoboard<typename Fp12T::my_Fp> &pb,
+    const Fp6_3over2_variable<typename Fp12T::my_Fp6> &c,
+    const std::string &annotation_prefix)
+{
+    return Fp6_3over2_variable<typename Fp12T::my_Fp6>(
+        pb, c._c2 * Fp12T::non_residue, c._c0, c._c1, annotation_prefix);
+}
+
+template<typename Fp12T>
+Fp6_3over2_variable<typename Fp12T::my_Fp6> fp6_mul_by_non_residue_inverse(
+    libsnark::protoboard<typename Fp12T::my_Fp> &pb,
+    const Fp6_3over2_variable<typename Fp12T::my_Fp6> &c,
+    const std::string &annotation_prefix)
+{
+    return Fp6_3over2_variable<typename Fp12T::my_Fp6>(
+        pb,
+        c._c1,
+        c._c2,
+        c._c0 * Fp12T::non_residue.inverse(),
+        annotation_prefix);
+}
+
 // Fp12_2over3over2_square_gadget methods
 
 template<typename Fp12T>
@@ -75,10 +102,10 @@ Fp12_2over3over2_square_gadget<Fp12T>::Fp12_2over3over2_square_gadget(
     , _beta(
           pb,
           _A._c0 + _A._c1,
-          _A._c0 +
-              mul_by_non_residue(pb, _A._c1, FMT(annotation_prefix, " a1*v")),
+          _A._c0 + fp6_mul_by_non_residue<Fp12T>(
+                       pb, _A._c1, FMT(annotation_prefix, " a1*v")),
           _result._c0 +
-              mul_by_non_residue(
+              fp6_mul_by_non_residue<Fp12T>(
                   pb, _alpha._result, FMT(annotation_prefix, " alpha*v")) +
               _alpha._result,
           FMT(annotation_prefix, " _beta"))
@@ -114,18 +141,6 @@ void Fp12_2over3over2_square_gadget<Fp12T>::generate_r1cs_witness()
     _beta._A.evaluate();
     _beta._B.evaluate();
     _beta.generate_r1cs_witness();
-}
-
-template<typename Fp12T>
-Fp6_3over2_variable<typename Fp12T::my_Fp6> Fp12_2over3over2_square_gadget<
-    Fp12T>::
-    mul_by_non_residue(
-        libsnark::protoboard<FieldT> &pb,
-        const Fp6_3over2_variable<typename Fp12T::my_Fp6> &c,
-        const std::string &annotation_prefix)
-{
-    return Fp6_3over2_variable<Fp6T>(
-        pb, c._c2 * Fp12T::non_residue, c._c0, c._c1, annotation_prefix);
 }
 
 // Fp12_2over3over2_mul_by_024_gadget methods

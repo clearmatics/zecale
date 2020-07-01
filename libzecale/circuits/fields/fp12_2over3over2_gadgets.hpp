@@ -43,6 +43,31 @@ public:
     void generate_r1cs_witness(const Fp12T &el);
 };
 
+/// Multiply an element in Fq6 by Fq12::non_residue. Let c = c0 + c1 * v +
+/// c2 * v^2 be an element of Fq6T, where v is a root of:
+///   v^3 - Fq6::non_residue
+/// Return c * v.
+///
+/// Note, this simplification does not save any complexity in the final
+/// circuit since Fp6_3over2_variable::operator*(const Fp6T &)
+/// (multiplication by a constant) can be implemented as linear
+/// combinations.
+template<typename Fp12T>
+Fp6_3over2_variable<typename Fp12T::my_Fp6> fp6_mul_by_non_residue(
+    libsnark::protoboard<typename Fp12T::my_Fp> &pb,
+    const Fp6_3over2_variable<typename Fp12T::my_Fp6> &c,
+    const std::string &annotation_prefix);
+
+/// Let c = c0 + c1 * v + c2 * v^2 be an element of Fq6T, where v is a root of:
+///   v^3 - Fq6::non_residue
+/// and v is used as Fp12::non_residue.
+/// Return c * v^{-1} (= c * Fp12::non_residue^{-1})
+template<typename Fp12T>
+Fp6_3over2_variable<typename Fp12T::my_Fp6> fp6_mul_by_non_residue_inverse(
+    libsnark::protoboard<typename Fp12T::my_Fp> &pb,
+    const Fp6_3over2_variable<typename Fp12T::my_Fp6> &c,
+    const std::string &annotation_prefix);
+
 /// Follows implementation in libff::Fp12_2over3over2_model, which is based on
 /// Section 3 of [DOSD06].
 ///
@@ -88,20 +113,6 @@ public:
     const Fp12_2over3over2_variable<Fp12T> &result() const;
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
-
-    /// Multiply an element in Fq6 by Fq12::non_residue. Let c = c0 + c1 * v +
-    /// c2 * v^2 be an element of Fq6T, where v is a root of:
-    ///   v^3 - Fq6::non_residue
-    /// Return c * v.
-    ///
-    /// Note, this simplification does not save any complexity in the final
-    /// circuit since Fp6_3over2_variable::operator*(const Fp6T &)
-    /// (multiplication by a constant) can be implemented as linear
-    /// combinations.
-    static Fp6_3over2_variable<Fp6T> mul_by_non_residue(
-        libsnark::protoboard<FieldT> &pb,
-        const Fp6_3over2_variable<Fp6T> &c,
-        const std::string &annotation_prefix);
 };
 
 /// Optimal multiplication in Fp12 of z = ((z0, z1, z2), (z3, z4, z5)), by some
