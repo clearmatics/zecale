@@ -204,6 +204,30 @@ public:
     void generate_r1cs_witness();
 };
 
+/// Inverse of Fp12 variable
+template<typename Fp12T>
+class Fp12_2over3over2_inv_gadget
+    : public libsnark::gadget<typename Fp12T::my_Fp>
+{
+public:
+    using FieldT = typename Fp12T::my_Fp;
+    using Fp2T = typename Fp12T::my_Fp2;
+    using Fp6T = typename Fp12T::my_Fp6;
+
+    Fp12_2over3over2_variable<Fp12T> _A;
+    Fp12_2over3over2_variable<Fp12T> _result;
+    Fp12_2over3over2_mul_gadget<Fp12T> _A_times_result;
+
+    Fp12_2over3over2_inv_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const Fp12_2over3over2_variable<Fp12T> &A,
+        const Fp12_2over3over2_variable<Fp12T> &result,
+        const std::string &annotation_prefix);
+    const Fp12_2over3over2_variable<Fp12T> &result() const;
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
+};
+
 } // namespace libzecale
 
 #include "libzecale/circuits/fields/fp12_2over3over2_gadgets.tcc"

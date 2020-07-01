@@ -252,6 +252,54 @@ TEST(Fp12_2over3over2_Test, MulGadgetTest)
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
+TEST(Fp12_2over3over2_Test, InvGadgetTest)
+{
+    using Fp12T = libff::bls12_377_Fq12;
+    using FieldT = typename Fp12T::my_Fp;
+    using Fp2T = typename Fp12T::my_Fp2;
+    using Fp6T = typename Fp12T::my_Fp6;
+
+    // Native inversion
+    const Fp12T a(
+        Fp6T(
+            Fp2T(FieldT("1"), FieldT("2")),
+            Fp2T(FieldT("3"), FieldT("4")),
+            Fp2T(FieldT("5"), FieldT("6"))),
+        Fp6T(
+            Fp2T(FieldT("21"), FieldT("22")),
+            Fp2T(FieldT("23"), FieldT("24")),
+            Fp2T(FieldT("25"), FieldT("26"))));
+    const Fp12T a_inv = a.inverse();
+
+    // Inversion in a circuit
+    libsnark::protoboard<FieldT> pb;
+    libzecale::Fp12_2over3over2_variable<Fp12T> a_var(pb, "a");
+    libzecale::Fp12_2over3over2_variable<Fp12T> a_inv_var(pb, "a.inverse");
+    const size_t num_primary_inputs = pb.num_inputs();
+    pb.set_input_sizes(num_primary_inputs);
+    libzecale::Fp12_2over3over2_inv_gadget<Fp12T> invert(
+        pb, a_var, a_inv_var, "check a.inverse");
+
+    // Constraints
+    invert.generate_r1cs_constraints();
+
+    // Values
+    a_var.generate_r1cs_witness(a);
+    invert.generate_r1cs_witness();
+
+    const Fp12T a_inv_value = a_inv_var.get_element();
+    ASSERT_EQ(a_inv, a_inv_value);
+
+    // Generate and check the proof
+    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    libsnark::r1cs_primary_input<libff::Fr<ppp>> primary_input =
+        pb.primary_input();
+    libsnark::r1cs_auxiliary_input<libff::Fr<ppp>> auxiliary_input =
+        pb.auxiliary_input();
+    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
+}
+
 } // namespace
 
 int main(int argc, char **argv)

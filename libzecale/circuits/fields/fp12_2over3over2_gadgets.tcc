@@ -450,6 +450,52 @@ void Fp12_2over3over2_mul_gadget<Fp12T>::generate_r1cs_witness()
     _a0_plus_a1_times_b0_plus_b1.generate_r1cs_witness();
 }
 
+// Fp12_2over3over2_inv_gadget methods
+
+template<typename Fp12T>
+Fp12_2over3over2_inv_gadget<Fp12T>::Fp12_2over3over2_inv_gadget(
+    libsnark::protoboard<FieldT> &pb,
+    const Fp12_2over3over2_variable<Fp12T> &A,
+    const Fp12_2over3over2_variable<Fp12T> &result,
+    const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , _A(A)
+    , _result(result)
+    // _result == A^{-1}
+    //   <=> _result * A == Fp12::one()
+    , _A_times_result(
+          pb,
+          _A,
+          _result,
+          Fp12_2over3over2_variable<Fp12T>(
+              pb,
+              Fp6_3over2_variable<Fp6T>(pb, Fp6T::one(), " (A*A.inv).c0"),
+              Fp6_3over2_variable<Fp6T>(pb, Fp6T::zero(), " (A*A.inv).c1"),
+              FMT(annotation_prefix, " A*A.inv")),
+          FMT(annotation_prefix, " _A_times_result"))
+{
+}
+
+template<typename Fp12T>
+const Fp12_2over3over2_variable<Fp12T>
+    &Fp12_2over3over2_inv_gadget<Fp12T>::result() const
+{
+    return _result;
+}
+
+template<typename Fp12T>
+void Fp12_2over3over2_inv_gadget<Fp12T>::generate_r1cs_constraints()
+{
+    _A_times_result.generate_r1cs_constraints();
+}
+
+template<typename Fp12T>
+void Fp12_2over3over2_inv_gadget<Fp12T>::generate_r1cs_witness()
+{
+    _result.generate_r1cs_witness(_A.get_element().inverse());
+    _A_times_result.generate_r1cs_witness();
+}
+
 } // namespace libzecale
 
 #endif // __ZECALE_CIRCUITS_FIELDS_FP12_2OVER3OVER2_GADGETS_TCC__
