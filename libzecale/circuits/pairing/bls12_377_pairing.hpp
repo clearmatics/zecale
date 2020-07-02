@@ -395,6 +395,51 @@ private:
         libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix);
 };
 
+template<typename ppT>
+class bls12_377_final_exp_last_part_gadget
+    : public libsnark::gadget<libff::Fr<ppT>>
+{
+public:
+    using FieldT = libff::Fr<ppT>;
+    using FqkT = libff::Fqk<libsnark::other_curve<ppT>>;
+
+    // Based on the implementation of
+    // libff::bls12_377_final_exponentiation_last_chunk() (see
+    // libff/algebra/curves/bls12_377/bls12_377_pairing.cpp), which follows
+    // Algorithm 1 described in Table 1 of https://eprint.iacr.org/2016/130.pdf
+
+    Fp12_2over3over2_variable<FqkT> _in;
+    Fp12_2over3over2_variable<FqkT> _result;
+
+    Fp12_2over3over2_cyclotomic_square_gadget<FqkT> _in_squared;
+    bls12_377_exp_by_z_gadget<ppT> _B;
+    Fp12_2over3over2_square_gadget<FqkT> _C;
+    Fp12_2over3over2_mul_gadget<FqkT> _D;
+    bls12_377_exp_by_z_gadget<ppT> _E;
+    bls12_377_exp_by_z_gadget<ppT> _F;
+    bls12_377_exp_by_z_gadget<ppT> _G;
+    Fp12_2over3over2_mul_gadget<FqkT> _H;
+    bls12_377_exp_by_z_gadget<ppT> _I;
+    Fp12_2over3over2_mul_gadget<FqkT> _K;
+    Fp12_2over3over2_mul_gadget<FqkT> _L;
+    Fp12_2over3over2_mul_gadget<FqkT> _N;
+    Fp12_2over3over2_mul_gadget<FqkT> _P;
+    Fp12_2over3over2_mul_gadget<FqkT> _R;
+    Fp12_2over3over2_mul_gadget<FqkT> _T;
+    Fp12_2over3over2_mul_gadget<FqkT> _U;
+    Fp12_2over3over2_mul_gadget<FqkT> _U_times_L;
+
+    bls12_377_final_exp_last_part_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const Fp12_2over3over2_variable<FqkT> &in,
+        const Fp12_2over3over2_variable<FqkT> &result,
+        const std::string &annotation_prefix);
+
+    const Fp12_2over3over2_variable<FqkT> &result() const;
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
+};
+
 } // namespace libzecale
 
 #include "libzecale/circuits/pairing/bls12_377_pairing.tcc"

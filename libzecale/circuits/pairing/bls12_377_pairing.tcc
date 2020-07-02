@@ -944,6 +944,182 @@ void bls12_377_exp_by_z_gadget<ppT>::generate_r1cs_witness()
     }
 }
 
+// bls12_377_final_exp_last_part_gadget methods
+
+template<typename ppT>
+bls12_377_final_exp_last_part_gadget<ppT>::bls12_377_final_exp_last_part_gadget(
+    libsnark::protoboard<FieldT> &pb,
+    const Fp12_2over3over2_variable<FqkT> &in,
+    const Fp12_2over3over2_variable<FqkT> &result,
+    const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , _in(in)
+    , _result(result)
+    // A = [-2]
+    , _in_squared(
+          pb,
+          _in,
+          Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " in^2")),
+          FMT(annotation_prefix, " _in_squared"))
+    // B = [z]
+    , _B(pb,
+         _in,
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " in^z")),
+         FMT(annotation_prefix, " _B"))
+    // C = [2z]
+    , _C(pb,
+         _B.result(),
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " B^2")),
+         FMT(annotation_prefix, " _C"))
+    // D = [z-2]
+    , _D(pb,
+         _in_squared.result().unitary_inverse(), // _A
+         _B.result(),
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " A*B")),
+         FMT(annotation_prefix, " _D"))
+    // E = [z^2-2z]
+    , _E(pb,
+         _D.result(),
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " D^z")),
+         FMT(annotation_prefix, " _E"))
+    // F = [z^3-2z^2]
+    , _F(pb,
+         _E.result(),
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " E^z")),
+         FMT(annotation_prefix, " _F"))
+    // G = [z^4-2z^3]
+    , _G(pb,
+         _F.result(),
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " F^z")),
+         FMT(annotation_prefix, " _G"))
+    // H = [z^4-2z^3+2z]
+    , _H(pb,
+         _G.result(),
+         _C.result(),
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " G*C")),
+         FMT(annotation_prefix, " _H"))
+    // I = [z^5-2z^4+2z^2]
+    , _I(pb,
+         _H.result(),
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " H^z")),
+         FMT(annotation_prefix, " _I"))
+    // J = [-z+2]
+    // K = [z^5-2z^4+2z^2-z+2]
+    , _K(pb,
+         _I.result(),
+         _D.result().unitary_inverse(), // _J
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " I*J")),
+         FMT(annotation_prefix, " _K"))
+    // L = [z^5-2z^4+2z^2-z+3] = [\lambda_0]
+    , _L(pb,
+         _K.result(),
+         _in,
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " K*in")),
+         FMT(annotation_prefix, " _L"))
+    // M = [-1]
+    // N = [z^2-2z+1] = [\lambda_3]
+    , _N(pb,
+         _E.result(),
+         _in,
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " E*in")),
+         FMT(annotation_prefix, " _N"))
+    // O = [(z^2-2z+1) * (q^3)]
+    // P = [z^4-2z^3+2z-1] = [\lambda_1]
+    , _P(pb,
+         _H.result(),
+         _in.unitary_inverse(), // _M
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " H*M")),
+         FMT(annotation_prefix, " _P"))
+    // Q = [(z^4-2z^3+2z-1) * q]
+    // R = [z^3-2z^2+z] = [\lambda_2]
+    , _R(pb,
+         _F.result(),
+         _B.result(),
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " F*B")),
+         FMT(annotation_prefix, " _R"))
+    // S = [(z^3-2z^2+z) * (q^2)]
+    // T = [(z^2-2z+1) * (q^3) + (z^3-2z^2+z) * (q^2)]
+    , _T(pb,
+         _N.result().frobenius_map(3), // _O
+         _R.result().frobenius_map(2), // _S
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " O*S")),
+         FMT(annotation_prefix, " _T"))
+    // U = [(z^2-2z+1) * (q^3) + (z^3-2z^2+z) * (q^2) + (z^4-2z^3+2z-1) * q]
+    , _U(pb,
+         _T.result(),
+         _P.result().frobenius_map(1), // _Q
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " T*Q")),
+         FMT(annotation_prefix, " _U"))
+    // result = [(z^2-2z+1) * (q^3) + (z^3-2z^2+z) * (q^2) + (z^4-2z^3+2z-1) * q
+    //          + z^5-2z^4+2z^2-z+3]
+    //        = [(p^4 - p^2 + 1)/r].
+    , _U_times_L(
+          pb,
+          _U.result(),
+          _L.result(),
+          _result,
+          FMT(annotation_prefix, " _U_times_L"))
+{
+}
+
+template<typename ppT>
+const Fp12_2over3over2_variable<libff::Fqk<libsnark::other_curve<ppT>>>
+    &bls12_377_final_exp_last_part_gadget<ppT>::result() const
+{
+    return _result;
+}
+
+template<typename ppT>
+void bls12_377_final_exp_last_part_gadget<ppT>::generate_r1cs_constraints()
+{
+    _in_squared.generate_r1cs_constraints();
+    _B.generate_r1cs_constraints();
+    _C.generate_r1cs_constraints();
+    _D.generate_r1cs_constraints();
+    _E.generate_r1cs_constraints();
+    _F.generate_r1cs_constraints();
+    _G.generate_r1cs_constraints();
+    _H.generate_r1cs_constraints();
+    _I.generate_r1cs_constraints();
+    _K.generate_r1cs_constraints();
+    _L.generate_r1cs_constraints();
+    _N.generate_r1cs_constraints();
+    _P.generate_r1cs_constraints();
+    _R.generate_r1cs_constraints();
+    _T.generate_r1cs_constraints();
+    _U.generate_r1cs_constraints();
+    _U_times_L.generate_r1cs_constraints();
+}
+
+template<typename ppT>
+void bls12_377_final_exp_last_part_gadget<ppT>::generate_r1cs_witness()
+{
+    _in_squared.generate_r1cs_witness();
+    _B.generate_r1cs_witness();
+    _C.generate_r1cs_witness();
+    _D._A.evaluate();
+    _D.generate_r1cs_witness();
+    _E.generate_r1cs_witness();
+    _F.generate_r1cs_witness();
+    _G.generate_r1cs_witness();
+    _H.generate_r1cs_witness();
+    _I.generate_r1cs_witness();
+    _K._B.evaluate();
+    _K.generate_r1cs_witness();
+    _L.generate_r1cs_witness();
+    _N._A.evaluate();
+    _N.generate_r1cs_witness();
+    _P._B.evaluate();
+    _P.generate_r1cs_witness();
+    _R.generate_r1cs_witness();
+    _T._A.evaluate();
+    _T._B.evaluate();
+    _T.generate_r1cs_witness();
+    _U._B.evaluate();
+    _U.generate_r1cs_witness();
+    _U_times_L.generate_r1cs_witness();
+}
+
 } // namespace libzecale
 
 #endif // __ZECALE_CIRCUITS_PAIRING_BLS12_377_PAIRING_TCC__
