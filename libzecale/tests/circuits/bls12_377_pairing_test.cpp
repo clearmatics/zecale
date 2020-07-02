@@ -418,6 +418,54 @@ TEST(BLS12_377_PairingTest, FinalExpFirstPart)
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
+TEST(BLS12_377_PairingTest, ExpByZ)
+{
+    using FieldT = libff::Fr<ppp>;
+    using FqkT = libff::Fqk<cpp>;
+    using Fq2T = typename FqkT::my_Fp2;
+    using Fq6T = typename FqkT::my_Fp6;
+
+    // Native calculation
+    const FqkT a(
+        Fq6T(
+            Fq2T(FieldT("1"), FieldT("2")),
+            Fq2T(FieldT("3"), FieldT("4")),
+            Fq2T(FieldT("5"), FieldT("6"))),
+        Fq6T(
+            Fq2T(FieldT("21"), FieldT("22")),
+            Fq2T(FieldT("23"), FieldT("24")),
+            Fq2T(FieldT("25"), FieldT("26"))));
+    const FqkT final_exp_first_part =
+        bls12_377_final_exponentiation_first_chunk(a);
+    const FqkT exp_z = bls12_377_exp_by_z(final_exp_first_part);
+
+    // Circuit calculation
+    libsnark::protoboard<FieldT> pb;
+    libzecale::Fp12_2over3over2_variable<FqkT> final_exp_first_part_var(
+        pb, "final_exp_first_part");
+    libzecale::Fp12_2over3over2_variable<FqkT> exp_z_var(pb, "exp_z");
+    const size_t num_primary_inputs = pb.num_inputs();
+    pb.set_input_sizes(num_primary_inputs);
+
+    libzecale::bls12_377_exp_by_z_gadget<ppp> exp_by_z_gadget(
+        pb, final_exp_first_part_var, exp_z_var, "exp_by_z");
+
+    exp_by_z_gadget.generate_r1cs_constraints();
+
+    final_exp_first_part_var.generate_r1cs_witness(final_exp_first_part);
+    exp_by_z_gadget.generate_r1cs_witness();
+
+    ASSERT_EQ(exp_z, exp_z_var.get_element());
+
+    // Generate and check the proof
+    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    libsnark::r1cs_primary_input<FieldT> primary_input = pb.primary_input();
+    libsnark::r1cs_auxiliary_input<FieldT> auxiliary_input =
+        pb.auxiliary_input();
+    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
+}
+
 } // namespace
 
 int main(int argc, char **argv)

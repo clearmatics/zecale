@@ -362,6 +362,39 @@ public:
     void generate_r1cs_witness();
 };
 
+template<typename ppT>
+class bls12_377_exp_by_z_gadget : public libsnark::gadget<libff::Fr<ppT>>
+{
+public:
+    using FieldT = libff::Fr<ppT>;
+    using FqkT = libff::Fqk<libsnark::other_curve<ppT>>;
+    using cyclotomic_square = Fp12_2over3over2_cyclotomic_square_gadget<FqkT>;
+    using multiply = Fp12_2over3over2_mul_gadget<FqkT>;
+    using unitary_inverse = Fp12_2over3over2_cyclotomic_square_gadget<FqkT>;
+
+    Fp12_2over3over2_variable<FqkT> _in;
+    Fp12_2over3over2_variable<FqkT> _result;
+    std::vector<std::shared_ptr<cyclotomic_square>> _squares;
+    std::vector<std::shared_ptr<multiply>> _multiplies;
+    std::shared_ptr<unitary_inverse> _inverse;
+
+    bls12_377_exp_by_z_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const Fp12_2over3over2_variable<FqkT> &in,
+        const Fp12_2over3over2_variable<FqkT> &result,
+        const std::string &annotation_prefix);
+
+    const Fp12_2over3over2_variable<FqkT> &result() const;
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
+
+private:
+    void initialize_z_neg(
+        libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix);
+    void initialize_z_pos(
+        libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix);
+};
+
 } // namespace libzecale
 
 #include "libzecale/circuits/pairing/bls12_377_pairing.tcc"
