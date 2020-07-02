@@ -732,6 +732,62 @@ void bls12_377_ate_miller_loop_gadget<ppT>::generate_r1cs_witness()
     assert(f_ell_P_idx == _f_ell_P.size());
 }
 
+// bls12_377_final_exp_first_part_gadget methods
+
+template<typename ppT>
+bls12_377_final_exp_first_part_gadget<ppT>::
+    bls12_377_final_exp_first_part_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const Fp12_2over3over2_variable<FqkT> &in,
+        const Fp12_2over3over2_variable<FqkT> &result,
+        const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , _in(in)
+    , _result(result)
+    , _B(pb,
+         _in,
+         Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " in.inv")),
+         FMT(annotation_prefix, " _B"))
+    , _C(pb,
+         _in.frobenius_map(6), // _A
+         _B.result(),
+         Fp12_2over3over2_variable<FqkT>(
+             pb, FMT(annotation_prefix, " in.frobenius(6)*_B")),
+         FMT(annotation_prefix, " _C"))
+    , _D_times_C(
+          pb,
+          _C.result().frobenius_map(2), // _D
+          _C.result(),
+          _result,
+          FMT(annotation_prefix, " _D_times_C"))
+{
+}
+
+template<typename ppT>
+const Fp12_2over3over2_variable<libff::Fqk<libsnark::other_curve<ppT>>>
+    &bls12_377_final_exp_first_part_gadget<ppT>::result() const
+{
+    return _result;
+}
+
+template<typename ppT>
+void bls12_377_final_exp_first_part_gadget<ppT>::generate_r1cs_constraints()
+{
+    _B.generate_r1cs_constraints();
+    _C.generate_r1cs_constraints();
+    _D_times_C.generate_r1cs_constraints();
+}
+
+template<typename ppT>
+void bls12_377_final_exp_first_part_gadget<ppT>::generate_r1cs_witness()
+{
+    _B.generate_r1cs_witness();
+    _C._A.evaluate();
+    _C.generate_r1cs_witness();
+    _D_times_C._A.evaluate();
+    _D_times_C.generate_r1cs_witness();
+}
+
 } // namespace libzecale
 
 #endif // __ZECALE_CIRCUITS_PAIRING_BLS12_377_PAIRING_TCC__

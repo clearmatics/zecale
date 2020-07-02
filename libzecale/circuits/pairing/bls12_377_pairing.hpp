@@ -325,6 +325,43 @@ public:
     void generate_r1cs_witness();
 };
 
+template<typename ppT>
+class bls12_377_final_exp_first_part_gadget
+    : public libsnark::gadget<libff::Fr<ppT>>
+{
+public:
+    using FieldT = libff::Fr<ppT>;
+    using FqkT = libff::Fqk<libsnark::other_curve<ppT>>;
+
+    // Follows the implementation used in
+    // libff::bls12_377_final_exponentiation_first_chunk() (see
+    // libff/algebra/curves/bls12_377/bls12_377_pairing.cpp), which in turn
+    // follows:
+    //   https://eprint.iacr.org/2016/130.pdf
+
+    Fp12_2over3over2_variable<FqkT> _in;
+    Fp12_2over3over2_variable<FqkT> _result;
+
+    // A = elt^(q^6)
+    // B = elt^(-1)
+    Fp12_2over3over2_inv_gadget<FqkT> _B;
+    // C = A * B = elt^(q^6 - 1)
+    Fp12_2over3over2_mul_gadget<FqkT> _C;
+    // D = C^(q^2) = elt^((q^6 - 1) * (q^2))
+    // result = D * C = elt^((q^6 - 1) * (q^2 + 1))
+    Fp12_2over3over2_mul_gadget<FqkT> _D_times_C;
+
+    bls12_377_final_exp_first_part_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const Fp12_2over3over2_variable<FqkT> &in,
+        const Fp12_2over3over2_variable<FqkT> &result,
+        const std::string &annotation_prefix);
+
+    const Fp12_2over3over2_variable<FqkT> &result() const;
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
+};
+
 } // namespace libzecale
 
 #include "libzecale/circuits/pairing/bls12_377_pairing.tcc"
