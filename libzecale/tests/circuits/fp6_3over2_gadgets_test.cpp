@@ -40,6 +40,7 @@ TEST(Fp6_3over2_Test, ConstantOperations)
     const Fp6T a_frob_12 = a.Frobenius_map(12);
     const Fp6T a_times_b = a * b;
     const Fp6T a_times_fp2 = fp2 * a;
+    const Fp6T negative_a = -a;
 
     // Frobenius map in a circuit
     libsnark::protoboard<FieldT> pb;
@@ -51,6 +52,7 @@ TEST(Fp6_3over2_Test, ConstantOperations)
     Fp6_variable a_frob_12_var = a_var.frobenius_map(12);
     Fp6_variable a_times_b_var = a_var * b;
     Fp6_variable a_times_fp2_var = a_var * fp2;
+    Fp6_variable negative_a_var = -a_var;
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
 
@@ -63,6 +65,7 @@ TEST(Fp6_3over2_Test, ConstantOperations)
     a_frob_12_var.evaluate();
     a_times_b_var.evaluate();
     a_times_fp2_var.evaluate();
+    negative_a_var.evaluate();
 
     ASSERT_EQ(a_frob_1, a_frob_1_var.get_element());
     ASSERT_EQ(a_frob_2, a_frob_2_var.get_element());
@@ -72,6 +75,7 @@ TEST(Fp6_3over2_Test, ConstantOperations)
     ASSERT_EQ(a, a_frob_12);
     ASSERT_EQ(a_times_b, a_times_b_var.get_element());
     ASSERT_EQ(a_times_fp2, a_times_fp2_var.get_element());
+    ASSERT_EQ(negative_a, negative_a_var.get_element());
 }
 
 TEST(Fp6_3over2_Test, MulGadgetTest)

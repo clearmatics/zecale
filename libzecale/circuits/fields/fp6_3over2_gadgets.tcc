@@ -125,6 +125,13 @@ Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator-(
 }
 
 template<typename Fp6T>
+Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator-() const
+{
+    return Fp6_3over2_variable<Fp6T>(
+        this->pb, -_c0, -_c1, -_c2, FMT(this->annotation_prefix, " neg"));
+}
+
+template<typename Fp6T>
 Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::frobenius_map(
     size_t power) const
 {

@@ -50,6 +50,7 @@ public:
         const Fp6_3over2_variable<Fp6T> &other) const;
     Fp6_3over2_variable<Fp6T> operator-(
         const Fp6_3over2_variable<Fp6T> &other) const;
+    Fp6_3over2_variable<Fp6T> operator-() const;
     Fp6_3over2_variable<Fp6T> frobenius_map(size_t power) const;
 
     void evaluate() const;
