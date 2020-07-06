@@ -9,10 +9,23 @@
 #include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
 
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
+#include <libsnark/gadgetlib1/gadgets/curves/weierstrass_g1_gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/fields/fp2_gadgets.hpp>
 
 namespace libzecale
 {
+
+template<typename ppT> class bls12_377_ate_G1_precomputation
+{
+public:
+    using FieldT = libff::Fr<ppT>;
+
+    std::shared_ptr<libsnark::pb_linear_combination<FieldT>> _Px;
+    std::shared_ptr<libsnark::pb_linear_combination<FieldT>> _Py;
+
+    bls12_377_ate_G1_precomputation(
+        libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix);
+};
 
 /// Holds an element of G2 in homogeneous projective form. Used for
 /// intermediate values of R in the miller loop.
@@ -52,6 +65,25 @@ public:
         const Fqe_variable<ppT> &ell_vv);
 
     void evaluate() const;
+};
+
+template<typename ppT>
+class bls12_377_ate_G1_precompute_gadget : libsnark::gadget<libff::Fr<ppT>>
+{
+public:
+    using FieldT = libff::Fr<ppT>;
+
+    std::shared_ptr<libsnark::pb_linear_combination<FieldT>> _Px;
+    std::shared_ptr<libsnark::pb_linear_combination<FieldT>> _Py;
+
+    bls12_377_ate_G1_precompute_gadget(
+        libsnark::protoboard<libff::Fr<ppT>> &pb,
+        const libsnark::G1_variable<ppT> &P,
+        bls12_377_ate_G1_precomputation<ppT> &P_prec,
+        const std::string &annotation_prefix);
+
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
 };
 
 /// Gadget that relates some "current" bls12_377_G2_proj value in_R with the

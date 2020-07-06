@@ -44,15 +44,12 @@ private:
     ssize_t _i;
 };
 
-// bls12_377_G2_proj methods
+// bls12_377_ate_G1_precomputation methods
 
 template<typename ppT>
-bls12_377_G2_proj<ppT>::bls12_377_G2_proj(
-    libsnark::protoboard<libff::Fr<ppT>> &pb,
-    const std::string &annotation_prefix)
-    : X(pb, FMT(annotation_prefix, " X"))
-    , Y(pb, FMT(annotation_prefix, " Y"))
-    , Z(pb, FMT(annotation_prefix, " Z"))
+bls12_377_ate_G1_precomputation<ppT>::bls12_377_ate_G1_precomputation(
+    libsnark::protoboard<FieldT> &, const std::string &)
+    : _Px(), _Py()
 {
 }
 
@@ -97,6 +94,41 @@ template<typename ppT> void bls12_377_ate_ell_coeffs<ppT>::evaluate() const
     ell_0.evaluate();
     ell_vw.evaluate();
     ell_vv.evaluate();
+}
+
+// bls12_377_ate_G2_precomputation methods
+
+// bls12_377_ate_G1_precompute_gadget methods
+
+template<typename ppT>
+bls12_377_ate_G1_precompute_gadget<ppT>::bls12_377_ate_G1_precompute_gadget(
+    libsnark::protoboard<libff::Fr<ppT>> &pb,
+    const libsnark::G1_variable<ppT> &P,
+    bls12_377_ate_G1_precomputation<ppT> &P_prec,
+    const std::string &annotation_prefix)
+    : libsnark::gadget<libff::Fr<ppT>>(pb, annotation_prefix)
+    , _Px(new libsnark::pb_linear_combination<libff::Fr<ppT>>())
+    , _Py(new libsnark::pb_linear_combination<libff::Fr<ppT>>())
+{
+    // Ensure that we don't overwrite an existing precomputation.
+    assert(!P_prec._Px);
+    assert(!P_prec._Py);
+    _Px->assign(pb, P.X);
+    _Py->assign(pb, P.Y);
+    P_prec._Px = _Px;
+    P_prec._Py = _Py;
+}
+
+template<typename ppT>
+void bls12_377_ate_G1_precompute_gadget<ppT>::generate_r1cs_constraints()
+{
+}
+
+template<typename ppT>
+void bls12_377_ate_G1_precompute_gadget<ppT>::generate_r1cs_witness()
+{
+    _Px->evaluate(this->pb);
+    _Py->evaluate(this->pb);
 }
 
 // bls12_377_ate_dbl_gadget methods

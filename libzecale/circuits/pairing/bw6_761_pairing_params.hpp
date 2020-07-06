@@ -56,11 +56,6 @@ public:
         &pairing_loop_count = libff::bls12_377_ate_loop_count;
 };
 
-// } // namespace libzecale
-
-// namespace libsnark
-// {
-
 template<>
 class pairing_selector<libff::bw6_761_pp>
     : public libzecale::bw6_761_pairing_selector
@@ -68,5 +63,16 @@ class pairing_selector<libff::bw6_761_pp>
 };
 
 } // namespace libzecale
+
+namespace libsnark
+{
+
+template<>
+class pairing_selector<libff::bw6_761_pp>
+    : public libzecale::bw6_761_pairing_selector
+{
+};
+
+} // namespace libsnark
 
 #endif // __ZECALE_CIRCUITS_PAIRING_BW6_761_PAIRING_PARAMS_HPP__

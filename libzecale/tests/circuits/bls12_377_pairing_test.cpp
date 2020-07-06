@@ -20,6 +20,35 @@ using snark = libzeth::groth16_snark<wpp>;
 namespace
 {
 
+TEST(BLS12_377_PairingTest, G1PrecomputeGadgetTest)
+{
+    // Native precompute
+    libff::bls12_377_G1 P =
+        libff::bls12_377_Fr("13") * libff::bls12_377_G1::one();
+    libff::bls12_377_G1_precomp P_prec = bls12_377_precompute_G1(P);
+
+    // Circuit with precompute gadget
+    libsnark::protoboard<libff::Fr<wpp>> pb;
+    libsnark::G1_variable<wpp> P_var(pb, "P");
+    libzecale::bls12_377_ate_G1_precomputation<wpp> P_prec_var(pb, "P_prec");
+    const size_t num_primary_inputs = pb.num_inputs();
+    pb.set_input_sizes(num_primary_inputs);
+    libzecale::bls12_377_ate_G1_precompute_gadget<wpp> precompute_gadget(
+        pb, P_var, P_prec_var, "bls12_317 G1 precompute gadget");
+
+    precompute_gadget.generate_r1cs_constraints();
+
+    P_var.generate_r1cs_witness(P);
+    precompute_gadget.generate_r1cs_witness();
+
+    // Check that the correct values have been propagated
+    const libff::Fr<wpp> P_prec_X = pb.lc_val(*(P_prec_var._Px));
+    const libff::Fr<wpp> P_prec_Y = pb.lc_val(*(P_prec_var._Py));
+
+    ASSERT_EQ(P_prec.PX, P_prec_X);
+    ASSERT_EQ(P_prec.PY, P_prec_Y);
+}
+
 TEST(BLS12_377_PairingTest, PrecomputeDoubleGadgetTest)
 {
     // Fqe element in bls12-377.  Perform a single double step natively.
@@ -249,7 +278,7 @@ static void assert_ate_coeffs_eq(
         << type << " ell_vv " << std::to_string(idx) << "\n";
 }
 
-TEST(BLS12_377_PairingTest, PrecomputeGadgetTest)
+TEST(BLS12_377_PairingTest, G2PrecomputeGadgetTest)
 {
     // Native precompute
     libff::bls12_377_G2 Q =
