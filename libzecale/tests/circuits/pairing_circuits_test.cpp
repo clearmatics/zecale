@@ -18,37 +18,19 @@ namespace
 {
 
 template<typename ppT>
-bool test_mnt_e_times_e_times_e_over_e_miller_loop(
+bool test_e_times_e_times_e_over_e_miller_loop(
+    const libff::G1<other_curve<ppT>> &P1_val,
+    const libff::G2<other_curve<ppT>> &Q1_val,
+    const libff::G1<other_curve<ppT>> &P2_val,
+    const libff::G2<other_curve<ppT>> &Q2_val,
+    const libff::G1<other_curve<ppT>> &P3_val,
+    const libff::G2<other_curve<ppT>> &Q3_val,
+    const libff::G1<other_curve<ppT>> &P4_val,
+    const libff::G2<other_curve<ppT>> &Q4_val,
+    const FqkT<ppT> &expect_result,
     const std::string &annotation)
 {
     libsnark::protoboard<libff::Fr<ppT>> pb;
-    libff::G1<other_curve<ppT>> P1_val =
-        libff::Fr<other_curve<ppT>>::random_element() *
-        libff::G1<other_curve<ppT>>::one();
-    libff::G2<other_curve<ppT>> Q1_val =
-        libff::Fr<other_curve<ppT>>::random_element() *
-        libff::G2<other_curve<ppT>>::one();
-
-    libff::G1<other_curve<ppT>> P2_val =
-        libff::Fr<other_curve<ppT>>::random_element() *
-        libff::G1<other_curve<ppT>>::one();
-    libff::G2<other_curve<ppT>> Q2_val =
-        libff::Fr<other_curve<ppT>>::random_element() *
-        libff::G2<other_curve<ppT>>::one();
-
-    libff::G1<other_curve<ppT>> P3_val =
-        libff::Fr<other_curve<ppT>>::random_element() *
-        libff::G1<other_curve<ppT>>::one();
-    libff::G2<other_curve<ppT>> Q3_val =
-        libff::Fr<other_curve<ppT>>::random_element() *
-        libff::G2<other_curve<ppT>>::one();
-
-    libff::G1<other_curve<ppT>> P4_val =
-        libff::Fr<other_curve<ppT>>::random_element() *
-        libff::G1<other_curve<ppT>>::one();
-    libff::G2<other_curve<ppT>> Q4_val =
-        libff::Fr<other_curve<ppT>>::random_element() *
-        libff::G2<other_curve<ppT>>::one();
 
     libsnark::G1_variable<ppT> P1(pb, "P1");
     libsnark::G2_variable<ppT> Q1(pb, "Q1");
@@ -139,6 +121,47 @@ bool test_mnt_e_times_e_times_e_over_e_miller_loop(
 
     assert(pb.is_satisfied());
 
+    printf(
+        "number of constraints for e times e times e over e Miller loop (Fr is "
+        "%s)  = %zu\n",
+        annotation.c_str(),
+        pb.num_constraints());
+
+    return result.get_element() == expect_result;
+}
+
+template<typename ppT>
+void test_mnt_e_times_e_times_e_over_e_miller_loop(
+    const std::string &annotation)
+{
+    libff::G1<other_curve<ppT>> P1_val =
+        libff::Fr<other_curve<ppT>>::random_element() *
+        libff::G1<other_curve<ppT>>::one();
+    libff::G2<other_curve<ppT>> Q1_val =
+        libff::Fr<other_curve<ppT>>::random_element() *
+        libff::G2<other_curve<ppT>>::one();
+
+    libff::G1<other_curve<ppT>> P2_val =
+        libff::Fr<other_curve<ppT>>::random_element() *
+        libff::G1<other_curve<ppT>>::one();
+    libff::G2<other_curve<ppT>> Q2_val =
+        libff::Fr<other_curve<ppT>>::random_element() *
+        libff::G2<other_curve<ppT>>::one();
+
+    libff::G1<other_curve<ppT>> P3_val =
+        libff::Fr<other_curve<ppT>>::random_element() *
+        libff::G1<other_curve<ppT>>::one();
+    libff::G2<other_curve<ppT>> Q3_val =
+        libff::Fr<other_curve<ppT>>::random_element() *
+        libff::G2<other_curve<ppT>>::one();
+
+    libff::G1<other_curve<ppT>> P4_val =
+        libff::Fr<other_curve<ppT>>::random_element() *
+        libff::G1<other_curve<ppT>>::one();
+    libff::G2<other_curve<ppT>> Q4_val =
+        libff::Fr<other_curve<ppT>>::random_element() *
+        libff::G2<other_curve<ppT>>::one();
+
     libff::affine_ate_G1_precomp<other_curve<ppT>> native_prec_P1 =
         other_curve<ppT>::affine_ate_precompute_G1(P1_val);
     libff::affine_ate_G2_precomp<other_curve<ppT>> native_prec_Q1 =
@@ -165,27 +188,25 @@ bool test_mnt_e_times_e_times_e_over_e_miller_loop(
          other_curve<ppT>::affine_ate_miller_loop(
              native_prec_P4, native_prec_Q4)
              .inverse());
-
-    printf(
-        "number of constraints for e times e times e over e Miller loop (Fr is "
-        "%s)  = %zu\n",
-        annotation.c_str(),
-        pb.num_constraints());
-
-    return result.get_element() == native_result;
+    ASSERT_TRUE(test_e_times_e_times_e_over_e_miller_loop<ppT>(
+        P1_val,
+        Q1_val,
+        P2_val,
+        Q2_val,
+        P3_val,
+        Q3_val,
+        P4_val,
+        Q4_val,
+        native_result,
+        annotation));
 }
 
 TEST(MainTests, TestMntEEEoverEmillerLoop)
 {
-    bool res = false;
-    res = test_mnt_e_times_e_times_e_over_e_miller_loop<curve_mnt4>(
+    test_mnt_e_times_e_times_e_over_e_miller_loop<curve_mnt4>(
         " test_eee_over_e_miller_loop_mnt4");
-    ASSERT_TRUE(res);
-
-    res = false;
-    res = test_mnt_e_times_e_times_e_over_e_miller_loop<curve_mnt6>(
+    test_mnt_e_times_e_times_e_over_e_miller_loop<curve_mnt6>(
         " test_eee_over_e_miller_loop_mnt6");
-    ASSERT_TRUE(res);
 }
 
 /// In this test we carry out - via a circuit defined over Fr<ppT> - a pairing
