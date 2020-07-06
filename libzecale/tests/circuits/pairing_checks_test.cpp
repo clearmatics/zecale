@@ -372,6 +372,16 @@ TEST(MainTests, TestMntInvalidCheckEequalsEEEgadget)
     test_invalid_pairing_check_e_equals_eee_gadget<libff::mnt6_pp>();
 }
 
+TEST(MainTests, TestBlsValidCheckEequalsEEEgadget)
+{
+    test_valid_pairing_check_e_equals_eee_gadget<libff::bw6_761_pp>();
+}
+
+TEST(MainTests, TestBlsInvalidCheckEequalsEEEgadget)
+{
+    test_invalid_pairing_check_e_equals_eee_gadget<libff::bw6_761_pp>();
+}
+
 } // namespace
 
 int main(int argc, char **argv)
@@ -381,6 +391,8 @@ int main(int argc, char **argv)
     // Initialize the curve parameters before running the tests
     libff::mnt4_pp::init_public_params();
     libff::mnt6_pp::init_public_params();
+    libff::bw6_761_pp::init_public_params();
+    libff::bls12_377_pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
