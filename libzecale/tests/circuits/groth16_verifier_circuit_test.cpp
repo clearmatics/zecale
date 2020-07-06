@@ -3,8 +3,10 @@
 // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/tests/test_r1cs_ppzksnark_verifier_gadget.cpp
 
 #include "libzecale/circuits/groth16_verifier/r1cs_gg_ppzksnark_verifier_gadget.hpp"
+#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
+#include "libzecale/circuits/pairing/pairing_params.hpp"
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
 #include <libff/algebra/curves/mnt/mnt6/mnt6_pp.hpp>
 #include <libsnark/relations/constraint_satisfaction_problems/r1cs/examples/r1cs_examples.hpp>

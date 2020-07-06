@@ -22,6 +22,8 @@
 namespace libzecale
 {
 
+template<typename ppT> class pairing_selector;
+
 template<typename ppT>
 class r1cs_gg_ppzksnark_proof_variable : public libsnark::gadget<libff::Fr<ppT>>
 {
@@ -106,10 +108,10 @@ class r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable
 public:
     typedef libff::Fr<ppT> FieldT;
 
-    std::shared_ptr<libsnark::G1_precomputation<ppT>> vk_alpha_g1_precomp;
-    std::shared_ptr<libsnark::G2_precomputation<ppT>> vk_generator_g2_precomp;
-    std::shared_ptr<libsnark::G2_precomputation<ppT>> vk_beta_g2_precomp;
-    std::shared_ptr<libsnark::G2_precomputation<ppT>> vk_delta_g2_precomp;
+    std::shared_ptr<G1_precomputation<ppT>> vk_alpha_g1_precomp;
+    std::shared_ptr<G2_precomputation<ppT>> vk_generator_g2_precomp;
+    std::shared_ptr<G2_precomputation<ppT>> vk_beta_g2_precomp;
+    std::shared_ptr<G2_precomputation<ppT>> vk_delta_g2_precomp;
 
     std::shared_ptr<libsnark::G1_variable<ppT>> encoded_ABC_base;
     std::vector<std::shared_ptr<libsnark::G1_variable<ppT>>> ABC_g1;
@@ -129,15 +131,11 @@ class r1cs_gg_ppzksnark_verifier_process_vk_gadget
 public:
     typedef libff::Fr<ppT> FieldT;
 
-    std::shared_ptr<libsnark::precompute_G1_gadget<ppT>>
-        compute_vk_alpha_g1_precomp;
+    std::shared_ptr<G1_precompute_gadget<ppT>> compute_vk_alpha_g1_precomp;
 
-    std::shared_ptr<libsnark::precompute_G2_gadget<ppT>>
-        compute_vk_generator_g2_precomp;
-    std::shared_ptr<libsnark::precompute_G2_gadget<ppT>>
-        compute_vk_beta_g2_precomp;
-    std::shared_ptr<libsnark::precompute_G2_gadget<ppT>>
-        compute_vk_delta_g2_precomp;
+    std::shared_ptr<G2_precompute_gadget<ppT>> compute_vk_generator_g2_precomp;
+    std::shared_ptr<G2_precompute_gadget<ppT>> compute_vk_beta_g2_precomp;
+    std::shared_ptr<G2_precompute_gadget<ppT>> compute_vk_delta_g2_precomp;
 
     r1cs_gg_ppzksnark_verification_key_variable<ppT> vk;
     r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
@@ -174,18 +172,15 @@ public:
     std::shared_ptr<libsnark::G1_variable<ppT>> acc;
     std::shared_ptr<libsnark::G1_multiscalar_mul_gadget<ppT>> accumulate_input;
 
-    std::shared_ptr<libsnark::G1_precomputation<ppT>> proof_g_A_precomp;
-    std::shared_ptr<libsnark::G2_precomputation<ppT>> proof_g_B_precomp;
-    std::shared_ptr<libsnark::G1_precomputation<ppT>> proof_g_C_precomp;
-    std::shared_ptr<libsnark::G1_precomputation<ppT>> acc_precomp;
+    std::shared_ptr<G1_precomputation<ppT>> proof_g_A_precomp;
+    std::shared_ptr<G2_precomputation<ppT>> proof_g_B_precomp;
+    std::shared_ptr<G1_precomputation<ppT>> proof_g_C_precomp;
+    std::shared_ptr<G1_precomputation<ppT>> acc_precomp;
 
-    std::shared_ptr<libsnark::precompute_G1_gadget<ppT>>
-        compute_proof_g_A_precomp;
-    std::shared_ptr<libsnark::precompute_G2_gadget<ppT>>
-        compute_proof_g_B_precomp;
-    std::shared_ptr<libsnark::precompute_G1_gadget<ppT>>
-        compute_proof_g_C_precomp;
-    std::shared_ptr<libsnark::precompute_G1_gadget<ppT>> compute_acc_precomp;
+    std::shared_ptr<G1_precompute_gadget<ppT>> compute_proof_g_A_precomp;
+    std::shared_ptr<G2_precompute_gadget<ppT>> compute_proof_g_B_precomp;
+    std::shared_ptr<G1_precompute_gadget<ppT>> compute_proof_g_C_precomp;
+    std::shared_ptr<G1_precompute_gadget<ppT>> compute_acc_precomp;
 
     std::shared_ptr<check_e_equals_eee_gadget<ppT>> check_QAP_valid;
 

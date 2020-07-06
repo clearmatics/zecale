@@ -22,6 +22,7 @@
 #pragma GCC diagnostic pop
 
 // Include the API for the given SNARK
+#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
 #include "libzecale/core/aggregator_circuit_wrapper.hpp"
 #include "libzecale/core/application_pool.hpp"
 #include "libzecale/serialization/proto_utils.hpp"

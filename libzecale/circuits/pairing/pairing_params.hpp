@@ -27,8 +27,13 @@ namespace libzecale
  * - Fqk_special_mul_gadget_type
  * - Fqk_sqr_gadget_type
  * - other_curve_type
+ * - G1_precompute_variable_type;
+ * - G1_precompute_gadget_type;
+ * - G2_precompute_variable_type;
+ * - G2_precompute_gadget_type;
  * - e_over_e_miller_loop_gadget_type
  * - e_times_e_over_e_miller_loop_gadget_type
+ * - e_times_e_times_e_over_e_miller_loop_gadget_type
  * - final_exp_gadget_type
  * and also containing a static constant
  * - const constexpr libff::bigint<m> pairing_loop_count
@@ -55,6 +60,10 @@ namespace libzecale
  *       typedef my_Fqk_special_mul_gadget_type Fqk_special_mul_gadget_type;
  *       typedef my_Fqk_sqr_gadget_type Fqk_sqr_gadget_type;
  *       typedef my_other_curve_type other_curve_type;
+ *       typedef my_G1_precompute_variable_type G1_precompute_variable_type;
+ *       typedef my_G1_precompute_gadget_type G1_precompute_gadget_type;
+ *       typedef my_G2_precompute_variable_type G2_precompute_variable_type;
+ *       typedef my_G2_precompute_gadget_type G2_precompute_gadget_type;
  *       typedef my_e_over_e_miller_loop_gadget_type
  *           e_over_e_miller_loop_gadget_type;
  *       typedef my_e_times_e_over_e_miller_loop_gadget_type
@@ -98,6 +107,23 @@ using Fqk_sqr_gadget = typename pairing_selector<ppT>::Fqk_sqr_gadget_type;
 
 template<typename ppT>
 using other_curve = typename pairing_selector<ppT>::other_curve_type;
+
+// Note, these names conflict with concrete classes in libsnark, which are
+// specialized for MNT. Care must be taken with namespaces.
+
+template<typename ppT>
+using G1_precomputation =
+    typename pairing_selector<ppT>::G1_precomputation_type;
+template<typename ppT>
+using G1_precompute_gadget =
+    typename pairing_selector<ppT>::G1_precompute_gadget_type;
+
+template<typename ppT>
+using G2_precomputation =
+    typename pairing_selector<ppT>::G2_precomputation_type;
+template<typename ppT>
+using G2_precompute_gadget =
+    typename pairing_selector<ppT>::G2_precompute_gadget_type;
 
 template<typename ppT>
 using e_over_e_miller_loop_gadget =
