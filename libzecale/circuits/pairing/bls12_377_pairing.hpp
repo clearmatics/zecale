@@ -10,12 +10,13 @@
 
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
 #include <libsnark/gadgetlib1/gadgets/curves/weierstrass_g1_gadget.hpp>
+#include <libsnark/gadgetlib1/gadgets/curves/weierstrass_g2_gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/fields/fp2_gadgets.hpp>
 
 namespace libzecale
 {
 
-template<typename ppT> class bls12_377_ate_G1_precomputation
+template<typename ppT> class bls12_377_G1_precomputation
 {
 public:
     using FieldT = libff::Fr<ppT>;
@@ -23,7 +24,7 @@ public:
     std::shared_ptr<libsnark::pb_linear_combination<FieldT>> _Px;
     std::shared_ptr<libsnark::pb_linear_combination<FieldT>> _Py;
 
-    bls12_377_ate_G1_precomputation(
+    bls12_377_G1_precomputation(
         libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix);
 };
 
@@ -45,8 +46,6 @@ public:
         const Fqe_variable<ppT> &Y_var,
         const Fqe_variable<ppT> &Z_var);
 
-    void evaluate() const;
-
     void generate_r1cs_witness(const libff::bls12_377_G2 &element);
 };
 
@@ -55,20 +54,29 @@ public:
 template<typename ppT> class bls12_377_ate_ell_coeffs
 {
 public:
-    const Fqe_variable<ppT> ell_0;
-    const Fqe_variable<ppT> ell_vw;
-    const Fqe_variable<ppT> ell_vv;
+    using FqT = libff::Fq<other_curve<ppT>>;
+
+    Fqe_variable<ppT> ell_0;
+    Fqe_variable<ppT> ell_vw;
+    Fqe_variable<ppT> ell_vv;
 
     bls12_377_ate_ell_coeffs(
-        const Fqe_variable<ppT> &ell_0,
-        const Fqe_variable<ppT> &ell_vw,
-        const Fqe_variable<ppT> &ell_vv);
+        libsnark::protoboard<FqT> &pb, const std::string &annotation_prefix);
+};
 
-    void evaluate() const;
+template<typename ppT> class bls12_377_G2_precomputation
+{
+public:
+    using FieldT = libff::Fr<ppT>;
+
+    std::vector<std::shared_ptr<bls12_377_ate_ell_coeffs<ppT>>> _coeffs;
+
+    bls12_377_G2_precomputation(
+        libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix);
 };
 
 template<typename ppT>
-class bls12_377_ate_G1_precompute_gadget : libsnark::gadget<libff::Fr<ppT>>
+class bls12_377_G1_precompute_gadget : libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     using FieldT = libff::Fr<ppT>;
@@ -76,10 +84,10 @@ public:
     std::shared_ptr<libsnark::pb_linear_combination<FieldT>> _Px;
     std::shared_ptr<libsnark::pb_linear_combination<FieldT>> _Py;
 
-    bls12_377_ate_G1_precompute_gadget(
+    bls12_377_G1_precompute_gadget(
         libsnark::protoboard<libff::Fr<ppT>> &pb,
         const libsnark::G1_variable<ppT> &P,
-        bls12_377_ate_G1_precomputation<ppT> &P_prec,
+        bls12_377_G1_precomputation<ppT> &P_prec,
         const std::string &annotation_prefix);
 
     void generate_r1cs_constraints();
@@ -97,8 +105,9 @@ public:
     typedef libff::Fq<other_curve<ppT>> FqT;
     typedef libff::Fqe<other_curve<ppT>> FqeT;
 
-    bls12_377_G2_proj<ppT> in_R;
-    bls12_377_G2_proj<ppT> out_R;
+    bls12_377_G2_proj<ppT> _in_R;
+    bls12_377_G2_proj<ppT> _out_R;
+    bls12_377_ate_ell_coeffs<ppT> _out_coeffs;
 
     // TODO: Many of these intermediate Fqe_variables are only for clarity and
     // replicate the references held by other gadgets (e.g. `A` refers to the
@@ -106,80 +115,61 @@ public:
     // some of the redundancy.
 
     // A = R.X * R.Y / 2
-    Fqe_variable<ppT> A;
-    Fqe_mul_gadget<ppT> check_A; // R.X * R.Y = 2_times_A
+    Fqe_mul_gadget<ppT> _A;
 
     // B = R.Y^2
-    Fqe_variable<ppT> B;
-    Fqe_sqr_gadget<ppT> check_B; // R.Y^2 == B
+    Fqe_sqr_gadget<ppT> _B;
 
     // C = R.Z^2
-    Fqe_variable<ppT> C;
-    Fqe_sqr_gadget<ppT> check_C; // R.Z^2 == C
+    Fqe_sqr_gadget<ppT> _C;
 
     // D = 3 * C
-    // Fqe_variable<ppT> D;
+    Fqe_variable<ppT> _D;
 
     // E = b' * D
-    Fqe_variable<ppT> E;
+    Fqe_variable<ppT> _E;
 
     // F = 3 * E
-    Fqe_variable<ppT> F;
+    Fqe_variable<ppT> _F;
 
     // G = (B + F) / 2
-    Fqe_variable<ppT> G;
-    // Fqe_mul_by_lc_gadget<ppT> check_G; // 2 * G == B + F
 
-    // H = (Y + 2) ^ 2 - (B + C)
-    Fqe_variable<ppT> H;
-    Fqe_variable<ppT> Y_plus_Z;
-    Fqe_variable<ppT> H_plus_B_plus_C;
-    Fqe_sqr_gadget<ppT> check_H; // Y_plus_Z^2 == H + B + C
+    // ell_vw = -H
+    //   where
+    //     H = (Y + 2) ^ 2 - (B + C)
+    // ell_vw = (B+C) - (Y+2)^2
+    // <=> (Y+2)^2 [H] = ell_vw - B - C
+    Fqe_sqr_gadget<ppT> _Y_plus_Z_squared;
 
     // I = E - B
-    Fqe_variable<ppT> I;
 
-    // J = R.X^2
-    Fqe_variable<ppT> J;
-    Fqe_sqr_gadget<ppT> check_J; // R.X^2 == J
-
-    // E^2
-    Fqe_variable<ppT> E_squared;
-    Fqe_sqr_gadget<ppT> check_E_squared;
-
-    // G^2
-    Fqe_variable<ppT> G_squared;
-    Fqe_sqr_gadget<ppT> check_G_squared;
-
-    // B - F
-    Fqe_variable<ppT> B_minus_F;
+    // ell_vv = 3 * J
+    //   where
+    //     J = Rx^2
+    // ell_vv = 3 * Rx^2
+    // <=> Rx^2 [J] = ell_vv * 3^{-1}
+    Fqe_sqr_gadget<ppT> _J; // Rx^2 == J
 
     // out_R.X = A * (B - F)
-    Fqe_mul_gadget<ppT> check_out_Rx;
+    Fqe_mul_gadget<ppT> _check_out_Rx;
 
     // out_R.Y = G^2 - 3 * E^2
-    // check: 1 * G_squared_minus_3_E_squared == outRy
-    Fqe_variable<ppT> G_squared_minus_3_E_squared;
-    Fqe_mul_by_lc_gadget<ppT> check_out_Ry;
+    // <=> G^2 = outRy + 3*E^2
+    Fqe_sqr_gadget<ppT> _E_squared;
+    Fqe_sqr_gadget<ppT> _G_squared;
 
     // out_R.Z = B * H
-    Fqe_mul_gadget<ppT> check_out_Rz;
-
-    // ell_0 = xi * I
-    // ell_vw = -H
-    // ell_vv = 3 * J
-    bls12_377_ate_ell_coeffs<ppT> out_coeffs;
+    Fqe_mul_gadget<ppT> _check_out_Rz;
 
     bls12_377_ate_dbl_gadget(
         libsnark::protoboard<FqT> &pb,
         const bls12_377_G2_proj<ppT> &R,
+        const bls12_377_G2_proj<ppT> &out_R,
+        const bls12_377_ate_ell_coeffs<ppT> &coeffs,
         const std::string &annotation_prefix);
 
     void generate_r1cs_constraints();
-
-    // R should already be assigned. Computes all internal values and
-    // outResult.
-    void generate_r1cs_witness(const libff::Fr<ppT> &two_inv);
+    void generate_r1cs_witness();
 };
 
 template<typename ppT>
@@ -189,102 +179,90 @@ public:
     typedef libff::Fq<other_curve<ppT>> FqT;
     typedef libff::Fqe<other_curve<ppT>> FqeT;
 
-    Fqe_variable<ppT> Q_X;
-    Fqe_variable<ppT> Q_Y;
-    bls12_377_G2_proj<ppT> in_R;
+    Fqe_variable<ppT> _Q_X;
+    Fqe_variable<ppT> _Q_Y;
+    bls12_377_G2_proj<ppT> _in_R;
+    bls12_377_G2_proj<ppT> _out_R;
+    bls12_377_ate_ell_coeffs<ppT> _out_coeffs;
 
-    // A = Q_Y * R.Z;
-    Fqe_variable<ppT> A;
-    Fqe_mul_gadget<ppT> check_A;
-    // B = Q_X * R.Z;
-    Fqe_variable<ppT> B;
-    Fqe_mul_gadget<ppT> check_B;
-    // theta = R.Y - A;
-    Fqe_variable<ppT> theta;
-    // lambda = R.X - B;
-    Fqe_variable<ppT> lambda;
-    // C = theta.squared();
-    Fqe_variable<ppT> C;
-    Fqe_sqr_gadget<ppT> check_C;
-    // D = lambda.squared();
-    Fqe_variable<ppT> D;
-    Fqe_sqr_gadget<ppT> check_D;
+    // ell_vv = -theta
+    //   where
+    //     theta = R.Y - A
+    //     A = Q_Y * R.Z;
+    // <=> A = Q_Y * R.Z = ell_vv + Ry
+    Fqe_mul_gadget<ppT> _A;
+    // ell_vw = lambda
+    //   where
+    //     lambda = R.X - B
+    //     B = Q_X * R.Z
+    // <=> B = Q_X * R.Z = R.X - ell_vw
+    Fqe_mul_gadget<ppT> _B;
+    // theta = R.Y - A = -ell_vv
+    // Fqe_variable<ppT> _theta
+    // lambda = R.X - B = ell_vw
+    // Fqe_variable<ppT> lambda
+    // C = theta.squared() = ell_vv^2
+    Fqe_sqr_gadget<ppT> _C;
+    // D = lambda.squared() = ell_vw^2
+    Fqe_sqr_gadget<ppT> _D;
     // E = lambda * D;
-    Fqe_variable<ppT> E;
-    Fqe_mul_gadget<ppT> check_E;
+    Fqe_mul_gadget<ppT> _E;
     // F = R.Z * C;
-    Fqe_variable<ppT> F;
-    Fqe_mul_gadget<ppT> check_F;
+    Fqe_mul_gadget<ppT> _F;
     // G = R.X * D;
-    Fqe_variable<ppT> G;
-    Fqe_mul_gadget<ppT> check_G;
+    Fqe_mul_gadget<ppT> _G;
     // H = E + F - (G + G);
-    Fqe_variable<ppT> H;
+    Fqe_variable<ppT> _H;
     // I = R.Y * E;
-    Fqe_variable<ppT> I;
-    Fqe_mul_gadget<ppT> check_I;
-    // J = theta * Q_X - lambda * Q_Y;
-    Fqe_variable<ppT> theta_times_Qx;
-    Fqe_mul_gadget<ppT> check_theta_times_Qx;
-    Fqe_variable<ppT> lambda_times_Qy;
-    Fqe_mul_gadget<ppT> check_lambda_times_Qy;
-    Fqe_variable<ppT> J;
+    Fqe_mul_gadget<ppT> _I;
+    // out_coeffs.ell_0 = xi * J
+    //   where
+    //     J = theta * Q_X - lambda * Q_Y
+    // <=> lambda * Q_Y = theta * Q_X - ell_0 * xi^{-1}
+    Fqe_mul_gadget<ppT> _theta_times_Qx;
+    Fqe_mul_gadget<ppT> _lambda_times_Qy;
 
-    // out_R.X = lambda * H;
-    Fqe_variable<ppT> out_Rx;
-    Fqe_mul_gadget<ppT> check_out_Rx;
-    // out_R.Y = theta * (G - H) - I;
-    Fqe_variable<ppT> G_minus_H;
-    Fqe_variable<ppT> theta_times_G_minus_H;
-    Fqe_mul_gadget<ppT> check_theta_times_G_minus_H;
+    // out_R.X = lambda * H = ell_vw * H
+    Fqe_mul_gadget<ppT> _check_out_Rx;
+    // out_R.Y = theta * (G - H) - I = -ell_vv * (G-H) - I
+    // <=> ell_vv * (H-G) = out_R.Y + I
+    Fqe_mul_gadget<ppT> _check_out_Ry;
     // out_R.Z = Z1 * E;
-    Fqe_variable<ppT> out_Rz;
-    Fqe_mul_gadget<ppT> check_out_Rz;
-
-    bls12_377_G2_proj<ppT> out_R;
-
-    // out_coeffs.ell_0 = xi * J;
-    // out_coeffs.ell_vw = lambda;
-    // out_coeffs.ell_vv = -theta;
-    bls12_377_ate_ell_coeffs<ppT> out_coeffs;
+    Fqe_mul_gadget<ppT> _check_out_Rz;
 
     bls12_377_ate_add_gadget(
         libsnark::protoboard<libff::Fr<ppT>> &pb,
         const Fqe_variable<ppT> &Q_X,
         const Fqe_variable<ppT> &Q_Y,
         const bls12_377_G2_proj<ppT> &R,
+        const bls12_377_G2_proj<ppT> &out_R,
+        const bls12_377_ate_ell_coeffs<ppT> &coeffs,
         const std::string &annotation_prefix);
 
     void generate_r1cs_constraints();
-
     void generate_r1cs_witness();
 };
 
 /// Holds the relationship between an (affine) pairing parameter Q in G2, and
 /// the precomputed double and add gadgets.
 template<typename ppT>
-class bls12_377_ate_precompute_gadget : public libsnark::gadget<libff::Fr<ppT>>
+class bls12_377_G2_precompute_gadget : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     using FqeT = libff::Fqe<other_curve<ppT>>;
 
-    Fqe_variable<ppT> _Qx;
-    Fqe_variable<ppT> _Qy;
     bls12_377_G2_proj<ppT> _R0;
-
+    std::vector<std::shared_ptr<bls12_377_G2_proj<ppT>>> _R;
     std::vector<std::shared_ptr<bls12_377_ate_dbl_gadget<ppT>>> _ate_dbls;
     std::vector<std::shared_ptr<bls12_377_ate_add_gadget<ppT>>> _ate_adds;
 
-    bls12_377_ate_precompute_gadget(
+    bls12_377_G2_precompute_gadget(
         libsnark::protoboard<libff::Fr<ppT>> &pb,
-        const Fqe_variable<ppT> &Qx,
-        const Fqe_variable<ppT> &Qy,
+        const libsnark::G2_variable<ppT> &Q,
+        bls12_377_G2_precomputation<ppT> &Q_prec,
         const std::string &annotation_prefix);
 
     void generate_r1cs_constraints();
-
-    /// The Qx and Qy variables passed to the constructor must have been
-    /// assigned.
     void generate_r1cs_witness();
 };
 
@@ -327,12 +305,15 @@ public:
     using FqkT = libff::Fqk<other_curve<ppT>>;
     using Fq6T = typename FqkT::my_Fp6;
 
-    libsnark::pb_variable<FieldT> _Px;
-    libsnark::pb_variable<FieldT> _Py;
-    Fqe_variable<ppT> _Qx;
-    Fqe_variable<ppT> _Qy;
+    // libsnark::pb_variable<FieldT> _Px;
+    // libsnark::pb_variable<FieldT> _Py;
+    bls12_377_ate_G1_precomputation<ppT> _prec_P;
+    // Fqe_variable<ppT> _Qx;
+    // Fqe_variable<ppT> _Qy;
+    bls12_377_ate_G2_precomputation<ppT> _prec_Q;
+    Fqk_variable<ppT> _result;
 
-    bls12_377_ate_precompute_gadget<ppT> _Q_precomp;
+    // bls12_377_ate_precompute_gadget<ppT> _Q_precomp;
     Fp12_2over3over2_variable<FqkT> _f0;
 
     // Squaring of f
@@ -344,10 +325,9 @@ public:
 
     bls12_377_ate_miller_loop_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const libsnark::pb_variable<FieldT> &PX,
-        const libsnark::pb_variable<FieldT> &PY,
-        const Fqe_variable<ppT> &QX,
-        const Fqe_variable<ppT> &QY,
+        const bls12_377_G1_precomputation<ppT> &prec_P,
+        const bls12_377_G2_precomputation<ppT> &prec_Q,
+        const Fqk_variable<ppT> &result,
         const std::string &annotation_prefix);
 
     const Fp12_2over3over2_variable<FqkT> &result() const;

@@ -6,6 +6,7 @@
 #define __ZECALE_CIRCUITS_PAIRING_BW6_761_PAIRING_PARAMS_HPP__
 
 #include "libzecale/circuits/fields/fp12_2over3over2_gadgets.hpp"
+#include "libzecale/circuits/pairing/bls12_377_pairing.hpp"
 #include "libzecale/circuits/pairing/pairing_params.hpp"
 
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
@@ -15,6 +16,11 @@
 
 namespace libzecale
 {
+
+template<typename ppT> class bls12_377_G1_precomputation;
+template<typename ppT> class bls12_377_G1_precompute_gadget;
+template<typename ppT> class bls12_377_G2_precomputation;
+template<typename ppT> class bls12_377_G2_precompute_gadget;
 
 // Parameters for creating BW6-761 proofs that include statements about
 // BLS12_377 pairings.
@@ -43,6 +49,15 @@ public:
     typedef Fp12_2over3over2_square_gadget<FqkT> Fqk_sqr_gadget_type;
 
     typedef libff::bls12_377_pp other_curve_type;
+
+    typedef bls12_377_G1_precomputation<libff::bw6_761_pp>
+        G1_precomputation_type;
+    typedef bls12_377_G1_precompute_gadget<libff::bw6_761_pp>
+        G1_precompute_gadget_type;
+    typedef bls12_377_G2_precomputation<libff::bw6_761_pp>
+        G2_precomputation_type;
+    typedef bls12_377_G2_precompute_gadget<libff::bw6_761_pp>
+        G2_precompute_gadget_type;
 
     // typedef bls12_377_e_over_e_miller_loop_gadget
     //     bls12_377_over_e_miller_loop_gadget_type;
