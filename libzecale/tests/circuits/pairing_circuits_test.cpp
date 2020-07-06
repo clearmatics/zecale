@@ -2,15 +2,12 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
 #include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
 #include "libzecale/circuits/pairing/pairing_checks.hpp"
 #include "libzecale/circuits/pairing/pairing_params.hpp"
 
 #include <gtest/gtest.h>
-
-// Instantiation of the templates for the tests
-typedef libff::mnt4_pp curve_mnt4;
-typedef libff::mnt6_pp curve_mnt6;
 
 using namespace libzecale;
 
@@ -199,14 +196,6 @@ void test_mnt_e_times_e_times_e_over_e_miller_loop(
         Q4_val,
         native_result,
         annotation));
-}
-
-TEST(MainTests, TestMntEEEoverEmillerLoop)
-{
-    test_mnt_e_times_e_times_e_over_e_miller_loop<curve_mnt4>(
-        " test_eee_over_e_miller_loop_mnt4");
-    test_mnt_e_times_e_times_e_over_e_miller_loop<curve_mnt6>(
-        " test_eee_over_e_miller_loop_mnt6");
 }
 
 /// In this test we carry out - via a circuit defined over Fr<ppT> - a pairing
@@ -555,16 +544,24 @@ template<typename ppT> void test_invalid_pairing_check_e_equals_eee_gadget()
     ASSERT_TRUE(res);
 }
 
-TEST(MainTests, TestValidCheckEequalsEEEgadget)
+TEST(MainTests, TestMntEEEoverEmillerLoop)
 {
-    test_valid_pairing_check_e_equals_eee_gadget<curve_mnt4>();
-    test_valid_pairing_check_e_equals_eee_gadget<curve_mnt6>();
+    test_mnt_e_times_e_times_e_over_e_miller_loop<libff::mnt4_pp>(
+        " test_eee_over_e_miller_loop_mnt4");
+    test_mnt_e_times_e_times_e_over_e_miller_loop<libff::mnt6_pp>(
+        " test_eee_over_e_miller_loop_mnt6");
 }
 
-TEST(MainTests, TestInvalidCheckEequalsEEEgadget)
+TEST(MainTests, TestMntValidCheckEequalsEEEgadget)
 {
-    test_invalid_pairing_check_e_equals_eee_gadget<curve_mnt4>();
-    test_invalid_pairing_check_e_equals_eee_gadget<curve_mnt6>();
+    test_valid_pairing_check_e_equals_eee_gadget<libff::mnt4_pp>();
+    test_valid_pairing_check_e_equals_eee_gadget<libff::mnt6_pp>();
+}
+
+TEST(MainTests, TestMntInvalidCheckEequalsEEEgadget)
+{
+    test_invalid_pairing_check_e_equals_eee_gadget<libff::mnt4_pp>();
+    test_invalid_pairing_check_e_equals_eee_gadget<libff::mnt6_pp>();
 }
 
 } // namespace
@@ -574,8 +571,8 @@ int main(int argc, char **argv)
     libff::start_profiling();
 
     // Initialize the curve parameters before running the tests
-    curve_mnt4::init_public_params();
-    curve_mnt6::init_public_params();
+    libff::mnt4_pp::init_public_params();
+    libff::mnt6_pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
