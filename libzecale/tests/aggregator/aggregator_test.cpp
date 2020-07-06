@@ -2,9 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
 #include "libzecale/core/aggregator_circuit_wrapper.hpp"
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
 #include <libff/algebra/curves/mnt/mnt6/mnt6_pp.hpp>
 #include <libff/algebra/fields/field_utils.hpp>
@@ -14,8 +15,7 @@
 #include <libsnark/common/data_structures/merkle_tree.hpp>
 
 // Include the joinsplit gadget - generate the zeth proofs
-#include "libzeth/circuits/blake2s/blake2s.hpp"
-
+#include <libzeth/circuits/blake2s/blake2s.hpp>
 #include <libzeth/circuits/circuit_wrapper.hpp>
 #include <libzeth/circuits/mimc/mimc_mp.hpp>
 #include <libzeth/core/bits.cpp>

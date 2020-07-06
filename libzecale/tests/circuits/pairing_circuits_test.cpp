@@ -59,29 +59,29 @@ bool test_mnt_e_times_e_times_e_over_e_miller_loop(
     libsnark::G1_variable<ppT> P4(pb, "P4");
     libsnark::G2_variable<ppT> Q4(pb, "Q4");
 
-    libsnark::G1_precomputation<ppT> prec_P1;
-    libsnark::precompute_G1_gadget<ppT> compute_prec_P1(
+    G1_precomputation<ppT> prec_P1;
+    G1_precompute_gadget<ppT> compute_prec_P1(
         pb, P1, prec_P1, "compute_prec_P1");
-    libsnark::G1_precomputation<ppT> prec_P2;
-    libsnark::precompute_G1_gadget<ppT> compute_prec_P2(
+    G1_precomputation<ppT> prec_P2;
+    G1_precompute_gadget<ppT> compute_prec_P2(
         pb, P2, prec_P2, "compute_prec_P2");
-    libsnark::G1_precomputation<ppT> prec_P3;
-    libsnark::precompute_G1_gadget<ppT> compute_prec_P3(
+    G1_precomputation<ppT> prec_P3;
+    G1_precompute_gadget<ppT> compute_prec_P3(
         pb, P3, prec_P3, "compute_prec_P3");
-    libsnark::G1_precomputation<ppT> prec_P4;
-    libsnark::precompute_G1_gadget<ppT> compute_prec_P4(
+    G1_precomputation<ppT> prec_P4;
+    G1_precompute_gadget<ppT> compute_prec_P4(
         pb, P4, prec_P4, "compute_prec_P4");
-    libsnark::G2_precomputation<ppT> prec_Q1;
-    libsnark::precompute_G2_gadget<ppT> compute_prec_Q1(
+    G2_precomputation<ppT> prec_Q1;
+    G2_precompute_gadget<ppT> compute_prec_Q1(
         pb, Q1, prec_Q1, "compute_prec_Q1");
-    libsnark::G2_precomputation<ppT> prec_Q2;
-    libsnark::precompute_G2_gadget<ppT> compute_prec_Q2(
+    G2_precomputation<ppT> prec_Q2;
+    G2_precompute_gadget<ppT> compute_prec_Q2(
         pb, Q2, prec_Q2, "compute_prec_Q2");
-    libsnark::G2_precomputation<ppT> prec_Q3;
-    libsnark::precompute_G2_gadget<ppT> compute_prec_Q3(
+    G2_precomputation<ppT> prec_Q3;
+    G2_precompute_gadget<ppT> compute_prec_Q3(
         pb, Q3, prec_Q3, "compute_prec_Q3");
-    libsnark::G2_precomputation<ppT> prec_Q4;
-    libsnark::precompute_G2_gadget<ppT> compute_prec_Q4(
+    G2_precomputation<ppT> prec_Q4;
+    G2_precompute_gadget<ppT> compute_prec_Q4(
         pb, Q4, prec_Q4, "compute_prec_Q4");
 
     Fqk_variable<ppT> result(pb, "result");
