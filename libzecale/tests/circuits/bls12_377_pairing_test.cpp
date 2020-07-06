@@ -5,6 +5,7 @@
 #include "libzecale/circuits/fields/fp12_2over3over2_gadgets.hpp"
 #include "libzecale/circuits/pairing/bls12_377_pairing.hpp"
 #include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
+#include "libzecale/circuits/pairing/pairing_params.hpp"
 
 #include <gtest/gtest.h>
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
@@ -145,8 +146,8 @@ TEST(BLS12_377_PairingTest, PrecomputeAddGadgetTest)
     // add gadget.
 
     libsnark::protoboard<libff::Fr<wpp>> pb;
-    libsnark::Fqe_variable<wpp> Q_X(pb, " Q_X");
-    libsnark::Fqe_variable<wpp> Q_Y(pb, " Q_Y");
+    libzecale::Fqe_variable<wpp> Q_X(pb, " Q_X");
+    libzecale::Fqe_variable<wpp> Q_Y(pb, " Q_Y");
     const size_t num_primary_inputs = pb.num_inputs();
     libzecale::bls12_377_G2_proj<wpp> R0_var(pb, " R0");
 
@@ -260,8 +261,8 @@ TEST(BLS12_377_PairingTest, PrecomputeGadgetTest)
 
     // Circuit with precompute gadget
     libsnark::protoboard<libff::Fr<wpp>> pb;
-    libsnark::Fqe_variable<wpp> Qx(pb, " Qx");
-    libsnark::Fqe_variable<wpp> Qy(pb, " Qy");
+    libzecale::Fqe_variable<wpp> Qx(pb, " Qx");
+    libzecale::Fqe_variable<wpp> Qy(pb, " Qy");
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
     libzecale::bls12_377_ate_precompute_gadget<wpp> precompute_gadget(
@@ -333,8 +334,8 @@ TEST(BLS12_377_PairingTest, MillerLoopGadgetTest)
     Px.allocate(pb, "Px");
     libsnark::pb_variable<libff::Fr<wpp>> Py;
     Py.allocate(pb, "Py");
-    libsnark::Fqe_variable<wpp> Qx(pb, " Qx");
-    libsnark::Fqe_variable<wpp> Qy(pb, " Qy");
+    libzecale::Fqe_variable<wpp> Qx(pb, " Qx");
+    libzecale::Fqe_variable<wpp> Qy(pb, " Qy");
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
 

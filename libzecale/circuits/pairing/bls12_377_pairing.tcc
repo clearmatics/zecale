@@ -58,9 +58,9 @@ bls12_377_G2_proj<ppT>::bls12_377_G2_proj(
 
 template<typename ppT>
 bls12_377_G2_proj<ppT>::bls12_377_G2_proj(
-    const libsnark::Fqe_variable<ppT> &X_var,
-    const libsnark::Fqe_variable<ppT> &Y_var,
-    const libsnark::Fqe_variable<ppT> &Z_var)
+    const Fqe_variable<ppT> &X_var,
+    const Fqe_variable<ppT> &Y_var,
+    const Fqe_variable<ppT> &Z_var)
     : X(X_var), Y(Y_var), Z(Z_var)
 {
 }
@@ -85,9 +85,9 @@ void bls12_377_G2_proj<ppT>::generate_r1cs_witness(
 
 template<typename ppT>
 bls12_377_ate_ell_coeffs<ppT>::bls12_377_ate_ell_coeffs(
-    const libsnark::Fqe_variable<ppT> &ell_0,
-    const libsnark::Fqe_variable<ppT> &ell_vw,
-    const libsnark::Fqe_variable<ppT> &ell_vv)
+    const Fqe_variable<ppT> &ell_0,
+    const Fqe_variable<ppT> &ell_vw,
+    const Fqe_variable<ppT> &ell_vv)
     : ell_0(ell_0), ell_vw(ell_vw), ell_vv(ell_vv)
 {
 }
@@ -312,8 +312,8 @@ void bls12_377_ate_dbl_gadget<ppT>::generate_r1cs_witness(
 template<typename ppT>
 bls12_377_ate_add_gadget<ppT>::bls12_377_ate_add_gadget(
     libsnark::protoboard<libff::Fr<ppT>> &pb,
-    const libsnark::Fqe_variable<ppT> &in_Q_X,
-    const libsnark::Fqe_variable<ppT> &in_Q_Y,
+    const Fqe_variable<ppT> &in_Q_X,
+    const Fqe_variable<ppT> &in_Q_Y,
     const bls12_377_G2_proj<ppT> &R,
     const std::string &annotation_prefix)
     : libsnark::gadget<libff::Fr<ppT>>(pb, annotation_prefix)
@@ -483,13 +483,13 @@ void bls12_377_ate_add_gadget<ppT>::generate_r1cs_witness()
 template<typename ppT>
 bls12_377_ate_precompute_gadget<ppT>::bls12_377_ate_precompute_gadget(
     libsnark::protoboard<libff::Fr<ppT>> &pb,
-    const libsnark::Fqe_variable<ppT> &Qx,
-    const libsnark::Fqe_variable<ppT> &Qy,
+    const Fqe_variable<ppT> &Qx,
+    const Fqe_variable<ppT> &Qy,
     const std::string &annotation_prefix)
     : libsnark::gadget<libff::Fr<ppT>>(pb, annotation_prefix)
     , _Qx(Qx)
     , _Qy(Qy)
-    , _R0(Qx, Qy, libsnark::Fqe_variable<ppT>(pb, FqeT::one(), "Fqe(1)"))
+    , _R0(Qx, Qy, Fqe_variable<ppT>(pb, FqeT::one(), "Fqe(1)"))
 {
     // Track the R variable at each step. Initially it is _R0;
     const bls12_377_G2_proj<ppT> *currentR = &_R0;
@@ -570,13 +570,13 @@ bls12_377_ate_compute_f_ell_P<ppT>::bls12_377_ate_compute_f_ell_P(
           pb,
           ell_coeffs.ell_vv,
           Px,
-          libsnark::Fqe_variable<ppT>(pb, FMT(annotation_prefix, " Px.ell_vv")),
+          Fqe_variable<ppT>(pb, FMT(annotation_prefix, " Px.ell_vv")),
           FMT(annotation_prefix, " _ell_vv_times_Px"))
     , _ell_vw_times_Py(
           pb,
           ell_coeffs.ell_vw,
           Py,
-          libsnark::Fqe_variable<ppT>(pb, FMT(annotation_prefix, " Py.ell_vw")),
+          Fqe_variable<ppT>(pb, FMT(annotation_prefix, " Py.ell_vw")),
           FMT(annotation_prefix, " _ell_vw_times_Py"))
     , _f_mul_ell_P(
           pb,
@@ -590,7 +590,7 @@ bls12_377_ate_compute_f_ell_P<ppT>::bls12_377_ate_compute_f_ell_P(
 }
 
 template<typename ppT>
-const Fp12_2over3over2_variable<libff::Fqk<libsnark::other_curve<ppT>>>
+const Fp12_2over3over2_variable<libff::Fqk<other_curve<ppT>>>
     &bls12_377_ate_compute_f_ell_P<ppT>::result() const
 {
     return _f_mul_ell_P.result();
@@ -619,8 +619,8 @@ bls12_377_ate_miller_loop_gadget<ppT>::bls12_377_ate_miller_loop_gadget(
     libsnark::protoboard<FieldT> &pb,
     const libsnark::pb_variable<FieldT> &Px,
     const libsnark::pb_variable<FieldT> &Py,
-    const libsnark::Fqe_variable<ppT> &Qx,
-    const libsnark::Fqe_variable<ppT> &Qy,
+    const Fqe_variable<ppT> &Qx,
+    const Fqe_variable<ppT> &Qy,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
     , _Px(Px)
@@ -681,7 +681,7 @@ bls12_377_ate_miller_loop_gadget<ppT>::bls12_377_ate_miller_loop_gadget(
 }
 
 template<typename ppT>
-const Fp12_2over3over2_variable<libff::Fqk<libsnark::other_curve<ppT>>>
+const Fp12_2over3over2_variable<libff::Fqk<other_curve<ppT>>>
     &bls12_377_ate_miller_loop_gadget<ppT>::result() const
 {
     return _f_ell_P.back()->result();
@@ -764,7 +764,7 @@ bls12_377_final_exp_first_part_gadget<ppT>::
 }
 
 template<typename ppT>
-const Fp12_2over3over2_variable<libff::Fqk<libsnark::other_curve<ppT>>>
+const Fp12_2over3over2_variable<libff::Fqk<other_curve<ppT>>>
     &bls12_377_final_exp_first_part_gadget<ppT>::result() const
 {
     return _result;
@@ -902,7 +902,7 @@ void bls12_377_exp_by_z_gadget<ppT>::initialize_z_pos(
 }
 
 template<typename ppT>
-const Fp12_2over3over2_variable<libff::Fqk<libsnark::other_curve<ppT>>>
+const Fp12_2over3over2_variable<libff::Fqk<other_curve<ppT>>>
     &bls12_377_exp_by_z_gadget<ppT>::result() const
 {
     return _result;
@@ -1063,7 +1063,7 @@ bls12_377_final_exp_last_part_gadget<ppT>::bls12_377_final_exp_last_part_gadget(
 }
 
 template<typename ppT>
-const Fp12_2over3over2_variable<libff::Fqk<libsnark::other_curve<ppT>>>
+const Fp12_2over3over2_variable<libff::Fqk<other_curve<ppT>>>
     &bls12_377_final_exp_last_part_gadget<ppT>::result() const
 {
     return _result;

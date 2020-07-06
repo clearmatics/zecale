@@ -6,10 +6,10 @@
 #define __ZECALE_CIRCUITS_PAIRING_BLS12_377_PAIRING_HPP__
 
 #include "libzecale/circuits/fields/fp12_2over3over2_gadgets.hpp"
+#include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
 
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
 #include <libsnark/gadgetlib1/gadgets/fields/fp2_gadgets.hpp>
-#include <libsnark/gadgetlib1/gadgets/pairing/pairing_params.hpp>
 
 namespace libzecale
 {
@@ -19,18 +19,18 @@ namespace libzecale
 template<typename ppT> class bls12_377_G2_proj
 {
 public:
-    libsnark::Fqe_variable<ppT> X;
-    libsnark::Fqe_variable<ppT> Y;
-    libsnark::Fqe_variable<ppT> Z;
+    Fqe_variable<ppT> X;
+    Fqe_variable<ppT> Y;
+    Fqe_variable<ppT> Z;
 
     bls12_377_G2_proj(
         libsnark::protoboard<libff::Fr<ppT>> &pb,
         const std::string &annotation_prefix);
 
     bls12_377_G2_proj(
-        const libsnark::Fqe_variable<ppT> &X_var,
-        const libsnark::Fqe_variable<ppT> &Y_var,
-        const libsnark::Fqe_variable<ppT> &Z_var);
+        const Fqe_variable<ppT> &X_var,
+        const Fqe_variable<ppT> &Y_var,
+        const Fqe_variable<ppT> &Z_var);
 
     void evaluate() const;
 
@@ -42,14 +42,14 @@ public:
 template<typename ppT> class bls12_377_ate_ell_coeffs
 {
 public:
-    const libsnark::Fqe_variable<ppT> ell_0;
-    const libsnark::Fqe_variable<ppT> ell_vw;
-    const libsnark::Fqe_variable<ppT> ell_vv;
+    const Fqe_variable<ppT> ell_0;
+    const Fqe_variable<ppT> ell_vw;
+    const Fqe_variable<ppT> ell_vv;
 
     bls12_377_ate_ell_coeffs(
-        const libsnark::Fqe_variable<ppT> &ell_0,
-        const libsnark::Fqe_variable<ppT> &ell_vw,
-        const libsnark::Fqe_variable<ppT> &ell_vv);
+        const Fqe_variable<ppT> &ell_0,
+        const Fqe_variable<ppT> &ell_vw,
+        const Fqe_variable<ppT> &ell_vv);
 
     void evaluate() const;
 };
@@ -62,8 +62,8 @@ template<typename ppT>
 class bls12_377_ate_dbl_gadget : libsnark::gadget<libff::Fr<ppT>>
 {
 public:
-    typedef libff::Fq<libsnark::other_curve<ppT>> FqT;
-    typedef libff::Fqe<libsnark::other_curve<ppT>> FqeT;
+    typedef libff::Fq<other_curve<ppT>> FqT;
+    typedef libff::Fqe<other_curve<ppT>> FqeT;
 
     bls12_377_G2_proj<ppT> in_R;
     bls12_377_G2_proj<ppT> out_R;
@@ -74,64 +74,64 @@ public:
     // some of the redundancy.
 
     // A = R.X * R.Y / 2
-    libsnark::Fqe_variable<ppT> A;
-    libsnark::Fqe_mul_gadget<ppT> check_A; // R.X * R.Y = 2_times_A
+    Fqe_variable<ppT> A;
+    Fqe_mul_gadget<ppT> check_A; // R.X * R.Y = 2_times_A
 
     // B = R.Y^2
-    libsnark::Fqe_variable<ppT> B;
-    libsnark::Fqe_sqr_gadget<ppT> check_B; // R.Y^2 == B
+    Fqe_variable<ppT> B;
+    Fqe_sqr_gadget<ppT> check_B; // R.Y^2 == B
 
     // C = R.Z^2
-    libsnark::Fqe_variable<ppT> C;
-    libsnark::Fqe_sqr_gadget<ppT> check_C; // R.Z^2 == C
+    Fqe_variable<ppT> C;
+    Fqe_sqr_gadget<ppT> check_C; // R.Z^2 == C
 
     // D = 3 * C
-    // libsnark::Fqe_variable<ppT> D;
+    // Fqe_variable<ppT> D;
 
     // E = b' * D
-    libsnark::Fqe_variable<ppT> E;
+    Fqe_variable<ppT> E;
 
     // F = 3 * E
-    libsnark::Fqe_variable<ppT> F;
+    Fqe_variable<ppT> F;
 
     // G = (B + F) / 2
-    libsnark::Fqe_variable<ppT> G;
-    // libsnark::Fqe_mul_by_lc_gadget<ppT> check_G; // 2 * G == B + F
+    Fqe_variable<ppT> G;
+    // Fqe_mul_by_lc_gadget<ppT> check_G; // 2 * G == B + F
 
     // H = (Y + 2) ^ 2 - (B + C)
-    libsnark::Fqe_variable<ppT> H;
-    libsnark::Fqe_variable<ppT> Y_plus_Z;
-    libsnark::Fqe_variable<ppT> H_plus_B_plus_C;
-    libsnark::Fqe_sqr_gadget<ppT> check_H; // Y_plus_Z^2 == H + B + C
+    Fqe_variable<ppT> H;
+    Fqe_variable<ppT> Y_plus_Z;
+    Fqe_variable<ppT> H_plus_B_plus_C;
+    Fqe_sqr_gadget<ppT> check_H; // Y_plus_Z^2 == H + B + C
 
     // I = E - B
-    libsnark::Fqe_variable<ppT> I;
+    Fqe_variable<ppT> I;
 
     // J = R.X^2
-    libsnark::Fqe_variable<ppT> J;
-    libsnark::Fqe_sqr_gadget<ppT> check_J; // R.X^2 == J
+    Fqe_variable<ppT> J;
+    Fqe_sqr_gadget<ppT> check_J; // R.X^2 == J
 
     // E^2
-    libsnark::Fqe_variable<ppT> E_squared;
-    libsnark::Fqe_sqr_gadget<ppT> check_E_squared;
+    Fqe_variable<ppT> E_squared;
+    Fqe_sqr_gadget<ppT> check_E_squared;
 
     // G^2
-    libsnark::Fqe_variable<ppT> G_squared;
-    libsnark::Fqe_sqr_gadget<ppT> check_G_squared;
+    Fqe_variable<ppT> G_squared;
+    Fqe_sqr_gadget<ppT> check_G_squared;
 
     // B - F
-    libsnark::Fqe_variable<ppT> B_minus_F;
+    Fqe_variable<ppT> B_minus_F;
 
     // out_R.X = A * (B - F)
-    libsnark::Fqe_mul_gadget<ppT> check_out_Rx;
+    Fqe_mul_gadget<ppT> check_out_Rx;
 
     // out_R.Y = G^2 - 3 * E^2
     // check: 1 * G_squared_minus_3_E_squared == outRy
-    libsnark::Fqe_variable<ppT> G_squared_minus_3_E_squared;
-    libsnark::Fqe_mul_by_lc_gadget<ppT> check_out_Ry;
+    Fqe_variable<ppT> G_squared_minus_3_E_squared;
+    Fqe_mul_by_lc_gadget<ppT> check_out_Ry;
 
     // out_R.Z = B * H
-    libsnark::Fqe_mul_gadget<ppT> check_out_Rz;
+    Fqe_mul_gadget<ppT> check_out_Rz;
 
     // ell_0 = xi * I
     // ell_vw = -H
@@ -154,60 +154,60 @@ template<typename ppT>
 class bls12_377_ate_add_gadget : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
-    typedef libff::Fq<libsnark::other_curve<ppT>> FqT;
-    typedef libff::Fqe<libsnark::other_curve<ppT>> FqeT;
+    typedef libff::Fq<other_curve<ppT>> FqT;
+    typedef libff::Fqe<other_curve<ppT>> FqeT;
 
-    libsnark::Fqe_variable<ppT> Q_X;
-    libsnark::Fqe_variable<ppT> Q_Y;
+    Fqe_variable<ppT> Q_X;
+    Fqe_variable<ppT> Q_Y;
     bls12_377_G2_proj<ppT> in_R;
 
     // A = Q_Y * R.Z;
-    libsnark::Fqe_variable<ppT> A;
-    libsnark::Fqe_mul_gadget<ppT> check_A;
+    Fqe_variable<ppT> A;
+    Fqe_mul_gadget<ppT> check_A;
     // B = Q_X * R.Z;
-    libsnark::Fqe_variable<ppT> B;
-    libsnark::Fqe_mul_gadget<ppT> check_B;
+    Fqe_variable<ppT> B;
+    Fqe_mul_gadget<ppT> check_B;
     // theta = R.Y - A;
-    libsnark::Fqe_variable<ppT> theta;
+    Fqe_variable<ppT> theta;
     // lambda = R.X - B;
-    libsnark::Fqe_variable<ppT> lambda;
+    Fqe_variable<ppT> lambda;
     // C = theta.squared();
-    libsnark::Fqe_variable<ppT> C;
-    libsnark::Fqe_sqr_gadget<ppT> check_C;
+    Fqe_variable<ppT> C;
+    Fqe_sqr_gadget<ppT> check_C;
     // D = lambda.squared();
-    libsnark::Fqe_variable<ppT> D;
-    libsnark::Fqe_sqr_gadget<ppT> check_D;
+    Fqe_variable<ppT> D;
+    Fqe_sqr_gadget<ppT> check_D;
     // E = lambda * D;
-    libsnark::Fqe_variable<ppT> E;
-    libsnark::Fqe_mul_gadget<ppT> check_E;
+    Fqe_variable<ppT> E;
+    Fqe_mul_gadget<ppT> check_E;
     // F = R.Z * C;
-    libsnark::Fqe_variable<ppT> F;
-    libsnark::Fqe_mul_gadget<ppT> check_F;
+    Fqe_variable<ppT> F;
+    Fqe_mul_gadget<ppT> check_F;
     // G = R.X * D;
-    libsnark::Fqe_variable<ppT> G;
-    libsnark::Fqe_mul_gadget<ppT> check_G;
+    Fqe_variable<ppT> G;
+    Fqe_mul_gadget<ppT> check_G;
     // H = E + F - (G + G);
-    libsnark::Fqe_variable<ppT> H;
+    Fqe_variable<ppT> H;
     // I = R.Y * E;
-    libsnark::Fqe_variable<ppT> I;
-    libsnark::Fqe_mul_gadget<ppT> check_I;
+    Fqe_variable<ppT> I;
+    Fqe_mul_gadget<ppT> check_I;
     // J = theta * Q_X - lambda * Q_Y;
-    libsnark::Fqe_variable<ppT> theta_times_Qx;
-    libsnark::Fqe_mul_gadget<ppT> check_theta_times_Qx;
-    libsnark::Fqe_variable<ppT> lambda_times_Qy;
-    libsnark::Fqe_mul_gadget<ppT> check_lambda_times_Qy;
-    libsnark::Fqe_variable<ppT> J;
+    Fqe_variable<ppT> theta_times_Qx;
+    Fqe_mul_gadget<ppT> check_theta_times_Qx;
+    Fqe_variable<ppT> lambda_times_Qy;
+    Fqe_mul_gadget<ppT> check_lambda_times_Qy;
+    Fqe_variable<ppT> J;
 
     // out_R.X = lambda * H;
-    libsnark::Fqe_variable<ppT> out_Rx;
-    libsnark::Fqe_mul_gadget<ppT> check_out_Rx;
+    Fqe_variable<ppT> out_Rx;
+    Fqe_mul_gadget<ppT> check_out_Rx;
     // out_R.Y = theta * (G - H) - I;
-    libsnark::Fqe_variable<ppT> G_minus_H;
-    libsnark::Fqe_variable<ppT> theta_times_G_minus_H;
-    libsnark::Fqe_mul_gadget<ppT> check_theta_times_G_minus_H;
+    Fqe_variable<ppT> G_minus_H;
+    Fqe_variable<ppT> theta_times_G_minus_H;
+    Fqe_mul_gadget<ppT> check_theta_times_G_minus_H;
     // out_R.Z = Z1 * E;
-    libsnark::Fqe_variable<ppT> out_Rz;
-    libsnark::Fqe_mul_gadget<ppT> check_out_Rz;
+    Fqe_variable<ppT> out_Rz;
+    Fqe_mul_gadget<ppT> check_out_Rz;
 
     bls12_377_G2_proj<ppT> out_R;
 
@@ -218,8 +218,8 @@ public:
 
     bls12_377_ate_add_gadget(
         libsnark::protoboard<libff::Fr<ppT>> &pb,
-        const libsnark::Fqe_variable<ppT> &Q_X,
-        const libsnark::Fqe_variable<ppT> &Q_Y,
+        const Fqe_variable<ppT> &Q_X,
+        const Fqe_variable<ppT> &Q_Y,
         const bls12_377_G2_proj<ppT> &R,
         const std::string &annotation_prefix);
 
@@ -234,10 +234,10 @@ template<typename ppT>
 class bls12_377_ate_precompute_gadget : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
-    using FqeT = libff::Fqe<libsnark::other_curve<ppT>>;
+    using FqeT = libff::Fqe<other_curve<ppT>>;
 
-    libsnark::Fqe_variable<ppT> _Qx;
-    libsnark::Fqe_variable<ppT> _Qy;
+    Fqe_variable<ppT> _Qx;
+    Fqe_variable<ppT> _Qy;
     bls12_377_G2_proj<ppT> _R0;
 
     std::vector<std::shared_ptr<bls12_377_ate_dbl_gadget<ppT>>> _ate_dbls;
@@ -245,8 +245,8 @@ public:
 
     bls12_377_ate_precompute_gadget(
         libsnark::protoboard<libff::Fr<ppT>> &pb,
-        const libsnark::Fqe_variable<ppT> &Qx,
-        const libsnark::Fqe_variable<ppT> &Qy,
+        const Fqe_variable<ppT> &Qx,
+        const Fqe_variable<ppT> &Qy,
         const std::string &annotation_prefix);
 
     void generate_r1cs_constraints();
@@ -267,10 +267,10 @@ class bls12_377_ate_compute_f_ell_P : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     using FieldT = libff::Fr<ppT>;
-    using FqkT = libff::Fqk<libsnark::other_curve<ppT>>;
+    using FqkT = libff::Fqk<other_curve<ppT>>;
 
-    libsnark::Fqe_mul_by_lc_gadget<ppT> _ell_vv_times_Px;
-    libsnark::Fqe_mul_by_lc_gadget<ppT> _ell_vw_times_Py;
+    Fqe_mul_by_lc_gadget<ppT> _ell_vv_times_Px;
+    Fqe_mul_by_lc_gadget<ppT> _ell_vw_times_Py;
     Fp12_2over3over2_mul_by_024_gadget<FqkT> _f_mul_ell_P;
 
     bls12_377_ate_compute_f_ell_P(
@@ -291,14 +291,14 @@ class bls12_377_ate_miller_loop_gadget : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     using FieldT = libff::Fr<ppT>;
-    using FqeT = libff::Fqe<libsnark::other_curve<ppT>>;
-    using FqkT = libff::Fqk<libsnark::other_curve<ppT>>;
+    using FqeT = libff::Fqe<other_curve<ppT>>;
+    using FqkT = libff::Fqk<other_curve<ppT>>;
     using Fq6T = typename FqkT::my_Fp6;
 
     libsnark::pb_variable<FieldT> _Px;
     libsnark::pb_variable<FieldT> _Py;
-    libsnark::Fqe_variable<ppT> _Qx;
-    libsnark::Fqe_variable<ppT> _Qy;
+    Fqe_variable<ppT> _Qx;
+    Fqe_variable<ppT> _Qy;
 
     bls12_377_ate_precompute_gadget<ppT> _Q_precomp;
     Fp12_2over3over2_variable<FqkT> _f0;
@@ -314,8 +314,8 @@ public:
         libsnark::protoboard<FieldT> &pb,
         const libsnark::pb_variable<FieldT> &PX,
         const libsnark::pb_variable<FieldT> &PY,
-        const libsnark::Fqe_variable<ppT> &QX,
-        const libsnark::Fqe_variable<ppT> &QY,
+        const Fqe_variable<ppT> &QX,
+        const Fqe_variable<ppT> &QY,
         const std::string &annotation_prefix);
 
     const Fp12_2over3over2_variable<FqkT> &result() const;
@@ -331,7 +331,7 @@ class bls12_377_final_exp_first_part_gadget
 {
 public:
     using FieldT = libff::Fr<ppT>;
-    using FqkT = libff::Fqk<libsnark::other_curve<ppT>>;
+    using FqkT = libff::Fqk<other_curve<ppT>>;
 
     // Follows the implementation used in
     // libff::bls12_377_final_exponentiation_first_chunk() (see
@@ -367,7 +367,7 @@ class bls12_377_exp_by_z_gadget : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     using FieldT = libff::Fr<ppT>;
-    using FqkT = libff::Fqk<libsnark::other_curve<ppT>>;
+    using FqkT = libff::Fqk<other_curve<ppT>>;
     using cyclotomic_square = Fp12_2over3over2_cyclotomic_square_gadget<FqkT>;
     using multiply = Fp12_2over3over2_mul_gadget<FqkT>;
     using unitary_inverse = Fp12_2over3over2_cyclotomic_square_gadget<FqkT>;
@@ -401,7 +401,7 @@ class bls12_377_final_exp_last_part_gadget
 {
 public:
     using FieldT = libff::Fr<ppT>;
-    using FqkT = libff::Fqk<libsnark::other_curve<ppT>>;
+    using FqkT = libff::Fqk<other_curve<ppT>>;
 
     // Based on the implementation of
     // libff::bls12_377_final_exponentiation_last_chunk() (see
