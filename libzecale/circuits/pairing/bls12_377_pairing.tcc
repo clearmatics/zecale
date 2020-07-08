@@ -1223,10 +1223,10 @@ void bls12_377_final_exp_last_part_gadget<ppT>::generate_r1cs_witness()
     _U_times_L.generate_r1cs_witness();
 }
 
-// bls12_377_ate_final_exp_gadget methods
+// bls12_377_final_exp_gadget methods
 
 template<typename ppT>
-bls12_377_ate_final_exp_gadget<ppT>::bls12_377_ate_final_exp_gadget(
+bls12_377_final_exp_gadget<ppT>::bls12_377_final_exp_gadget(
     libsnark::protoboard<libff::Fr<ppT>> &pb,
     const Fp12_2over3over2_variable<FqkT> &el,
     const libsnark::pb_variable<FieldT> &result_is_one,
@@ -1235,19 +1235,19 @@ bls12_377_ate_final_exp_gadget<ppT>::bls12_377_ate_final_exp_gadget(
     , _first_part(
           pb,
           el,
-          Fqk_variable<ppT>(pb, FMT(annotation_prefix, " final_exp_first")),
-          FMT(annotation_prefix, " compute_final_exp_first_part"))
+          Fqk_variable<ppT>(pb, FMT(annotation_prefix, " _first_part_result")),
+          FMT(annotation_prefix, " _first_part"))
     , _last_part(
           pb,
           _first_part.result(),
-          Fqk_variable<ppT>(pb, FMT(annotation_prefix, " final_exp_last")),
-          FMT(annotation_prefix, " compute_final_exp_last_part"))
+          Fqk_variable<ppT>(pb, FMT(annotation_prefix, " _last_part_result")),
+          FMT(annotation_prefix, " _last_part"))
     , _result_is_one(result_is_one)
 {
 }
 
 template<typename ppT>
-void bls12_377_ate_final_exp_gadget<ppT>::generate_r1cs_constraints()
+void bls12_377_final_exp_gadget<ppT>::generate_r1cs_constraints()
 {
     _first_part.generate_r1cs_constraints();
     _last_part.generate_r1cs_constraints();
@@ -1294,14 +1294,14 @@ void bls12_377_ate_final_exp_gadget<ppT>::generate_r1cs_constraints()
         " c1.c1.c1==0");
     this->pb.add_r1cs_constraint(
         libsnark::r1cs_constraint<FieldT>(_result_is_one, result._c1._c2.c0, 0),
-        " check c1.c2.c0");
+        " c1.c2.c0==0");
     this->pb.add_r1cs_constraint(
         libsnark::r1cs_constraint<FieldT>(_result_is_one, result._c1._c2.c1, 0),
-        " check c1.c2.c1");
+        " c1.c2.c1==0");
 }
 
 template<typename ppT>
-void bls12_377_ate_final_exp_gadget<ppT>::generate_r1cs_witness()
+void bls12_377_final_exp_gadget<ppT>::generate_r1cs_witness()
 {
     _first_part.generate_r1cs_witness();
     _last_part.generate_r1cs_witness();

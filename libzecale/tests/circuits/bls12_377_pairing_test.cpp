@@ -538,6 +538,74 @@ TEST(BLS12_377_PairingTest, FinalExpLastPart)
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
+TEST(BLS12_377_PairingTest, FullPairingCircuit)
+{
+    using FieldT = libff::Fr<wpp>;
+    using FqkT = libff::Fqk<npp>;
+
+    // Simple tests of e(P,Q)
+    const libff::G1<npp> P = libff::Fr<npp>(13) * libff::G1<npp>::one();
+    const libff::G2<npp> Q = libff::Fr<npp>(19) * libff::G2<npp>::one();
+    const libff::Fqk<npp> ePQ = npp::reduced_pairing(P, Q);
+
+    // In circuit
+    libsnark::protoboard<FieldT> pb;
+    libsnark::G1_variable<wpp> P_var(pb, "P");
+    libsnark::G2_variable<wpp> Q_var(pb, "Q");
+    libzecale::Fp12_2over3over2_variable<FqkT> ePQ_var(pb, "aPQ");
+    const size_t num_primary_inputs = pb.num_inputs();
+    pb.set_input_sizes(num_primary_inputs);
+
+    libzecale::G1_precomputation<wpp> P_prec_var(pb, "P_prec");
+    libzecale::G1_precompute_gadget<wpp> precompute_P(
+        pb, P_var, P_prec_var, "P_prec");
+
+    libzecale::G2_precomputation<wpp> Q_prec_var(pb, "Q_prec");
+    libzecale::G2_precompute_gadget<wpp> precompute_Q(
+        pb, Q_var, Q_prec_var, "Q_prec");
+
+    libzecale::Fp12_2over3over2_variable<FqkT> miller_var(pb, "miller");
+    libzecale::bls12_377_ate_miller_loop_gadget<wpp> miller_loop_gadget(
+        pb, P_prec_var, Q_prec_var, miller_var, "miller loop");
+
+    libzecale::Fp12_2over3over2_variable<FqkT> final_exp_first_part_var(
+        pb, "final_exp_first_part");
+    libzecale::bls12_377_final_exp_first_part_gadget<wpp>
+        final_exp_first_part_gadget(
+            pb, miller_var, final_exp_first_part_var, "final exp first part");
+
+    libzecale::bls12_377_final_exp_last_part_gadget<wpp>
+        final_exp_last_part_gadget(
+            pb, final_exp_first_part_var, ePQ_var, "final exp last part");
+
+    // Constraints
+    precompute_P.generate_r1cs_constraints();
+    precompute_Q.generate_r1cs_constraints();
+    miller_loop_gadget.generate_r1cs_constraints();
+    final_exp_first_part_gadget.generate_r1cs_constraints();
+    final_exp_last_part_gadget.generate_r1cs_constraints();
+
+    // Witness
+    P_var.generate_r1cs_witness(P);
+    Q_var.generate_r1cs_witness(Q);
+    precompute_P.generate_r1cs_witness();
+    precompute_Q.generate_r1cs_witness();
+    miller_loop_gadget.generate_r1cs_witness();
+    final_exp_first_part_gadget.generate_r1cs_witness();
+    final_exp_last_part_gadget.generate_r1cs_witness();
+
+    const libff::Fqk<npp> ePQ_results = ePQ_var.get_element();
+    ASSERT_EQ(ePQ, ePQ_results);
+
+    // Generate and check the proof
+    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    libsnark::r1cs_primary_input<FieldT> primary_input = pb.primary_input();
+    libsnark::r1cs_auxiliary_input<FieldT> auxiliary_input =
+        pb.auxiliary_input();
+    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
+}
+
 TEST(BLS12_377_PairingTest, FinalExpGadget)
 {
     using FieldT = libff::Fr<wpp>;
@@ -567,14 +635,14 @@ TEST(BLS12_377_PairingTest, FinalExpGadget)
     // Case where output is NOT 1
     libsnark::pb_variable<FieldT> final_exp_PQ_is_one_var;
     final_exp_PQ_is_one_var.allocate(pb, "final_exp_PQ_is_one");
-    libzecale::bls12_377_ate_final_exp_gadget<wpp> final_exp_PQ_gadget(
+    libzecale::bls12_377_final_exp_gadget<wpp> final_exp_PQ_gadget(
         pb, miller_PQ_var, final_exp_PQ_is_one_var, "final_exp_PQ");
     final_exp_PQ_gadget.generate_r1cs_constraints();
 
     // Case where output is 1
     libsnark::pb_variable<FieldT> final_exp_ee_is_one_var;
     final_exp_ee_is_one_var.allocate(pb, "final_exp_ee_is_one");
-    libzecale::bls12_377_ate_final_exp_gadget<wpp> final_exp_ee_gadget(
+    libzecale::bls12_377_final_exp_gadget<wpp> final_exp_ee_gadget(
         pb, miller_ee_var, final_exp_ee_is_one_var, "final_exp_ee");
     final_exp_ee_gadget.generate_r1cs_constraints();
 

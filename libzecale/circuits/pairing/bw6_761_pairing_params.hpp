@@ -21,6 +21,9 @@ template<typename ppT> class bls12_377_G1_precomputation;
 template<typename ppT> class bls12_377_G1_precompute_gadget;
 template<typename ppT> class bls12_377_G2_precomputation;
 template<typename ppT> class bls12_377_G2_precompute_gadget;
+template<typename ppT>
+class bls12_377_e_times_e_times_e_over_e_miller_loop_gadget;
+template<typename ppT> class bls12_377_final_exp_gadget;
 
 // Parameters for creating BW6-761 proofs that include statements about
 // BLS12_377 pairings.
