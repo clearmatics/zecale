@@ -285,10 +285,11 @@ public:
 
     bls12_377_ate_compute_f_ell_P(
         libsnark::protoboard<FieldT> &pb,
-        const libsnark::pb_variable<FieldT> &Px,
-        const libsnark::pb_variable<FieldT> &Py,
+        const libsnark::pb_linear_combination<FieldT> &Px,
+        const libsnark::pb_linear_combination<FieldT> &Py,
         const bls12_377_ate_ell_coeffs<ppT> &ell_coeffs,
         const Fp12_2over3over2_variable<FqkT> &f,
+        const Fp12_2over3over2_variable<FqkT> &f_out,
         const std::string &annotation_prefix);
 
     const Fp12_2over3over2_variable<FqkT> &result() const;
@@ -305,15 +306,6 @@ public:
     using FqkT = libff::Fqk<other_curve<ppT>>;
     using Fq6T = typename FqkT::my_Fp6;
 
-    // libsnark::pb_variable<FieldT> _Px;
-    // libsnark::pb_variable<FieldT> _Py;
-    bls12_377_ate_G1_precomputation<ppT> _prec_P;
-    // Fqe_variable<ppT> _Qx;
-    // Fqe_variable<ppT> _Qy;
-    bls12_377_ate_G2_precomputation<ppT> _prec_Q;
-    Fqk_variable<ppT> _result;
-
-    // bls12_377_ate_precompute_gadget<ppT> _Q_precomp;
     Fp12_2over3over2_variable<FqkT> _f0;
 
     // Squaring of f
@@ -331,9 +323,7 @@ public:
         const std::string &annotation_prefix);
 
     const Fp12_2over3over2_variable<FqkT> &result() const;
-
     void generate_r1cs_constraints();
-
     void generate_r1cs_witness();
 };
 
@@ -449,6 +439,37 @@ public:
         const std::string &annotation_prefix);
 
     const Fp12_2over3over2_variable<FqkT> &result() const;
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
+};
+
+// Wrapper around final_exp gadgets with interface expected by the groth16
+// gadgets. `result_is_one` is constrained to a boolean (0 or 1), and set in
+// 'generate_r1cs_witness' based on the output value of the final
+// exponentiation (if final exp == 1, `result_is_one` is set to 1, otherwise
+// `result_is_one` is set to 0).
+//
+// Note that the constraints on the final exp output are ONLY enforced when
+// `result_is_one` == 1. In otherwords, it is infeasible to generate valid
+// inputs such that the final exp output is not equal to 1 and result_is_one ==
+// 1. However, it IS possible to generate inputs such that final_exp == 1 but
+// `result_is_one` == 0.
+template<typename ppT>
+class bls12_377_final_exp_gadget : public libsnark::gadget<libff::Fr<ppT>>
+{
+public:
+    using FieldT = libff::Fr<ppT>;
+    using FqkT = libff::Fqk<other_curve<ppT>>;
+
+    bls12_377_final_exp_first_part_gadget<ppT> _first_part;
+    bls12_377_final_exp_last_part_gadget<ppT> _last_part;
+    libsnark::pb_variable<FieldT> _result_is_one;
+
+    bls12_377_final_exp_gadget(
+        libsnark::protoboard<libff::Fr<ppT>> &pb,
+        const Fp12_2over3over2_variable<FqkT> &el,
+        const libsnark::pb_variable<FieldT> &result_is_one,
+        const std::string &annotation_prefix);
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
 };

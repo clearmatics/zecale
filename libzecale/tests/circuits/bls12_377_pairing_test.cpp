@@ -316,6 +316,12 @@ TEST(BLS12_377_PairingTest, G2PrecomputeGadgetTest)
 
     precompute_gadget.generate_r1cs_constraints();
 
+    Q_var.generate_r1cs_witness(Q);
+    precompute_gadget.generate_r1cs_witness();
+
+    // Check that the values are all as expected
+    assert_G2_precomputation_eq(Q_prec, Q_prec_var);
+
     // Generate and check the proof
     const typename snark::KeypairT keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<libff::Fr<wpp>> primary_input =
@@ -326,55 +332,54 @@ TEST(BLS12_377_PairingTest, G2PrecomputeGadgetTest)
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
-#if 0
-
 TEST(BLS12_377_PairingTest, MillerLoopGadgetTest)
 {
     // Native calculation
-    libff::bls12_377_G1 P =
+    const libff::bls12_377_G1 P =
         libff::bls12_377_Fr("13") * libff::bls12_377_G1::one();
-    libff::bls12_377_G2 Q =
+    const libff::bls12_377_G2 Q =
         libff::bls12_377_Fr("7") * libff::bls12_377_G2::one();
-
-    libff::bls12_377_Fq12 miller;
-    {
-        libff::bls12_377_G1_precomp G1_precomp =
-            libff::bls12_377_ate_precompute_G1(P);
-        libff::bls12_377_G2_precomp G2_precomp =
-            libff::bls12_377_ate_precompute_G2(Q);
-        miller = libff::bls12_377_ate_miller_loop(G1_precomp, G2_precomp);
-    }
+    const libff::bls12_377_G1_precomp P_prec =
+        libff::bls12_377_ate_precompute_G1(P);
+    const libff::bls12_377_G2_precomp Q_prec =
+        libff::bls12_377_ate_precompute_G2(Q);
+    const libff::bls12_377_Fq12 miller =
+        libff::bls12_377_ate_miller_loop(P_prec, Q_prec);
 
     // Circuit with Miller loop gadget
     libsnark::protoboard<libff::Fr<wpp>> pb;
-    libsnark::pb_variable<libff::Fr<wpp>> Px;
-    Px.allocate(pb, "Px");
-    libsnark::pb_variable<libff::Fr<wpp>> Py;
-    Py.allocate(pb, "Py");
-    libzecale::Fqe_variable<wpp> Qx(pb, " Qx");
-    libzecale::Fqe_variable<wpp> Qy(pb, " Qy");
+    libsnark::G1_variable<wpp> P_var(pb, "P");
+    libsnark::G2_variable<wpp> Q_var(pb, "Q");
+    libsnark::Fqk_variable<wpp> miller_var(pb, "miller");
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
 
-    libzecale::bls12_377_ate_miller_loop_gadget<wpp> miller_loop_gadget(
-        pb, Px, Py, Qx, Qy, "miller loop");
+    libzecale::G1_precomputation<wpp> P_prec_var(pb, "P_prec");
+    libzecale::G1_precompute_gadget<wpp> precompute_P(
+        pb, P_var, P_prec_var, "precomp_P");
 
+    libzecale::G2_precomputation<wpp> Q_prec_var(pb, "Q_prec");
+    libzecale::G2_precompute_gadget<wpp> precompute_Q(
+        pb, Q_var, Q_prec_var, "precomp_Q");
+
+    libzecale::bls12_377_ate_miller_loop_gadget<wpp> miller_loop_gadget(
+        pb, P_prec_var, Q_prec_var, miller_var, "miller loop");
+
+    precompute_P.generate_r1cs_constraints();
+    precompute_Q.generate_r1cs_constraints();
     miller_loop_gadget.generate_r1cs_constraints();
 
-    // Set affine values
-    P.to_affine_coordinates();
-    Q.to_affine_coordinates();
-
-    pb.val(Px) = P.X;
-    pb.val(Py) = P.Y;
-    Qx.generate_r1cs_witness(Q.X);
-    Qy.generate_r1cs_witness(Q.Y);
+    // Set values
+    P_var.generate_r1cs_witness(P);
+    Q_var.generate_r1cs_witness(Q);
+    precompute_P.generate_r1cs_witness();
+    precompute_Q.generate_r1cs_witness();
     miller_loop_gadget.generate_r1cs_witness();
 
     // Check values
-    libff::bls12_377_Fq12 circuit_miller =
-        miller_loop_gadget.result().get_element();
-    ASSERT_EQ(miller, circuit_miller);
+    assert_G2_precomputation_eq(Q_prec, Q_prec_var);
+    libff::Fqk<npp> miller_val = miller_var.get_element();
+    ASSERT_EQ(miller, miller_val);
 
     // Generate and check the proof
     const typename snark::KeypairT keypair = snark::generate_setup(pb);
@@ -533,7 +538,55 @@ TEST(BLS12_377_PairingTest, FinalExpLastPart)
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
-#endif
+TEST(BLS12_377_PairingTest, FinalExpGadget)
+{
+    using FieldT = libff::Fr<wpp>;
+
+    // Simple tests of e(A,B).e(-A,B) == 1 and e(A,B') =/= 1.
+    const libff::G1<npp> P = libff::Fr<npp>(13) * libff::G1<npp>::one();
+    const libff::G1<npp> P_inv = libff::Fr<npp>(-13) * libff::G1<npp>::one();
+    const libff::G2<npp> Q = libff::Fr<npp>(19) * libff::G2<npp>::one();
+    const libff::Fqk<npp> ePQ = npp::reduced_pairing(P, Q);
+    const libff::Fqk<npp> ePQ_inv = npp::reduced_pairing(P_inv, Q);
+    ASSERT_EQ(libff::Fqk<npp>::one(), ePQ * ePQ_inv);
+
+    const libff::G1_precomp<npp> P_prec = npp::precompute_G1(P);
+    const libff::G1_precomp<npp> P_inv_prec = npp::precompute_G1(P_inv);
+    const libff::G2_precomp<npp> Q_prec = npp::precompute_G2(Q);
+    const libff::Fqk<npp> miller_PQ = npp::miller_loop(P_prec, Q_prec);
+    const libff::Fqk<npp> miller_PQ_inv = npp::miller_loop(P_inv_prec, Q_prec);
+    const libff::Fqk<npp> miller_ee = miller_PQ * miller_PQ_inv;
+    const libff::Fqk<npp> final_exp_ee = npp::final_exponentiation(miller_ee);
+    ASSERT_EQ(libff::Fqk<npp>::one(), final_exp_ee);
+
+    // Circuit
+    libsnark::protoboard<FieldT> pb;
+    libzecale::Fqk_variable<wpp> miller_PQ_var(pb, "miller_PQ");
+    libzecale::Fqk_variable<wpp> miller_ee_var(pb, "miller_ee");
+
+    // Case where output is NOT 1
+    libsnark::pb_variable<FieldT> final_exp_PQ_is_one_var;
+    final_exp_PQ_is_one_var.allocate(pb, "final_exp_PQ_is_one");
+    libzecale::bls12_377_ate_final_exp_gadget<wpp> final_exp_PQ_gadget(
+        pb, miller_PQ_var, final_exp_PQ_is_one_var, "final_exp_PQ");
+    final_exp_PQ_gadget.generate_r1cs_constraints();
+
+    // Case where output is 1
+    libsnark::pb_variable<FieldT> final_exp_ee_is_one_var;
+    final_exp_ee_is_one_var.allocate(pb, "final_exp_ee_is_one");
+    libzecale::bls12_377_ate_final_exp_gadget<wpp> final_exp_ee_gadget(
+        pb, miller_ee_var, final_exp_ee_is_one_var, "final_exp_ee");
+    final_exp_ee_gadget.generate_r1cs_constraints();
+
+    // Values
+    miller_PQ_var.generate_r1cs_witness(miller_PQ);
+    final_exp_PQ_gadget.generate_r1cs_witness();
+    miller_ee_var.generate_r1cs_witness(miller_ee);
+    final_exp_ee_gadget.generate_r1cs_witness();
+
+    ASSERT_EQ(FieldT::zero(), pb.val(final_exp_PQ_is_one_var));
+    ASSERT_EQ(FieldT::one(), pb.val(final_exp_ee_is_one_var));
+}
 
 } // namespace
 

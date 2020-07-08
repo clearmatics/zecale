@@ -7,6 +7,8 @@
 
 #include "libzecale/circuits/pairing/bls12_377_pairing.hpp"
 
+#include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
+
 namespace libzecale
 {
 
@@ -39,6 +41,8 @@ public:
     }
 
     inline size_t index() const { return (size_t)_i; }
+
+    inline bool last() const { return 0 == index(); }
 
 private:
     ssize_t _i;
@@ -380,7 +384,7 @@ bls12_377_ate_add_gadget<ppT>::bls12_377_ate_add_gadget(
          _Q_Y,
          _in_R.Z,
          _out_coeffs.ell_vv + _in_R.Y,
-         FMT(annotation_prefix, " A"))
+         FMT(annotation_prefix, " _A"))
     // ell_vw = lambda
     //   where
     //     lambda = Rx - B
@@ -390,7 +394,7 @@ bls12_377_ate_add_gadget<ppT>::bls12_377_ate_add_gadget(
          _Q_X,
          _in_R.Z,
          _in_R.X - _out_coeffs.ell_vw,
-         FMT(annotation_prefix, " B"))
+         FMT(annotation_prefix, " _B"))
     // theta = Ry - A;
     // , theta(in_R.Y + (A * -libff::Fr<ppT>::one()))
     // lambda = Rx - B;
@@ -398,39 +402,39 @@ bls12_377_ate_add_gadget<ppT>::bls12_377_ate_add_gadget(
     // C = theta.squared() = ell_vv^2
     , _C(pb,
          _out_coeffs.ell_vv,
-         Fqe_variable<ppT>(pb, FMT(annotation_prefix, " C")),
-         FMT(annotation_prefix, " C=ell_vv^2"))
+         Fqe_variable<ppT>(pb, FMT(annotation_prefix, " ell_vv^2")),
+         FMT(annotation_prefix, " _C"))
     // D = lambda.squared() = ell_vw^2
     , _D(pb,
          _out_coeffs.ell_vw,
-         Fqe_variable<ppT>(pb, FMT(annotation_prefix, " D")),
-         FMT(annotation_prefix, " D=ell_vw^2"))
+         Fqe_variable<ppT>(pb, FMT(annotation_prefix, " ell_vw^2")),
+         FMT(annotation_prefix, " _D"))
     // E = lambda * D = D * ell_vw;
     , _E(pb,
          _D.result,
          _out_coeffs.ell_vw,
-         Fqe_variable<ppT>(pb, FMT(annotation_prefix, " E")),
-         FMT(annotation_prefix, " E=D*ell_vw"))
+         Fqe_variable<ppT>(pb, FMT(annotation_prefix, " D*ell_vw")),
+         FMT(annotation_prefix, " _E"))
     // F = Rz * C;
     , _F(pb,
          _in_R.Z,
          _C.result,
-         Fqe_variable<ppT>(pb, FMT(annotation_prefix, " F")),
-         FMT(annotation_prefix, " F=Rz*C"))
+         Fqe_variable<ppT>(pb, FMT(annotation_prefix, " Rz*C")),
+         FMT(annotation_prefix, " _F"))
     // G = Rx * D;
     , _G(pb,
          _in_R.X,
          _D.result,
-         Fqe_variable<ppT>(pb, FMT(annotation_prefix, " G")),
-         FMT(annotation_prefix, " G=Rx*D"))
+         Fqe_variable<ppT>(pb, FMT(annotation_prefix, " Rx*D")),
+         FMT(annotation_prefix, " _G"))
     // H = E + F - (G + G);
     , _H(_E.result + _F.result - _G.result - _G.result)
     // I = Ry * E;
     , _I(pb,
          _in_R.Y,
          _E.result,
-         Fqe_variable<ppT>(pb, FMT(annotation_prefix, " I")),
-         FMT(annotation_prefix, " check I"))
+         Fqe_variable<ppT>(pb, FMT(annotation_prefix, " Ry*E")),
+         FMT(annotation_prefix, " _I"))
     // out_coeffs.ell_0 = xi * J
     //   where J = theta * Qx - lambda * Qy
     // <=> lambda * Qy = theta * Qx - ell_0 * xi^{-1}
@@ -438,22 +442,22 @@ bls12_377_ate_add_gadget<ppT>::bls12_377_ate_add_gadget(
           pb,
           -_out_coeffs.ell_vv,
           _Q_X,
-          Fqe_variable<ppT>(pb, FMT(annotation_prefix, " theta_times_Rx")),
-          FMT(annotation_prefix, " theta*Qx"))
+          Fqe_variable<ppT>(pb, FMT(annotation_prefix, " theta*Qx")),
+          FMT(annotation_prefix, " _theta_times_Qx"))
     , _lambda_times_Qy(
           pb,
           _out_coeffs.ell_vw,
           _Q_Y,
           _theta_times_Qx.result -
               (_out_coeffs.ell_0 * libff::bls12_377_twist.inverse()),
-          FMT(annotation_prefix, " lambda*Qy=theta*Qx - ell_0.xi^{-1}"))
+          FMT(annotation_prefix, " _lambda_times_Qy"))
     // out_Rx = lambda * H = ell_vw * H
     , _check_out_Rx(
           pb,
           _out_coeffs.ell_vw,
           _H,
           _out_R.X,
-          FMT(annotation_prefix, " out_Rx=ell_vw*H"))
+          FMT(annotation_prefix, " _check_out_Rx"))
     // out_Ry = theta * (G - H) - I = -ell_vv * (G-H) - I
     // <=> ell_vv * (H-G) = out_Ry + I
     , _check_out_Ry(
@@ -461,14 +465,14 @@ bls12_377_ate_add_gadget<ppT>::bls12_377_ate_add_gadget(
           _out_coeffs.ell_vv,
           _H - _G.result,
           _out_R.Y + _I.result,
-          FMT(annotation_prefix, "ell_vv*(H-G)=out_Ry+I"))
+          FMT(annotation_prefix, " _check_out_Ry"))
     // out_Rz = Z1 * E;
     , _check_out_Rz(
           pb,
           _in_R.Z,
           _E.result,
           _out_R.Z,
-          FMT(annotation_prefix, " out_Rz=in_Rz*E"))
+          FMT(annotation_prefix, " _check_out_Rz"))
 {
 }
 
@@ -640,8 +644,6 @@ void bls12_377_G2_precompute_gadget<ppT>::generate_r1cs_constraints()
 template<typename ppT>
 void bls12_377_G2_precompute_gadget<ppT>::generate_r1cs_witness()
 {
-    // _R0.evaluate();
-
     size_t dbl_idx = 0;
     size_t add_idx = 0;
     bls12_377_miller_loop_bits bits;
@@ -653,17 +655,16 @@ void bls12_377_G2_precompute_gadget<ppT>::generate_r1cs_witness()
     }
 }
 
-#if 0
-
 // bls12_377_ate_compute_f_ell_P methods
 
 template<typename ppT>
 bls12_377_ate_compute_f_ell_P<ppT>::bls12_377_ate_compute_f_ell_P(
     libsnark::protoboard<FieldT> &pb,
-    const libsnark::pb_variable<FieldT> &Px,
-    const libsnark::pb_variable<FieldT> &Py,
+    const libsnark::pb_linear_combination<FieldT> &Px,
+    const libsnark::pb_linear_combination<FieldT> &Py,
     const bls12_377_ate_ell_coeffs<ppT> &ell_coeffs,
     const Fp12_2over3over2_variable<FqkT> &f,
+    const Fp12_2over3over2_variable<FqkT> &f_out,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
     , _ell_vv_times_Px(
@@ -684,7 +685,7 @@ bls12_377_ate_compute_f_ell_P<ppT>::bls12_377_ate_compute_f_ell_P(
           ell_coeffs.ell_0,
           _ell_vv_times_Px.result,
           _ell_vw_times_Py.result,
-          Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " new_f")),
+          f_out,
           FMT(annotation_prefix, " _f_mul_ell_P"))
 {
 }
@@ -722,51 +723,67 @@ bls12_377_ate_miller_loop_gadget<ppT>::bls12_377_ate_miller_loop_gadget(
     const Fqk_variable<ppT> &result,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
-    , _prec_P(prec_P)
-    , _prec_Q(prec_Q)
-    , _result(result)
     , _f0(pb, FqkT::one(), FMT(annotation_prefix, "f0"))
 {
-    size_t dbl_idx = 0;
-    size_t add_idx = 0;
-
+    size_t coeff_idx = 0;
     const Fp12_2over3over2_variable<FqkT> *f = &_f0;
 
     bls12_377_miller_loop_bits bits;
     while (bits.next()) {
         // f <- f^2
-        Fp12_2over3over2_variable<FqkT> f_squared(
-            pb, FMT(annotation_prefix, " f^2"));
         _f_squared.push_back(
             std::shared_ptr<Fp12_2over3over2_square_gadget<FqkT>>(
                 new Fp12_2over3over2_square_gadget<FqkT>(
                     pb,
                     *f,
-                    f_squared,
-                    FMT(annotation_prefix, " compute_f^2"))));
+                    Fp12_2over3over2_variable<FqkT>(
+                        pb, FMT(annotation_prefix, " f^2")),
+                    FMT(annotation_prefix, " _f_squared[%zu]", bits.index()))));
+        f = &_f_squared.back()->result();
 
         // f <- f^2 * ell(P)
         _f_ell_P.push_back(std::shared_ptr<bls12_377_ate_compute_f_ell_P<ppT>>(
             new bls12_377_ate_compute_f_ell_P<ppT>(
                 pb,
-                Px,
-                Py,
-                _prec_Q._dbl_coeffs[dbl_idx++],
-                f_squared,
-                FMT(annotation_prefix, " f^2*ell(P)"))));
+                *prec_P._Px,
+                *prec_P._Py,
+                *prec_Q._coeffs[coeff_idx++],
+                *f,
+                Fp12_2over3over2_variable<FqkT>(
+                    pb, FMT(annotation_prefix, " f^2*ell(P)")),
+                FMT(annotation_prefix, " _f_ell_P[%zu]", _f_ell_P.size()))));
         f = &_f_ell_P.back()->result();
 
         if (bits.current()) {
             // f <- f * ell(P)
-            _f_ell_P.push_back(
-                std::shared_ptr<bls12_377_ate_compute_f_ell_P<ppT>>(
-                    new bls12_377_ate_compute_f_ell_P<ppT>(
-                        pb,
-                        Px,
-                        Py,
-                        _prec_Q._add_coeffs[add_idx++],
-                        *f,
-                        FMT(annotation_prefix, " f*ell(P)"))));
+            if (bits.last()) {
+                _f_ell_P.push_back(
+                    std::shared_ptr<bls12_377_ate_compute_f_ell_P<ppT>>(
+                        new bls12_377_ate_compute_f_ell_P<ppT>(
+                            pb,
+                            *prec_P._Px,
+                            *prec_P._Py,
+                            *prec_Q._coeffs[coeff_idx++],
+                            *f,
+                            result,
+                            FMT(annotation_prefix,
+                                " _f_ell_P[%zu]",
+                                _f_ell_P.size()))));
+            } else {
+                _f_ell_P.push_back(
+                    std::shared_ptr<bls12_377_ate_compute_f_ell_P<ppT>>(
+                        new bls12_377_ate_compute_f_ell_P<ppT>(
+                            pb,
+                            *prec_P._Px,
+                            *prec_P._Py,
+                            *prec_Q._coeffs[coeff_idx++],
+                            *f,
+                            Fp12_2over3over2_variable<FqkT>(
+                                pb, FMT(annotation_prefix, " f*ell(P)")),
+                            FMT(annotation_prefix,
+                                " _f_ell_P[%zu]",
+                                _f_ell_P.size()))));
+            }
             f = &_f_ell_P.back()->result();
         }
     }
@@ -782,11 +799,8 @@ const Fp12_2over3over2_variable<libff::Fqk<other_curve<ppT>>>
 template<typename ppT>
 void bls12_377_ate_miller_loop_gadget<ppT>::generate_r1cs_constraints()
 {
-    // // Precompute step
-    // _Q_precomp.generate_r1cs_constraints();
-
-    // TODO: everything is allocated, so constraint generation does not need to
-    // be done in this order. For now, keep a consistent loop.
+    // TODO: everything is allocated, so constraint generation does not need
+    // to be done in this order. For now, keep a consistent loop.
 
     size_t sqr_idx = 0;
     size_t f_ell_P_idx = 0;
@@ -806,9 +820,6 @@ void bls12_377_ate_miller_loop_gadget<ppT>::generate_r1cs_constraints()
 template<typename ppT>
 void bls12_377_ate_miller_loop_gadget<ppT>::generate_r1cs_witness()
 {
-    // // Precompute step
-    // _Q_precomp.generate_r1cs_witness();
-
     size_t sqr_idx = 0;
     size_t f_ell_P_idx = 0;
     bls12_377_miller_loop_bits bits;
@@ -1211,7 +1222,94 @@ void bls12_377_final_exp_last_part_gadget<ppT>::generate_r1cs_witness()
     _U.generate_r1cs_witness();
     _U_times_L.generate_r1cs_witness();
 }
-#endif
+
+// bls12_377_ate_final_exp_gadget methods
+
+template<typename ppT>
+bls12_377_ate_final_exp_gadget<ppT>::bls12_377_ate_final_exp_gadget(
+    libsnark::protoboard<libff::Fr<ppT>> &pb,
+    const Fp12_2over3over2_variable<FqkT> &el,
+    const libsnark::pb_variable<FieldT> &result_is_one,
+    const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , _first_part(
+          pb,
+          el,
+          Fqk_variable<ppT>(pb, FMT(annotation_prefix, " final_exp_first")),
+          FMT(annotation_prefix, " compute_final_exp_first_part"))
+    , _last_part(
+          pb,
+          _first_part.result(),
+          Fqk_variable<ppT>(pb, FMT(annotation_prefix, " final_exp_last")),
+          FMT(annotation_prefix, " compute_final_exp_last_part"))
+    , _result_is_one(result_is_one)
+{
+}
+
+template<typename ppT>
+void bls12_377_ate_final_exp_gadget<ppT>::generate_r1cs_constraints()
+{
+    _first_part.generate_r1cs_constraints();
+    _last_part.generate_r1cs_constraints();
+
+    // Constrain result_is_one to be 0 or 1.
+    libsnark::generate_boolean_r1cs_constraint<FieldT>(
+        this->pb,
+        _result_is_one,
+        FMT(this->annotation_prefix, " result_is_one_boolean"));
+
+    // Use the value of result_is_one to enable / disable the constraints on
+    // the 12 components of the result of the final exponentiation in Fq12.
+    Fqk_variable<ppT> result = _last_part.result();
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(
+            _result_is_one, 1 - result._c0._c0.c0, 0),
+        " c0.c0.c0==1");
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(_result_is_one, result._c0._c0.c1, 0),
+        " c0.c0.c1==0");
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(_result_is_one, result._c0._c1.c0, 0),
+        " c0.c1.c0==0");
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(_result_is_one, result._c0._c1.c1, 0),
+        " c0.c1.c1==0");
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(_result_is_one, result._c0._c2.c0, 0),
+        " c0.c2.c0==0");
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(_result_is_one, result._c0._c2.c1, 0),
+        " c0.c2.c1==0");
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(_result_is_one, result._c1._c0.c0, 0),
+        " c1.c0.c0==0");
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(_result_is_one, result._c1._c0.c1, 0),
+        " c1.c0.c1==0");
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(_result_is_one, result._c1._c1.c0, 0),
+        " c1.c1.c0==0");
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(_result_is_one, result._c1._c1.c1, 0),
+        " c1.c1.c1==0");
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(_result_is_one, result._c1._c2.c0, 0),
+        " check c1.c2.c0");
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<FieldT>(_result_is_one, result._c1._c2.c1, 0),
+        " check c1.c2.c1");
+}
+
+template<typename ppT>
+void bls12_377_ate_final_exp_gadget<ppT>::generate_r1cs_witness()
+{
+    _first_part.generate_r1cs_witness();
+    _last_part.generate_r1cs_witness();
+
+    const FqkT result_val = _last_part.result().get_element();
+    this->pb.val(_result_is_one) =
+        (result_val == FqkT::one()) ? FieldT::one() : FieldT::zero();
+}
 
 } // namespace libzecale
 
