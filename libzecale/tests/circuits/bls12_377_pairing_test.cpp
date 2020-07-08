@@ -30,7 +30,7 @@ TEST(BLS12_377_PairingTest, G1PrecomputeGadgetTest)
     // Circuit with precompute gadget
     libsnark::protoboard<libff::Fr<wpp>> pb;
     libsnark::G1_variable<wpp> P_var(pb, "P");
-    libzecale::bls12_377_G1_precomputation<wpp> P_prec_var(pb, "P_prec");
+    libzecale::bls12_377_G1_precomputation<wpp> P_prec_var;
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
     libzecale::bls12_377_G1_precompute_gadget<wpp> precompute_gadget(
@@ -264,7 +264,7 @@ static void assert_ate_coeffs_eq(
 
 template<typename ppT>
 static void assert_G2_precomputation_eq(
-    const libff::bls12_377_ate_G2_precomp &Q_prec,
+    const libff::bls12_377_G2_precomp &Q_prec,
     const libzecale::bls12_377_G2_precomputation<ppT> &Q_prec_var)
 {
     // Iterate through the dbl and adds, checking the coefficient values.
@@ -308,7 +308,7 @@ TEST(BLS12_377_PairingTest, G2PrecomputeGadgetTest)
     // Circuit with precompute gadget
     libsnark::protoboard<libff::Fr<wpp>> pb;
     libsnark::G2_variable<wpp> Q_var(pb, "Q");
-    libzecale::bls12_377_G2_precomputation<wpp> Q_prec_var(pb, "Q_prec");
+    libzecale::bls12_377_G2_precomputation<wpp> Q_prec_var;
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
     libzecale::bls12_377_G2_precompute_gadget<wpp> precompute_gadget(
@@ -354,11 +354,11 @@ TEST(BLS12_377_PairingTest, MillerLoopGadgetTest)
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
 
-    libzecale::G1_precomputation<wpp> P_prec_var(pb, "P_prec");
+    libzecale::G1_precomputation<wpp> P_prec_var;
     libzecale::G1_precompute_gadget<wpp> precompute_P(
         pb, P_var, P_prec_var, "precomp_P");
 
-    libzecale::G2_precomputation<wpp> Q_prec_var(pb, "Q_prec");
+    libzecale::G2_precomputation<wpp> Q_prec_var;
     libzecale::G2_precompute_gadget<wpp> precompute_Q(
         pb, Q_var, Q_prec_var, "precomp_Q");
 
@@ -556,11 +556,11 @@ TEST(BLS12_377_PairingTest, FullPairingCircuit)
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
 
-    libzecale::G1_precomputation<wpp> P_prec_var(pb, "P_prec");
+    libzecale::G1_precomputation<wpp> P_prec_var;
     libzecale::G1_precompute_gadget<wpp> precompute_P(
         pb, P_var, P_prec_var, "P_prec");
 
-    libzecale::G2_precomputation<wpp> Q_prec_var(pb, "Q_prec");
+    libzecale::G2_precomputation<wpp> Q_prec_var;
     libzecale::G2_precompute_gadget<wpp> precompute_Q(
         pb, Q_var, Q_prec_var, "Q_prec");
 

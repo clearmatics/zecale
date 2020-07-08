@@ -7,6 +7,7 @@
 
 #include "libzecale/circuits/fields/fp12_2over3over2_gadgets.hpp"
 #include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
+#include "libzecale/circuits/pairing/pairing_params.hpp"
 
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
 #include <libsnark/gadgetlib1/gadgets/curves/weierstrass_g1_gadget.hpp>
@@ -24,8 +25,7 @@ public:
     std::shared_ptr<libsnark::pb_linear_combination<FieldT>> _Px;
     std::shared_ptr<libsnark::pb_linear_combination<FieldT>> _Py;
 
-    bls12_377_G1_precomputation(
-        libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix);
+    bls12_377_G1_precomputation();
 };
 
 /// Holds an element of G2 in homogeneous projective form. Used for
@@ -71,8 +71,7 @@ public:
 
     std::vector<std::shared_ptr<bls12_377_ate_ell_coeffs<ppT>>> _coeffs;
 
-    bls12_377_G2_precomputation(
-        libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix);
+    bls12_377_G2_precomputation();
 };
 
 template<typename ppT>

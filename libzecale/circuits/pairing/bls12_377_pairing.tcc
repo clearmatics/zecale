@@ -51,9 +51,7 @@ private:
 // bls12_377_G1_precomputation methods
 
 template<typename ppT>
-bls12_377_G1_precomputation<ppT>::bls12_377_G1_precomputation(
-    libsnark::protoboard<FieldT> &, const std::string &)
-    : _Px(), _Py()
+bls12_377_G1_precomputation<ppT>::bls12_377_G1_precomputation() : _Px(), _Py()
 {
 }
 
@@ -98,15 +96,14 @@ bls12_377_ate_ell_coeffs<ppT>::bls12_377_ate_ell_coeffs(
 {
 }
 
-// bls12_377_ate_G2_precomputation methods
+// bls12_377_G2_precomputation methods
 
 template<typename ppT>
-bls12_377_G2_precomputation<ppT>::bls12_377_G2_precomputation(
-    libsnark::protoboard<FieldT> &, const std::string &)
+bls12_377_G2_precomputation<ppT>::bls12_377_G2_precomputation()
 {
 }
 
-// bls12_377_ate_G1_precompute_gadget methods
+// bls12_377_G1_precompute_gadget methods
 
 template<typename ppT>
 bls12_377_G1_precompute_gadget<ppT>::bls12_377_G1_precompute_gadget(
@@ -563,7 +560,7 @@ void bls12_377_ate_add_gadget<ppT>::generate_r1cs_witness()
     _check_out_Rz.generate_r1cs_witness();
 }
 
-// bls12_377_ate_precompute methods
+// bls12_377_G2_precompute methods
 
 template<typename ppT>
 bls12_377_G2_precompute_gadget<ppT>::bls12_377_G2_precompute_gadget(
