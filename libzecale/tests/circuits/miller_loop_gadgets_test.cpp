@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
 #include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
 
 #include <gtest/gtest.h>
@@ -207,11 +208,80 @@ TEST(MillerLoopGadgets, TestMntEEEoverEmillerLoop)
         " test_eee_over_e_miller_loop_mnt6");
 }
 
+TEST(MillerLoopGadgets, TestBlsEEEoverEmillerLoop)
+{
+    using opp = libff::bw6_761_pp;   // outer pairing
+    using ipp = libff::bls12_377_pp; // inner pairing
+
+    libff::G1<ipp> P1_val =
+        libff::Fr<ipp>::random_element() * libff::G1<ipp>::one();
+    libff::G2<ipp> Q1_val =
+        libff::Fr<ipp>::random_element() * libff::G2<ipp>::one();
+
+    libff::G1<ipp> P2_val =
+        libff::Fr<ipp>::random_element() * libff::G1<ipp>::one();
+    libff::G2<ipp> Q2_val =
+        libff::Fr<ipp>::random_element() * libff::G2<ipp>::one();
+
+    libff::G1<ipp> P3_val =
+        libff::Fr<ipp>::random_element() * libff::G1<ipp>::one();
+    libff::G2<ipp> Q3_val =
+        libff::Fr<ipp>::random_element() * libff::G2<ipp>::one();
+
+    libff::G1<ipp> P4_val =
+        libff::Fr<ipp>::random_element() * libff::G1<ipp>::one();
+    libff::G2<ipp> Q4_val =
+        libff::Fr<ipp>::random_element() * libff::G2<ipp>::one();
+
+    libff::G1_precomp<ipp> native_prec_P1 = ipp::precompute_G1(P1_val);
+    libff::G2_precomp<ipp> native_prec_Q1 = ipp::precompute_G2(Q1_val);
+    libff::G1_precomp<ipp> native_prec_P2 = ipp::precompute_G1(P2_val);
+    libff::G2_precomp<ipp> native_prec_Q2 = ipp::precompute_G2(Q2_val);
+    libff::G1_precomp<ipp> native_prec_P3 = ipp::precompute_G1(P3_val);
+    libff::G2_precomp<ipp> native_prec_Q3 = ipp::precompute_G2(Q3_val);
+    libff::G1_precomp<ipp> native_prec_minus_P4 = ipp::precompute_G1(-P4_val);
+    libff::G2_precomp<ipp> native_prec_Q4 = ipp::precompute_G2(Q4_val);
+
+    libff::Fqk<ipp> miller_P1_Q1 =
+        ipp::miller_loop(native_prec_P1, native_prec_Q1);
+    libff::Fqk<ipp> miller_P2_Q2 =
+        ipp::miller_loop(native_prec_P2, native_prec_Q2);
+    libff::Fqk<ipp> miller_P3_Q3 =
+        ipp::miller_loop(native_prec_P3, native_prec_Q3);
+    libff::Fqk<ipp> miller_P4_Q4_inv =
+        ipp::miller_loop(native_prec_minus_P4, native_prec_Q4);
+    libff::Fqk<ipp> native_result =
+        miller_P1_Q1 * miller_P2_Q2 * miller_P3_Q3 * miller_P4_Q4_inv;
+
+    // Ensure that miller_P4_Q4_inv is indeed equivalent to
+    // miller_P4_Q4.inverse()
+    libff::G1_precomp<ipp> native_prec_P4 = ipp::precompute_G1(P4_val);
+    libff::Fqk<ipp> miller_P4_Q4 =
+        ipp::miller_loop(native_prec_P4, native_prec_Q4);
+    ASSERT_EQ(
+        ipp::final_exponentiation(miller_P4_Q4.inverse()),
+        ipp::final_exponentiation(miller_P4_Q4_inv));
+
+    ASSERT_TRUE(test_e_times_e_times_e_over_e_miller_loop<opp>(
+        P1_val,
+        Q1_val,
+        P2_val,
+        Q2_val,
+        P3_val,
+        Q3_val,
+        P4_val,
+        Q4_val,
+        native_result,
+        " test_eee_over_e_miller_loop_bls12_377"));
+}
+
 } // namespace
 
 int main(int argc, char **argv)
 {
     libff::start_profiling();
+    libff::bw6_761_pp::init_public_params();
+    libff::bls12_377_pp::init_public_params();
     libff::mnt4_pp::init_public_params();
     libff::mnt6_pp::init_public_params();
     ::testing::InitGoogleTest(&argc, argv);

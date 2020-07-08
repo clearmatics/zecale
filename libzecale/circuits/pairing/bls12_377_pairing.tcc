@@ -710,10 +710,10 @@ void bls12_377_ate_compute_f_ell_P<ppT>::generate_r1cs_witness()
     _f_mul_ell_P.generate_r1cs_witness();
 }
 
-// bls12_377_ate_miller_loop_gadget methods
+// bls12_377_miller_loop_gadget methods
 
 template<typename ppT>
-bls12_377_ate_miller_loop_gadget<ppT>::bls12_377_ate_miller_loop_gadget(
+bls12_377_miller_loop_gadget<ppT>::bls12_377_miller_loop_gadget(
     libsnark::protoboard<FieldT> &pb,
     const bls12_377_G1_precomputation<ppT> &prec_P,
     const bls12_377_G2_precomputation<ppT> &prec_Q,
@@ -788,13 +788,13 @@ bls12_377_ate_miller_loop_gadget<ppT>::bls12_377_ate_miller_loop_gadget(
 
 template<typename ppT>
 const Fp12_2over3over2_variable<libff::Fqk<other_curve<ppT>>>
-    &bls12_377_ate_miller_loop_gadget<ppT>::result() const
+    &bls12_377_miller_loop_gadget<ppT>::result() const
 {
     return _f_ell_P.back()->result();
 }
 
 template<typename ppT>
-void bls12_377_ate_miller_loop_gadget<ppT>::generate_r1cs_constraints()
+void bls12_377_miller_loop_gadget<ppT>::generate_r1cs_constraints()
 {
     // TODO: everything is allocated, so constraint generation does not need
     // to be done in this order. For now, keep a consistent loop.
@@ -815,7 +815,7 @@ void bls12_377_ate_miller_loop_gadget<ppT>::generate_r1cs_constraints()
 }
 
 template<typename ppT>
-void bls12_377_ate_miller_loop_gadget<ppT>::generate_r1cs_witness()
+void bls12_377_miller_loop_gadget<ppT>::generate_r1cs_witness()
 {
     size_t sqr_idx = 0;
     size_t f_ell_P_idx = 0;
@@ -1306,6 +1306,212 @@ void bls12_377_final_exp_gadget<ppT>::generate_r1cs_witness()
     const FqkT result_val = _last_part.result().get_element();
     this->pb.val(_result_is_one) =
         (result_val == FqkT::one()) ? FieldT::one() : FieldT::zero();
+}
+
+template<typename ppT>
+bls12_377_e_times_e_times_e_over_e_miller_loop_gadget<ppT>::
+    bls12_377_e_times_e_times_e_over_e_miller_loop_gadget(
+        libsnark::protoboard<libff::Fr<ppT>> &pb,
+        const bls12_377_G1_precomputation<ppT> &P1_prec,
+        const bls12_377_G2_precomputation<ppT> &Q1_prec,
+        const bls12_377_G1_precomputation<ppT> &P2_prec,
+        const bls12_377_G2_precomputation<ppT> &Q2_prec,
+        const bls12_377_G1_precomputation<ppT> &P3_prec,
+        const bls12_377_G2_precomputation<ppT> &Q3_prec,
+        const bls12_377_G1_precomputation<ppT> &P4_prec,
+        const bls12_377_G2_precomputation<ppT> &Q4_prec,
+        const Fp12_2over3over2_variable<FqkT> &result,
+        const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , _f0(pb, FqkT::one(), FMT(annotation_prefix, "f0"))
+    , _minus_P4_Y()
+{
+    _minus_P4_Y.assign(pb, -(*P4_prec._Py));
+    size_t coeff_idx = 0;
+    const Fp12_2over3over2_variable<FqkT> *f = &_f0;
+
+    bls12_377_miller_loop_bits bits;
+    while (bits.next()) {
+        // f <- f^2
+        _f_squared.emplace_back(new Fp12_2over3over2_square_gadget<FqkT>(
+            pb,
+            *f,
+            Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " f^2")),
+            FMT(annotation_prefix, " _f_squared[%zu]", _f_squared.size())));
+        f = &_f_squared.back()->result();
+
+        // f <- f^2 * ell_Q1(P1)
+        _f_ell_P.emplace_back(new bls12_377_ate_compute_f_ell_P<ppT>(
+            pb,
+            *P1_prec._Px,
+            *P1_prec._Py,
+            *Q1_prec._coeffs[coeff_idx],
+            *f,
+            Fp12_2over3over2_variable<FqkT>(
+                pb, FMT(annotation_prefix, " f^2*ell_Q1(P1)")),
+            FMT(annotation_prefix, " _f_ell_P1[%zu]", _f_ell_P.size())));
+        f = &_f_ell_P.back()->result();
+
+        // f <- f^2 * ell_Q2(P2)
+        _f_ell_P.emplace_back(new bls12_377_ate_compute_f_ell_P<ppT>(
+            pb,
+            *P2_prec._Px,
+            *P2_prec._Py,
+            *Q2_prec._coeffs[coeff_idx],
+            *f,
+            Fp12_2over3over2_variable<FqkT>(
+                pb, FMT(annotation_prefix, " f^2*ell_Q2(P2)")),
+            FMT(annotation_prefix, " _f_ell_P[%zu]", _f_ell_P.size())));
+        f = &_f_ell_P.back()->result();
+
+        // f <- f^2 * ell_Q3(P3)
+        _f_ell_P.emplace_back(new bls12_377_ate_compute_f_ell_P<ppT>(
+            pb,
+            *P3_prec._Px,
+            *P3_prec._Py,
+            *Q3_prec._coeffs[coeff_idx],
+            *f,
+            Fp12_2over3over2_variable<FqkT>(
+                pb, FMT(annotation_prefix, " f^2*ell_Q3(P3)")),
+            FMT(annotation_prefix, " _f_ell_P[%zu]", _f_ell_P.size())));
+        f = &_f_ell_P.back()->result();
+
+        // f <- f^2 * ell_Q1(P1)
+        _f_ell_P.emplace_back(new bls12_377_ate_compute_f_ell_P<ppT>(
+            pb,
+            *P4_prec._Px,
+            _minus_P4_Y,
+            *Q4_prec._coeffs[coeff_idx],
+            *f,
+            Fp12_2over3over2_variable<FqkT>(
+                pb, FMT(annotation_prefix, " f^2*ell_Q4(P4)")),
+            FMT(annotation_prefix, " _f_ell_P[%zu]", _f_ell_P.size())));
+        f = &_f_ell_P.back()->result();
+
+        assert(0 == _f_ell_P.size() % 4);
+
+        ++coeff_idx;
+
+        if (bits.current()) {
+            // f <- f * ell_Q1(P1)
+            _f_ell_P.emplace_back(new bls12_377_ate_compute_f_ell_P<ppT>(
+                pb,
+                *P1_prec._Px,
+                *P1_prec._Py,
+                *Q1_prec._coeffs[coeff_idx],
+                *f,
+                Fp12_2over3over2_variable<FqkT>(
+                    pb, FMT(annotation_prefix, " f*ell_Q1(P2)")),
+                FMT(annotation_prefix, " _f_ell_P[%zu]", _f_ell_P.size())));
+            f = &_f_ell_P.back()->result();
+
+            // f <- f * ell_Q2(P2)
+            _f_ell_P.emplace_back(new bls12_377_ate_compute_f_ell_P<ppT>(
+                pb,
+                *P2_prec._Px,
+                *P2_prec._Py,
+                *Q2_prec._coeffs[coeff_idx],
+                *f,
+                Fp12_2over3over2_variable<FqkT>(
+                    pb, FMT(annotation_prefix, " f*ell_Q2(P2)")),
+                FMT(annotation_prefix, " _f_ell_P[%zu]", _f_ell_P.size())));
+            f = &_f_ell_P.back()->result();
+
+            // f <- f * ell_Q3(P3)
+            _f_ell_P.emplace_back(new bls12_377_ate_compute_f_ell_P<ppT>(
+                pb,
+                *P3_prec._Px,
+                *P3_prec._Py,
+                *Q3_prec._coeffs[coeff_idx],
+                *f,
+                Fp12_2over3over2_variable<FqkT>(
+                    pb, FMT(annotation_prefix, " f*ell_Q3(P3)")),
+                FMT(annotation_prefix, " _f_ell_P[%zu]", _f_ell_P.size())));
+            f = &_f_ell_P.back()->result();
+
+            // f <- f * ell_Q4(P4)
+            if (bits.last()) {
+                _f_ell_P.emplace_back(
+                    std::shared_ptr<bls12_377_ate_compute_f_ell_P<ppT>>(
+                        new bls12_377_ate_compute_f_ell_P<ppT>(
+                            pb,
+                            *P4_prec._Px,
+                            _minus_P4_Y,
+                            *Q4_prec._coeffs[coeff_idx],
+                            *f,
+                            result,
+                            FMT(annotation_prefix,
+                                " _f_ell_P[%zu]",
+                                _f_ell_P.size()))));
+            } else {
+                _f_ell_P.emplace_back(new bls12_377_ate_compute_f_ell_P<ppT>(
+                    pb,
+                    *P4_prec._Px,
+                    _minus_P4_Y,
+                    *Q4_prec._coeffs[coeff_idx],
+                    *f,
+                    Fp12_2over3over2_variable<FqkT>(
+                        pb, FMT(annotation_prefix, " f*ell_Q4(P4)")),
+                    FMT(annotation_prefix, " _f_ell_P[%zu]", _f_ell_P.size())));
+            }
+            f = &_f_ell_P.back()->result();
+
+            assert(0 == _f_ell_P.size() % 4);
+
+            ++coeff_idx;
+        }
+    }
+}
+
+template<typename ppT>
+void bls12_377_e_times_e_times_e_over_e_miller_loop_gadget<
+    ppT>::generate_r1cs_constraints()
+{
+    size_t sqr_idx = 0;
+    size_t f_ell_P_idx = 0;
+    bls12_377_miller_loop_bits bits;
+    while (bits.next()) {
+        _f_squared[sqr_idx++]->generate_r1cs_constraints();
+        _f_ell_P[f_ell_P_idx++]->generate_r1cs_constraints();
+        _f_ell_P[f_ell_P_idx++]->generate_r1cs_constraints();
+        _f_ell_P[f_ell_P_idx++]->generate_r1cs_constraints();
+        _f_ell_P[f_ell_P_idx++]->generate_r1cs_constraints();
+        if (bits.current()) {
+            _f_ell_P[f_ell_P_idx++]->generate_r1cs_constraints();
+            _f_ell_P[f_ell_P_idx++]->generate_r1cs_constraints();
+            _f_ell_P[f_ell_P_idx++]->generate_r1cs_constraints();
+            _f_ell_P[f_ell_P_idx++]->generate_r1cs_constraints();
+        }
+    }
+
+    assert(sqr_idx == _f_squared.size());
+    assert(f_ell_P_idx == _f_ell_P.size());
+}
+
+template<typename ppT>
+void bls12_377_e_times_e_times_e_over_e_miller_loop_gadget<
+    ppT>::generate_r1cs_witness()
+{
+    _minus_P4_Y.evaluate(this->pb);
+    size_t sqr_idx = 0;
+    size_t f_ell_P_idx = 0;
+    bls12_377_miller_loop_bits bits;
+    while (bits.next()) {
+        _f_squared[sqr_idx++]->generate_r1cs_witness();
+        _f_ell_P[f_ell_P_idx++]->generate_r1cs_witness();
+        _f_ell_P[f_ell_P_idx++]->generate_r1cs_witness();
+        _f_ell_P[f_ell_P_idx++]->generate_r1cs_witness();
+        _f_ell_P[f_ell_P_idx++]->generate_r1cs_witness();
+        if (bits.current()) {
+            _f_ell_P[f_ell_P_idx++]->generate_r1cs_witness();
+            _f_ell_P[f_ell_P_idx++]->generate_r1cs_witness();
+            _f_ell_P[f_ell_P_idx++]->generate_r1cs_witness();
+            _f_ell_P[f_ell_P_idx++]->generate_r1cs_witness();
+        }
+    }
+
+    assert(sqr_idx == _f_squared.size());
+    assert(f_ell_P_idx == _f_ell_P.size());
 }
 
 } // namespace libzecale

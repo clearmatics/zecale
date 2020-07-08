@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
 #include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
 #include "libzecale/circuits/pairing/pairing_checks.hpp"
 #include "libzecale/circuits/pairing/pairing_params.hpp"

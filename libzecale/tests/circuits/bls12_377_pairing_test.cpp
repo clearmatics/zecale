@@ -362,7 +362,7 @@ TEST(BLS12_377_PairingTest, MillerLoopGadgetTest)
     libzecale::G2_precompute_gadget<wpp> precompute_Q(
         pb, Q_var, Q_prec_var, "precomp_Q");
 
-    libzecale::bls12_377_ate_miller_loop_gadget<wpp> miller_loop_gadget(
+    libzecale::bls12_377_miller_loop_gadget<wpp> miller_loop_gadget(
         pb, P_prec_var, Q_prec_var, miller_var, "miller loop");
 
     precompute_P.generate_r1cs_constraints();
@@ -565,7 +565,7 @@ TEST(BLS12_377_PairingTest, FullPairingCircuit)
         pb, Q_var, Q_prec_var, "Q_prec");
 
     libzecale::Fp12_2over3over2_variable<FqkT> miller_var(pb, "miller");
-    libzecale::bls12_377_ate_miller_loop_gadget<wpp> miller_loop_gadget(
+    libzecale::bls12_377_miller_loop_gadget<wpp> miller_loop_gadget(
         pb, P_prec_var, Q_prec_var, miller_var, "miller loop");
 
     libzecale::Fp12_2over3over2_variable<FqkT> final_exp_first_part_var(

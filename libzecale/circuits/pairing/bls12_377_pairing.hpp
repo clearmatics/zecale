@@ -297,7 +297,7 @@ public:
 };
 
 template<typename ppT>
-class bls12_377_ate_miller_loop_gadget : public libsnark::gadget<libff::Fr<ppT>>
+class bls12_377_miller_loop_gadget : public libsnark::gadget<libff::Fr<ppT>>
 {
 public:
     using FieldT = libff::Fr<ppT>;
@@ -314,7 +314,7 @@ public:
     // f * ell(P) (for both double and add steps)
     std::vector<std::shared_ptr<bls12_377_ate_compute_f_ell_P<ppT>>> _f_ell_P;
 
-    bls12_377_ate_miller_loop_gadget(
+    bls12_377_miller_loop_gadget(
         libsnark::protoboard<FieldT> &pb,
         const bls12_377_G1_precomputation<ppT> &prec_P,
         const bls12_377_G2_precomputation<ppT> &prec_Q,
@@ -468,6 +468,40 @@ public:
         libsnark::protoboard<libff::Fr<ppT>> &pb,
         const Fp12_2over3over2_variable<FqkT> &el,
         const libsnark::pb_variable<FieldT> &result_is_one,
+        const std::string &annotation_prefix);
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
+};
+
+template<typename ppT>
+class bls12_377_e_times_e_times_e_over_e_miller_loop_gadget
+    : public libsnark::gadget<libff::Fr<ppT>>
+{
+public:
+    using FieldT = libff::Fr<ppT>;
+    using FqkT = libff::Fqk<other_curve<ppT>>;
+
+    Fp12_2over3over2_variable<FqkT> _f0;
+    libsnark::pb_linear_combination<FieldT> _minus_P4_Y;
+
+    // Squaring of f
+    std::vector<std::shared_ptr<Fp12_2over3over2_square_gadget<FqkT>>>
+        _f_squared;
+
+    // f * ell(P) (for both double and add steps)
+    std::vector<std::shared_ptr<bls12_377_ate_compute_f_ell_P<ppT>>> _f_ell_P;
+
+    bls12_377_e_times_e_times_e_over_e_miller_loop_gadget(
+        libsnark::protoboard<libff::Fr<ppT>> &pb,
+        const bls12_377_G1_precomputation<ppT> &P1_prec,
+        const bls12_377_G2_precomputation<ppT> &Q1_prec,
+        const bls12_377_G1_precomputation<ppT> &P2_prec,
+        const bls12_377_G2_precomputation<ppT> &Q2_prec,
+        const bls12_377_G1_precomputation<ppT> &P3_prec,
+        const bls12_377_G2_precomputation<ppT> &Q3_prec,
+        const bls12_377_G1_precomputation<ppT> &P4_prec,
+        const bls12_377_G2_precomputation<ppT> &Q4_prec,
+        const Fp12_2over3over2_variable<FqkT> &result,
         const std::string &annotation_prefix);
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
