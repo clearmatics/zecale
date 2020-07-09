@@ -202,7 +202,7 @@ void test_hardcoded_verifier(
         annotation_A.c_str());
 }
 
-TEST(MainTests, TestGroth16VerifierGadget)
+TEST(Groth16VerifierGadgetTests, MntGroth16VerifierGadget)
 {
     test_verifier<libff::mnt4_pp, libff::mnt6_pp>("mnt4", "mnt6");
     test_verifier<libff::mnt6_pp, libff::mnt4_pp>("mnt6", "mnt4");
