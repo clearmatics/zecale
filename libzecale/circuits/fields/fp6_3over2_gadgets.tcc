@@ -65,7 +65,7 @@ Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator*(const FieldT &a)
         _c0 * a,
         _c1 * a,
         _c2 * a,
-        FMT(this->annotation_prefix, " * Fr"));
+        FMT(this->annotation_prefix, " *Fp"));
 }
 
 template<typename Fp6T>
@@ -77,7 +77,9 @@ Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator+(
         _c0 + a._c0,
         _c1 + a._c1,
         _c2 + a._c2,
-        FMT(this->annotation_prefix, " + a"));
+        FMT(this->annotation_prefix.c_str(),
+            " + %s",
+            a.annotation_prefix.c_str()));
 }
 
 template<typename Fp6T> void Fp6_3over2_variable<Fp6T>::evaluate() const
@@ -117,21 +119,21 @@ Fp6_3over2_mul_gadget<Fp6T>::Fp6_3over2_mul_gadget(
           pb,
           A._c1,
           B._c1,
-          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " a1b1")),
-          FMT(annotation_prefix, " a1*b1"))
+          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " a1*b1")),
+          FMT(annotation_prefix, " _a1b1"))
     , _a2b2(
           pb,
           A._c2,
           B._c2,
-          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " a2b2")),
-          FMT(annotation_prefix, " a2*b2"))
+          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " a2*b2")),
+          FMT(annotation_prefix, " _a2b2"))
     , _a1a2_times_b1b2(
           pb,
           A._c1 + A._c2,
           B._c1 + B._c2,
           libsnark::Fp2_variable<Fp2T>(
-              pb, FMT(annotation_prefix, " a1a2*b1b2")),
-          FMT(annotation_prefix, " (a1+a2)(b1+b2)"))
+              pb, FMT(annotation_prefix, " (a1+a2)*(b1+b2)")),
+          FMT(annotation_prefix, " _a1a2_times_b1b2"))
     // c0 = a0*b0 + non_residue*((a1 + a2)(b1 + b2) - a1*b1 - a2*b2)
     , _a0b0(
           pb,
@@ -140,7 +142,7 @@ Fp6_3over2_mul_gadget<Fp6T>::Fp6_3over2_mul_gadget(
           _result._c0 -
               (_a1a2_times_b1b2.result - _a1b1.result - _a2b2.result) *
                   Fp6T::non_residue,
-          FMT(annotation_prefix, " a0b0"))
+          FMT(annotation_prefix, " _a0b0"))
     // c1 = (a0 + a1)(b0 + b1) - a0*b0 - a1*b1 + non_residue * a2*b2
     , _a0a1_times_b0b1(
           pb,
@@ -148,14 +150,14 @@ Fp6_3over2_mul_gadget<Fp6T>::Fp6_3over2_mul_gadget(
           B._c0 + B._c1,
           _result._c1 + _a0b0.result + _a1b1.result -
               _a2b2.result * Fp6T::non_residue,
-          FMT(annotation_prefix, " (a0+a1)(b0+b1)"))
+          FMT(annotation_prefix, " _a0a1_times_b0b1"))
     // c2 = (a0 + a2)(b0 + b2) - a0*b0 - a2*b2 + a1*b1
     , _a0a2_times_b0b2(
           pb,
           A._c0 + A._c2,
           B._c0 + B._c2,
           _result._c2 + _a0b0.result + _a2b2.result - _a1b1.result,
-          FMT(annotation_prefix, " (a0+a2)(b0+b2)"))
+          FMT(annotation_prefix, " _a0a2_times_b0b2"))
 {
 }
 
