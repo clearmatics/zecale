@@ -37,8 +37,6 @@
 #include <libzeth/zeth_constants.hpp>
 
 // SNARK specific imports and template instantiations
-#include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
-#include <libff/algebra/curves/mnt/mnt6/mnt6_pp.hpp>
 #include <libzeth/snarks/default/default_api_handler.hpp>
 #include <libzeth/snarks/default/default_snark.hpp>
 
@@ -46,13 +44,13 @@ namespace proto = google::protobuf;
 namespace po = boost::program_options;
 
 // Instantiate the templates
-using npp = libff::mnt4_pp;
-using nsnark = libzeth::default_snark<npp>;
-using napi_handler = libzeth::default_api_handler<npp>;
-
 using wpp = libff::mnt6_pp;
 using wsnark = libzeth::default_snark<wpp>;
 using wapi_handler = libzeth::default_api_handler<wpp>;
+
+using npp = libzecale::other_curve<wpp>;
+using nsnark = libzeth::default_snark<npp>;
+using napi_handler = libzeth::default_api_handler<npp>;
 
 static const size_t batch_size = 1;
 
