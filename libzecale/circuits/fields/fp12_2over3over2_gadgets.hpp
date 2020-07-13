@@ -2,6 +2,12 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+/// Reference
+/// \[DOSD06]
+///  "Multiplication and Squaring on Pairing-Friendly Fields"
+///  Devegili, OhEig, Scott and Dahab,
+///  IACR Cryptology ePrint Archive 2006, <https://eprint.iacr.org/2006/471.pdf>
+
 #ifndef __ZECALE_CIRCUITS_FIELDS_FP12_2OVER3OVER2_GADGETS_HPP__
 #define __ZECALE_CIRCUITS_FIELDS_FP12_2OVER3OVER2_GADGETS_HPP__
 
@@ -38,18 +44,16 @@ public:
 };
 
 /// Follows implementation in libff::Fp12_2over3over2_model, which is based on
-/// Devegili OhEig Scott Dahab "Multiplication and Squaring on Pairing-Friendly
-/// Fields"; Section 3".
+/// Section 3 of [DOSD06].
 ///
-/// As an order 2 extension of Fp6, Fp12 has elements of the form
-///   (a0, a1) = a0 + w.a1 for a0, a1 in Fp6.
-/// so that
-///   (a0, a1)^2 = (a0^2 + v.a1^2, 2.a0.a1) (v == w^2, in Fp6)
-/// But
-///   a0^2 + a1^2.v = (a0 + a1).(a0 + v.a1) - v.(a0.a1) - a0.a1,
-/// so that (a0, a1)^2 can be computed with 2 multiplications. (Note,
-/// multiplication by v in Fp6 can be done cheaply - see
-/// Fp12_2over3over2_variable::mul_by_non_residue).
+/// Let (a0, a1) = a0 + a1 * w be an element of Fp12, where a0, a1 in Fp6 and
+/// w = v^2 for v in Fp6. By simple expansion of terms:
+///   (a0, a1)^2 = (a0^2 + a1^2 * v, 2 * a0 * a1)
+/// However, since
+///   a0^2 + a1^2 * v = (a0 + a1)*(a0 + a1 * v) - (a0 * a1) * v - a0 * a1,
+/// it follows that (a0, a1)^2 can be computed with just 2 full multiplications
+/// in Fp6. (Note that multiplications by v are free in an arithmetic circuit -
+/// see mul_by_non_residue).
 template<typename Fp12T>
 class Fp12_2over3over2_square_gadget
     : public libsnark::gadget<typename Fp12T::my_Fp>
@@ -65,11 +69,11 @@ public:
     //
     // then (by the above optimization), we have
     //
-    //     _result.c1 = 2 . \alpha
+    //     _result.c1 = 2 * \alpha
     //       <=>  _alpha = _result.c1 * 2.inverse()
     //
-    //     _result.c0 = \beta - v.\alpha - \alpha
-    //       <=>  \beta = _result.c0 + v.\alpha - \alpha
+    //     _result.c0 = \beta - \alpha * v - \alpha
+    //       <=>  \beta = _result.c0 + \alpha * v - \alpha
     Fp12_2over3over2_variable<Fp12T> _A;
     Fp12_2over3over2_variable<Fp12T> _result;
     Fp6_3over2_mul_gadget<Fp6T> _alpha;
@@ -85,14 +89,15 @@ public:
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
 
-    /// Multiply an element in Fq6 by Fq12::non_residue. Let c = c0 + c1.v +
-    /// c2.v^2 be an element of Fq6T, where v is a root of:
+    /// Multiply an element in Fq6 by Fq12::non_residue. Let c = c0 + c1 * v +
+    /// c2 * v^2 be an element of Fq6T, where v is a root of:
     ///   v^3 - Fq6::non_residue
-    /// Return v * c.
+    /// Return c * v.
     ///
-    /// Note, this does not save any complexity in the final circuit since
-    /// Fp6_3over2_variable::operator*(const Fp6T &) can be implemented as just
-    /// linear combinations.
+    /// Note, this simplification does not save any complexity in the final
+    /// circuit since Fp6_3over2_variable::operator*(const Fp6T &)
+    /// (multiplication by a constant) can be implemented as linear
+    /// combinations.
     static Fp6_3over2_variable<Fp6T> mul_by_non_residue(
         libsnark::protoboard<FieldT> &pb,
         const Fp6_3over2_variable<Fp6T> &c,
