@@ -140,26 +140,28 @@ bls12_377_ate_dbl_gadget<ppT>::bls12_377_ate_dbl_gadget(
     // check: (Y + Z)^2 == H + B + C
     , Y_plus_Z(in_R.Y + in_R.Z)
     , H_plus_B_plus_C(H + B + C)
-    , check_H(pb, Y_plus_Z, H_plus_B_plus_C, FMT(annotation_prefix, " check H"))
+    , check_H(pb, Y_plus_Z, H_plus_B_plus_C, FMT(annotation_prefix, " check_H"))
 
     // I = (E - B)
     , I(E + (B * -libff::Fr<ppT>::one()))
 
     // J = Rx^2
     , J(pb, FMT(annotation_prefix, " J"))
-    , check_J(pb, in_R.X, J, FMT(annotation_prefix, " check Rx^2"))
+    , check_J(pb, in_R.X, J, FMT(annotation_prefix, " check_J"))
 
     , E_squared(pb, FMT(annotation_prefix, " E^2"))
-    , check_E_squared(pb, E, E_squared, FMT(annotation_prefix, " check E^2"))
+    , check_E_squared(
+          pb, E, E_squared, FMT(annotation_prefix, " check_E_squared"))
 
     , G_squared(pb, FMT(annotation_prefix, " G^2"))
-    , check_G_squared(pb, G, G_squared, FMT(annotation_prefix, " check G^2"))
+    , check_G_squared(
+          pb, G, G_squared, FMT(annotation_prefix, " check_G_squared"))
 
     , B_minus_F(B + (F * -libff::Fr<ppT>::one()))
 
     // outRx = A * (B-F)
     , check_out_Rx(
-          pb, A, B_minus_F, out_R.X, FMT(annotation_prefix, " check outRx"))
+          pb, A, B_minus_F, out_R.X, FMT(annotation_prefix, " check_out_Rx"))
 
     // outRy = G^2 - 3E^2
     // check: outRy + E^2 + E^2 + E^2 == G^2  (TODO: not required)
@@ -170,9 +172,9 @@ bls12_377_ate_dbl_gadget<ppT>::bls12_377_ate_dbl_gadget(
           G_squared_minus_3_E_squared,
           {0}, // one
           out_R.Y,
-          FMT(annotation_prefix, " check outRy"))
+          FMT(annotation_prefix, " check_out_Ry"))
 
-    , check_out_Rz(pb, B, H, out_R.Z, FMT(annotation_prefix, " check outRz"))
+    , check_out_Rz(pb, B, H, out_R.Z, FMT(annotation_prefix, " check_out_Rz"))
 
     // ell_0 = xi * I
     // ell_vw = -H
@@ -199,10 +201,10 @@ void bls12_377_ate_dbl_gadget<ppT>::generate_r1cs_constraints()
     // G = (B + F) / 2 checked as 2 * G == B + F
     this->pb.add_r1cs_constraint(
         {1, 2 * G.c0, B.c0 + F.c0},
-        FMT(this->annotation_prefix, " check G.c0"));
+        FMT(this->annotation_prefix, " check_G.c0"));
     this->pb.add_r1cs_constraint(
         {1, 2 * G.c1, B.c1 + F.c1},
-        FMT(this->annotation_prefix, " check G.c1"));
+        FMT(this->annotation_prefix, " check_G.c1"));
 
     // H = (Y + Z) ^ 2 - (B + C)
     check_H.generate_r1cs_constraints();
@@ -321,36 +323,36 @@ bls12_377_ate_add_gadget<ppT>::bls12_377_ate_add_gadget(
 
     // A = Qy * Rz
     , A(pb, FMT(annotation_prefix, " A"))
-    , check_A(pb, base_Y, in_R.Z, A, FMT(annotation_prefix, " check A"))
+    , check_A(pb, base_Y, in_R.Z, A, FMT(annotation_prefix, " check_A"))
     // B = Qx * Rz;
     , B(pb, FMT(annotation_prefix, " B"))
-    , check_B(pb, base_X, in_R.Z, B, FMT(annotation_prefix, " check B"))
+    , check_B(pb, base_X, in_R.Z, B, FMT(annotation_prefix, " check_B"))
     // theta = Ry - A;
     , theta(in_R.Y + (A * -libff::Fr<ppT>::one()))
     // lambda = Rx - B;
     , lambda(in_R.X + (B * -libff::Fr<ppT>::one()))
     // C = theta.squared();
     , C(pb, FMT(annotation_prefix, " C"))
-    , check_C(pb, theta, C, FMT(annotation_prefix, " check C"))
+    , check_C(pb, theta, C, FMT(annotation_prefix, " check_C"))
     // D = lambda.squared();
     , D(pb, FMT(annotation_prefix, " D"))
-    , check_D(pb, lambda, D, FMT(annotation_prefix, " check D"))
+    , check_D(pb, lambda, D, FMT(annotation_prefix, " check_D"))
     // E = lambda * D;
     , E(pb, FMT(annotation_prefix, " E"))
-    , check_E(pb, lambda, D, E, FMT(annotation_prefix, " check E"))
+    , check_E(pb, lambda, D, E, FMT(annotation_prefix, " check_E"))
     // F = Rz * C;
     , F(pb, FMT(annotation_prefix, " F"))
-    , check_F(pb, in_R.Z, C, F, FMT(annotation_prefix, " check F"))
+    , check_F(pb, in_R.Z, C, F, FMT(annotation_prefix, " check_F"))
     // G = Rx * D;
     , G(pb, FMT(annotation_prefix, " G"))
-    , check_G(pb, in_R.X, D, G, FMT(annotation_prefix, " check G"))
+    , check_G(pb, in_R.X, D, G, FMT(annotation_prefix, " check_G"))
     // H = E + F - (G + G);
     , H(E + F + (G * -libff::Fr<ppT>(2)))
     // I = Ry * E;
     , I(pb, FMT(annotation_prefix, " I"))
-    , check_I(pb, in_R.Y, E, I, FMT(annotation_prefix, " check I"))
+    , check_I(pb, in_R.Y, E, I, FMT(annotation_prefix, " check_I"))
     // J = theta * Qx - lambda * Qy;
-    , theta_times_Qx(pb, FMT(annotation_prefix, " theta_times_Rx"))
+    , theta_times_Qx(pb, FMT(annotation_prefix, " theta_times_Qx"))
     , check_theta_times_Qx(
           pb,
           theta,
@@ -382,7 +384,7 @@ bls12_377_ate_add_gadget<ppT>::bls12_377_ate_add_gadget(
           FMT(annotation_prefix, " check_theta_times_G_minus_H"))
     // out_Rz = Rza * E;
     , out_Rz(pb, FMT(annotation_prefix, " out_Rz"))
-    , check_out_Rz(pb, in_R.Z, E, out_Rz, FMT(annotation_prefix, " check Rz"))
+    , check_out_Rz(pb, in_R.Z, E, out_Rz, FMT(annotation_prefix, " check_Rz"))
 
     , out_R(
           out_Rx, theta_times_G_minus_H + (I * -libff::Fr<ppT>::one()), out_Rz)
@@ -499,7 +501,7 @@ bls12_377_ate_precompute_gadget<ppT>::bls12_377_ate_precompute_gadget(
             new bls12_377_ate_dbl_gadget<ppT>(
                 pb,
                 *currentR,
-                FMT(annotation_prefix, " dbl %zu", bits.index()))));
+                FMT(annotation_prefix, " dbls[%zu]", bits.index()))));
         currentR = &_ate_dbls.back()->out_R;
 
         if (bits.current()) {
@@ -509,7 +511,7 @@ bls12_377_ate_precompute_gadget<ppT>::bls12_377_ate_precompute_gadget(
                     _Qx,
                     _Qy,
                     *currentR,
-                    FMT(annotation_prefix, " add %zu", bits.index()))));
+                    FMT(annotation_prefix, " adds[%zu]", bits.index()))));
             currentR = &_ate_adds.back()->out_R;
         }
     }
@@ -568,22 +570,22 @@ bls12_377_ate_compute_f_ell_P<ppT>::bls12_377_ate_compute_f_ell_P(
           pb,
           ell_coeffs.ell_vv,
           Px,
-          libsnark::Fqe_variable<ppT>(pb, FMT(annotation_prefix, "Px.ell_vv")),
-          FMT(annotation_prefix, "check Px.ell_vv"))
+          libsnark::Fqe_variable<ppT>(pb, FMT(annotation_prefix, " Px.ell_vv")),
+          FMT(annotation_prefix, " _ell_vv_times_Px"))
     , _ell_vw_times_Py(
           pb,
           ell_coeffs.ell_vw,
           Py,
-          libsnark::Fqe_variable<ppT>(pb, FMT(annotation_prefix, "Py.ell_vw")),
-          FMT(annotation_prefix, "check Py.ell_vw"))
+          libsnark::Fqe_variable<ppT>(pb, FMT(annotation_prefix, " Py.ell_vw")),
+          FMT(annotation_prefix, " _ell_vw_times_Py"))
     , _f_mul_ell_P(
           pb,
           f,
           ell_coeffs.ell_0,
           _ell_vv_times_Px.result,
           _ell_vw_times_Py.result,
-          Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, "new f")),
-          FMT(annotation_prefix, " f.ell(P)"))
+          Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " new_f")),
+          FMT(annotation_prefix, " _f_mul_ell_P"))
 {
 }
 
@@ -625,8 +627,8 @@ bls12_377_ate_miller_loop_gadget<ppT>::bls12_377_ate_miller_loop_gadget(
     , _Py(Py)
     , _Qx(Qx)
     , _Qy(Qy)
-    , _Q_precomp(pb, Qx, Qy, FMT(annotation_prefix, " preecompute"))
-    , _f0(pb, FqkT::one(), FMT(annotation_prefix, "f0"))
+    , _Q_precomp(pb, Qx, Qy, FMT(annotation_prefix, " _Q_precomp"))
+    , _f0(pb, FqkT::one(), FMT(annotation_prefix, " f0"))
 {
     const std::vector<std::shared_ptr<bls12_377_ate_dbl_gadget<ppT>>>
         &ate_dbls = _Q_precomp._ate_dbls;
@@ -646,7 +648,10 @@ bls12_377_ate_miller_loop_gadget<ppT>::bls12_377_ate_miller_loop_gadget(
         _f_squared.push_back(
             std::shared_ptr<Fp12_2over3over2_square_gadget<FqkT>>(
                 new Fp12_2over3over2_square_gadget<FqkT>(
-                    pb, *f, f_squared, FMT(annotation_prefix, " comp f^2"))));
+                    pb,
+                    *f,
+                    f_squared,
+                    FMT(annotation_prefix, " compute_f^2"))));
 
         // f <- f^2 * ell(P)
         _f_ell_P.push_back(std::shared_ptr<bls12_377_ate_compute_f_ell_P<ppT>>(
@@ -656,7 +661,7 @@ bls12_377_ate_miller_loop_gadget<ppT>::bls12_377_ate_miller_loop_gadget(
                 Py,
                 ate_dbls[dbl_idx++]->out_coeffs,
                 f_squared,
-                FMT(annotation_prefix, "check f^2*ell(P)"))));
+                FMT(annotation_prefix, " f^2*ell(P)"))));
         f = &_f_ell_P.back()->result();
 
         if (bits.current()) {
@@ -669,7 +674,7 @@ bls12_377_ate_miller_loop_gadget<ppT>::bls12_377_ate_miller_loop_gadget(
                         Py,
                         ate_adds[add_idx++]->out_coeffs,
                         *f,
-                        FMT(annotation_prefix, "check f*ell(P)"))));
+                        FMT(annotation_prefix, " f*ell(P)"))));
             f = &_f_ell_P.back()->result();
         }
     }

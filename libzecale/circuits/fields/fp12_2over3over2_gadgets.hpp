@@ -30,7 +30,7 @@ public:
         libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix);
     Fp12_2over3over2_variable(
         libsnark::protoboard<FieldT> &pb,
-        const Fp12T &v,
+        const Fp12T &el,
         const std::string &annotation_prefix);
 
     Fp12_2over3over2_variable(
@@ -40,7 +40,7 @@ public:
         const std::string &annotation_prefix);
 
     Fp12T get_element() const;
-    void generate_r1cs_witness(const Fp12T &v);
+    void generate_r1cs_witness(const Fp12T &el);
 };
 
 /// Follows implementation in libff::Fp12_2over3over2_model, which is based on
