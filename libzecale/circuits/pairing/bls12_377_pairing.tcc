@@ -55,6 +55,22 @@ bls12_377_G1_precomputation<ppT>::bls12_377_G1_precomputation() : _Px(), _Py()
 {
 }
 
+template<typename ppT>
+bls12_377_G1_precomputation<ppT>::bls12_377_G1_precomputation(
+    libsnark::protoboard<FieldT> &pb,
+    const libff::G1<other_curve<ppT>> &P_val,
+    const std::string & /* annotation_prefix */)
+    : _Px(new libsnark::pb_linear_combination<FieldT>())
+    , _Py(new libsnark::pb_linear_combination<FieldT>())
+{
+    libff::G1<other_curve<ppT>> P_affine = P_val;
+    P_affine.to_affine_coordinates();
+    _Px->assign(pb, P_affine.X);
+    _Py->assign(pb, P_affine.Y);
+    _Px->evaluate(pb);
+    _Py->evaluate(pb);
+}
+
 // bls12_377_G2_proj methods
 
 template<typename ppT>
@@ -96,11 +112,47 @@ bls12_377_ate_ell_coeffs<ppT>::bls12_377_ate_ell_coeffs(
 {
 }
 
+template<typename ppT>
+bls12_377_ate_ell_coeffs<ppT>::bls12_377_ate_ell_coeffs(
+    libsnark::protoboard<FqT> &pb,
+    const libff::Fqe<other_curve<ppT>> ell_0_val,
+    const libff::Fqe<other_curve<ppT>> ell_vw_val,
+    const libff::Fqe<other_curve<ppT>> ell_vv_val,
+    const std::string &annotation_prefix)
+    : ell_0(pb, ell_0_val, FMT(annotation_prefix, " ell_0"))
+    , ell_vw(pb, ell_vw_val, FMT(annotation_prefix, " ell_vw"))
+    , ell_vv(pb, ell_vv_val, FMT(annotation_prefix, " ell_vv"))
+{
+}
+
 // bls12_377_G2_precomputation methods
 
 template<typename ppT>
 bls12_377_G2_precomputation<ppT>::bls12_377_G2_precomputation()
 {
+}
+
+template<typename ppT>
+bls12_377_G2_precomputation<ppT>::bls12_377_G2_precomputation(
+    libsnark::protoboard<FieldT> &pb,
+    const libff::G2<other_curve<ppT>> &Q_val,
+    const std::string &annotation_prefix)
+{
+    const libff::G2_precomp<other_curve<ppT>> Q_prec =
+        other_curve<ppT>::precompute_G2(Q_val);
+    const size_t num_coeffs = Q_prec.coeffs.size();
+    _coeffs.reserve(num_coeffs);
+    for (size_t i = 0; i < num_coeffs; ++i) {
+        const libff::bls12_377_ate_ell_coeffs &c = Q_prec.coeffs[i];
+        _coeffs.emplace_back(new bls12_377_ate_ell_coeffs<ppT>(
+            pb,
+            c.ell_0,
+            c.ell_VW,
+            c.ell_VV,
+            FMT(annotation_prefix, " coeffs[%zu]", i)));
+    }
+
+    assert(num_coeffs == _coeffs.size());
 }
 
 // bls12_377_G1_precompute_gadget methods

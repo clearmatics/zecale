@@ -26,6 +26,13 @@ public:
     std::shared_ptr<libsnark::pb_linear_combination<FieldT>> _Py;
 
     bls12_377_G1_precomputation();
+
+    // Construct a populated G1_precomputation from a value. All terms are
+    // created as constants, generating no cost in the circuit.
+    bls12_377_G1_precomputation(
+        libsnark::protoboard<FieldT> &pb,
+        const libff::G1<other_curve<ppT>> &P_val,
+        const std::string &annotation_prefix);
 };
 
 /// Holds an element of G2 in homogeneous projective form. Used for
@@ -62,6 +69,14 @@ public:
 
     bls12_377_ate_ell_coeffs(
         libsnark::protoboard<FqT> &pb, const std::string &annotation_prefix);
+
+    // Create from constants
+    bls12_377_ate_ell_coeffs(
+        libsnark::protoboard<FqT> &pb,
+        const libff::Fqe<other_curve<ppT>> ell_0_val,
+        const libff::Fqe<other_curve<ppT>> ell_vw_val,
+        const libff::Fqe<other_curve<ppT>> ell_vv_val,
+        const std::string &annotation_prefix);
 };
 
 template<typename ppT> class bls12_377_G2_precomputation
@@ -72,6 +87,13 @@ public:
     std::vector<std::shared_ptr<bls12_377_ate_ell_coeffs<ppT>>> _coeffs;
 
     bls12_377_G2_precomputation();
+
+    // Construct a populated G2_precomputation from a value. All terms are
+    // created as constants, generating no cost in the circuit.
+    bls12_377_G2_precomputation(
+        libsnark::protoboard<FieldT> &pb,
+        const libff::G2<other_curve<ppT>> &Q_val,
+        const std::string &annotation_prefix);
 };
 
 template<typename ppT>
