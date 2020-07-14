@@ -312,21 +312,21 @@ void bls12_377_ate_dbl_gadget<ppT>::generate_r1cs_witness(
 template<typename ppT>
 bls12_377_ate_add_gadget<ppT>::bls12_377_ate_add_gadget(
     libsnark::protoboard<libff::Fr<ppT>> &pb,
-    const libsnark::Fqe_variable<ppT> &base_X,
-    const libsnark::Fqe_variable<ppT> &base_Y,
+    const libsnark::Fqe_variable<ppT> &in_Q_X,
+    const libsnark::Fqe_variable<ppT> &in_Q_Y,
     const bls12_377_G2_proj<ppT> &R,
     const std::string &annotation_prefix)
     : libsnark::gadget<libff::Fr<ppT>>(pb, annotation_prefix)
-    , base_X(base_X)
-    , base_Y(base_Y)
+    , Q_X(in_Q_X)
+    , Q_Y(in_Q_Y)
     , in_R(R)
 
     // A = Qy * Rz
     , A(pb, FMT(annotation_prefix, " A"))
-    , check_A(pb, base_Y, in_R.Z, A, FMT(annotation_prefix, " check_A"))
+    , check_A(pb, Q_Y, in_R.Z, A, FMT(annotation_prefix, " check_A"))
     // B = Qx * Rz;
     , B(pb, FMT(annotation_prefix, " B"))
-    , check_B(pb, base_X, in_R.Z, B, FMT(annotation_prefix, " check_B"))
+    , check_B(pb, Q_X, in_R.Z, B, FMT(annotation_prefix, " check_B"))
     // theta = Ry - A;
     , theta(in_R.Y + (A * -libff::Fr<ppT>::one()))
     // lambda = Rx - B;
@@ -356,14 +356,14 @@ bls12_377_ate_add_gadget<ppT>::bls12_377_ate_add_gadget(
     , check_theta_times_Qx(
           pb,
           theta,
-          base_X,
+          Q_X,
           theta_times_Qx,
           FMT(annotation_prefix, " check_theta_times_Qx"))
     , lambda_times_Qy(pb, FMT(annotation_prefix, " lambda_times_Qy"))
     , check_lambda_times_Qy(
           pb,
           lambda,
-          base_Y,
+          Q_Y,
           lambda_times_Qy,
           FMT(annotation_prefix, " check_lambda_times_Qy"))
     , J(theta_times_Qx + (lambda_times_Qy * -libff::Fr<ppT>::one()))

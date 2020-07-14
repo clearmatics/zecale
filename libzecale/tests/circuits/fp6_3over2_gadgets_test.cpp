@@ -55,20 +55,20 @@ TEST(Fp6_3over2_Test, MulGadgetTest)
     // Check values
     const Fp6T a_val = a_var.get_element();
     const Fp6T b_val = b_var.get_element();
-    const Fp2T a1b1 = mul_a_b._a1b1.result.get_element();
-    const Fp2T a2b2 = mul_a_b._a2b2.result.get_element();
+    const Fp2T v1 = mul_a_b._v1.result.get_element();
+    const Fp2T v2 = mul_a_b._v2.result.get_element();
     const Fp2T a1a2_times_b1b2 = mul_a_b._a1a2_times_b1b2.result.get_element();
-    const Fp2T a0b0 = mul_a_b._a0b0.result.get_element();
+    const Fp2T v0 = mul_a_b._v0.result.get_element();
     const Fp2T a0a1_times_b0b1 = mul_a_b._a0a1_times_b0b1.result.get_element();
     const Fp2T a0a2_times_b0b2 = mul_a_b._a0a2_times_b0b2.result.get_element();
     const Fp6T c_val = c_var.get_element();
 
     ASSERT_EQ(a, a_val);
     ASSERT_EQ(b, b_val);
-    ASSERT_EQ(a.c1 * b.c1, a1b1);
-    ASSERT_EQ(a.c2 * b.c2, a2b2);
+    ASSERT_EQ(a.c1 * b.c1, v1);
+    ASSERT_EQ(a.c2 * b.c2, v2);
     ASSERT_EQ((a.c1 + a.c2) * (b.c1 + b.c2), a1a2_times_b1b2);
-    ASSERT_EQ(a.c0 * b.c0, a0b0);
+    ASSERT_EQ(a.c0 * b.c0, v0);
     ASSERT_EQ((a.c0 + a.c1) * (b.c0 + b.c1), a0a1_times_b0b1);
     ASSERT_EQ((a.c0 + a.c2) * (b.c0 + b.c2), a0a2_times_b0b2);
     ASSERT_EQ(c.c1, c_val.c1);

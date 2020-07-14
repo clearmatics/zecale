@@ -33,7 +33,7 @@ public:
 
     Fp6_3over2_variable(
         libsnark::protoboard<FieldT> &pb,
-        const Fp6T &v,
+        const Fp6T &el,
         const std::string &annotation_prefix);
 
     Fp6_3over2_variable(
@@ -43,8 +43,8 @@ public:
         const libsnark::Fp2_variable<Fp2T> &c2,
         const std::string &annotation_prefix);
 
-    Fp6_3over2_variable<Fp6T> operator*(const FieldT &);
-    Fp6_3over2_variable<Fp6T> operator+(const Fp6_3over2_variable<Fp6T> &);
+    Fp6_3over2_variable<Fp6T> operator*(const FieldT &scalar);
+    Fp6_3over2_variable<Fp6T> operator+(const Fp6_3over2_variable<Fp6T> &other);
 
     void evaluate() const;
     void generate_r1cs_witness(const Fp6T &v);
@@ -55,14 +55,20 @@ public:
 // Scott Dahab "Multiplication and Squaring on Pairing-Friendly Fields";
 // Section 4 (Karatsuba).
 //
-// For (a0, a1, a2) and (b0, b1, b2) elements in Fp6, the components of c=a*b
-// can be written:
-//   c = (a0*b0 + non_residue*((a1 + a2)(b1 + b2) - a1*b1 - a2*b2),
-//        (a0 + a1)(b0 + b1) - a0*b0 - a1*b1 + non_residue * a2*b2,
-//        (a0 + a2)(b0 + b2) - a0*b0 - a2*b2 + a1*b1)
+// For elements a=(a0, a1, a2) and b=(b0, b1, b2) in Fp6, c=a*b can be written
+// as:
 //
-// Here non-residue is the element in Fp2 in the function v^3 - non_residue
-// used to define Fp6.
+//   c = (
+//     v0 + non_residue*((a1 + a2)(b1 + b2) - v1 - v2),
+//     (a0 + a1)(b0 + b1) - v0 - v1 + non_residue * v2,
+//     (a0 + a2)(b0 + b2) - v0 - v2 + v1)
+//
+// where
+//   v0 = a0*b0
+//   v1 = a1*b1
+//   v2 = a2*b2
+// and non_residue is the element in Fp2 in the function v^3 - non_residue used
+// to define Fp6.
 template<typename Fp6T>
 class Fp6_3over2_mul_gadget : public libsnark::gadget<typename Fp6T::my_Fp>
 {
@@ -75,14 +81,14 @@ public:
     Fp6_3over2_variable<Fp6T> _result;
 
     // These conditions follow from the above expressions for c0, c1, c2:
-    //  a0*b0 = c0 - non_residue*((a1 + a2)(b1 + b2) - a1*b1 - a2*b2)
-    //  (a0 + a1)(b0 + b1) = c1 + a0*b0 + a1*b1 - non_residue * a2*b2
-    //  (a0 + a2)(b0 + b2) = c2 + a0*b0 + a2*b2 - a1*b1
+    //  v0 = c0 - non_residue*((a1 + a2)(b1 + b2) - v1 - v2)
+    //  (a0 + a1)(b0 + b1) = c1 + v0 + v1 - non_residue * v2
+    //  (a0 + a2)(b0 + b2) = c2 + v0 + v2 - v1
 
-    libsnark::Fp2_mul_gadget<Fp2T> _a1b1;
-    libsnark::Fp2_mul_gadget<Fp2T> _a2b2;
+    libsnark::Fp2_mul_gadget<Fp2T> _v1;
+    libsnark::Fp2_mul_gadget<Fp2T> _v2;
     libsnark::Fp2_mul_gadget<Fp2T> _a1a2_times_b1b2;
-    libsnark::Fp2_mul_gadget<Fp2T> _a0b0;
+    libsnark::Fp2_mul_gadget<Fp2T> _v0;
     libsnark::Fp2_mul_gadget<Fp2T> _a0a1_times_b0b1;
     libsnark::Fp2_mul_gadget<Fp2T> _a0a2_times_b0b2;
 

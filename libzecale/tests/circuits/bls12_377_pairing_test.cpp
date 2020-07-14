@@ -161,7 +161,7 @@ TEST(BLS12_377_PairingTest, PrecomputeAddGadgetTest)
 
     check_add_R0.generate_r1cs_constraints();
 
-    // Populate R0 and Q, and generate values vai the gadget
+    // Populate R0 and Q, and generate values via the gadget
 
     Q_X.generate_r1cs_witness(Q.X);
     Q_Y.generate_r1cs_witness(Q.Y);

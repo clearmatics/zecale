@@ -39,12 +39,12 @@ TEST(Fp12_2over3over2_Test, SquareGadgetTest)
     // Squaring in a circuit
     libsnark::protoboard<FieldT> pb;
     libzecale::Fp12_2over3over2_variable<Fp12T> z_var(pb, "z");
-    libzecale::Fp12_2over3over2_variable<Fp12T> z_squared_var(pb, "z");
+    libzecale::Fp12_2over3over2_variable<Fp12T> z_squared_var(pb, "z_squared");
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
 
     libzecale::Fp12_2over3over2_square_gadget<Fp12T> square_gadget(
-        pb, z_var, z_squared_var, "square z");
+        pb, z_var, z_squared_var, " square_z");
 
     // Constraints
     square_gadget.generate_r1cs_constraints();

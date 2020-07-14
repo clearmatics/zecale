@@ -73,17 +73,17 @@ public:
     // same variable as `check_A.result`. Do an optimization pass and remove
     // some of the redundancy.
 
-    // A = Rx * Ry / 2
+    // A = R.X * R.Y / 2
     libsnark::Fqe_variable<ppT> A;
-    libsnark::Fqe_mul_gadget<ppT> check_A; // Rx * Ry = 2_times_A
+    libsnark::Fqe_mul_gadget<ppT> check_A; // R.X * R.Y = 2_times_A
 
-    // B = Ry^2
+    // B = R.Y^2
     libsnark::Fqe_variable<ppT> B;
-    libsnark::Fqe_sqr_gadget<ppT> check_B; // Ry^2 == B
+    libsnark::Fqe_sqr_gadget<ppT> check_B; // R.Y^2 == B
 
-    // C = Rz^2
+    // C = R.Z^2
     libsnark::Fqe_variable<ppT> C;
-    libsnark::Fqe_sqr_gadget<ppT> check_C; // Rz^2 == C
+    libsnark::Fqe_sqr_gadget<ppT> check_C; // R.Z^2 == C
 
     // D = 3 * C
     // libsnark::Fqe_variable<ppT> D;
@@ -107,9 +107,9 @@ public:
     // I = E - B
     libsnark::Fqe_variable<ppT> I;
 
-    // J = Rx^2
+    // J = R.X^2
     libsnark::Fqe_variable<ppT> J;
-    libsnark::Fqe_sqr_gadget<ppT> check_J; // Rx^2 == J
+    libsnark::Fqe_sqr_gadget<ppT> check_J; // R.X^2 == J
 
     // E^2
     libsnark::Fqe_variable<ppT> E_squared;
@@ -122,15 +122,15 @@ public:
     // B - F
     libsnark::Fqe_variable<ppT> B_minus_F;
 
-    // outRx = A * (B - F)
+    // out_R.X = A * (B - F)
     libsnark::Fqe_mul_gadget<ppT> check_out_Rx;
 
-    // outRy = G^2 - 3 * E^2
+    // out_R.Y = G^2 - 3 * E^2
     // check: 1 * G_squared_minus_3_E_squared == outRy
     libsnark::Fqe_variable<ppT> G_squared_minus_3_E_squared;
     libsnark::Fqe_mul_by_lc_gadget<ppT> check_out_Ry;
 
-    // outRz = B * H
+    // out_R.Z = B * H
     libsnark::Fqe_mul_gadget<ppT> check_out_Rz;
 
     // ell_0 = xi * I
@@ -157,19 +157,19 @@ public:
     typedef libff::Fq<libsnark::other_curve<ppT>> FqT;
     typedef libff::Fqe<libsnark::other_curve<ppT>> FqeT;
 
-    libsnark::Fqe_variable<ppT> base_X;
-    libsnark::Fqe_variable<ppT> base_Y;
+    libsnark::Fqe_variable<ppT> Q_X;
+    libsnark::Fqe_variable<ppT> Q_Y;
     bls12_377_G2_proj<ppT> in_R;
 
-    // A = Qy * Rz;
+    // A = Q_Y * R.Z;
     libsnark::Fqe_variable<ppT> A;
     libsnark::Fqe_mul_gadget<ppT> check_A;
-    // B = Qx * Rz;
+    // B = Q_X * R.Z;
     libsnark::Fqe_variable<ppT> B;
     libsnark::Fqe_mul_gadget<ppT> check_B;
-    // theta = Ry - A;
+    // theta = R.Y - A;
     libsnark::Fqe_variable<ppT> theta;
-    // lambda = Rx - B;
+    // lambda = R.X - B;
     libsnark::Fqe_variable<ppT> lambda;
     // C = theta.squared();
     libsnark::Fqe_variable<ppT> C;
@@ -180,32 +180,32 @@ public:
     // E = lambda * D;
     libsnark::Fqe_variable<ppT> E;
     libsnark::Fqe_mul_gadget<ppT> check_E;
-    // F = Rz * C;
+    // F = R.Z * C;
     libsnark::Fqe_variable<ppT> F;
     libsnark::Fqe_mul_gadget<ppT> check_F;
-    // G = Rx * D;
+    // G = R.X * D;
     libsnark::Fqe_variable<ppT> G;
     libsnark::Fqe_mul_gadget<ppT> check_G;
     // H = E + F - (G + G);
     libsnark::Fqe_variable<ppT> H;
-    // I = Ry * E;
+    // I = R.Y * E;
     libsnark::Fqe_variable<ppT> I;
     libsnark::Fqe_mul_gadget<ppT> check_I;
-    // J = theta * Qx - lambda * Qy;
+    // J = theta * Q_X - lambda * Q_Y;
     libsnark::Fqe_variable<ppT> theta_times_Qx;
     libsnark::Fqe_mul_gadget<ppT> check_theta_times_Qx;
     libsnark::Fqe_variable<ppT> lambda_times_Qy;
     libsnark::Fqe_mul_gadget<ppT> check_lambda_times_Qy;
     libsnark::Fqe_variable<ppT> J;
 
-    // out_Rx = lambda * H;
+    // out_R.X = lambda * H;
     libsnark::Fqe_variable<ppT> out_Rx;
     libsnark::Fqe_mul_gadget<ppT> check_out_Rx;
-    // out_Ry = theta * (G - H) - I;
+    // out_R.Y = theta * (G - H) - I;
     libsnark::Fqe_variable<ppT> G_minus_H;
     libsnark::Fqe_variable<ppT> theta_times_G_minus_H;
     libsnark::Fqe_mul_gadget<ppT> check_theta_times_G_minus_H;
-    // out_Rz = Z1 * E;
+    // out_R.Z = Z1 * E;
     libsnark::Fqe_variable<ppT> out_Rz;
     libsnark::Fqe_mul_gadget<ppT> check_out_Rz;
 
@@ -218,8 +218,8 @@ public:
 
     bls12_377_ate_add_gadget(
         libsnark::protoboard<libff::Fr<ppT>> &pb,
-        const libsnark::Fqe_variable<ppT> &base_X,
-        const libsnark::Fqe_variable<ppT> &base_Y,
+        const libsnark::Fqe_variable<ppT> &Q_X,
+        const libsnark::Fqe_variable<ppT> &Q_Y,
         const bls12_377_G2_proj<ppT> &R,
         const std::string &annotation_prefix);
 

@@ -24,11 +24,11 @@ Fp12_2over3over2_variable<Fp12T>::Fp12_2over3over2_variable(
 template<typename Fp12T>
 Fp12_2over3over2_variable<Fp12T>::Fp12_2over3over2_variable(
     libsnark::protoboard<FieldT> &pb,
-    const Fp12T &v,
+    const Fp12T &el,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
-    , _c0(pb, v.c0, FMT(annotation_prefix, " c0"))
-    , _c1(pb, v.c1, FMT(annotation_prefix, " c1"))
+    , _c0(pb, el.c0, FMT(annotation_prefix, " c0"))
+    , _c1(pb, el.c1, FMT(annotation_prefix, " c1"))
 {
 }
 
@@ -49,10 +49,10 @@ Fp12T Fp12_2over3over2_variable<Fp12T>::get_element() const
 }
 
 template<typename Fp12T>
-void Fp12_2over3over2_variable<Fp12T>::generate_r1cs_witness(const Fp12T &v)
+void Fp12_2over3over2_variable<Fp12T>::generate_r1cs_witness(const Fp12T &el)
 {
-    _c0.generate_r1cs_witness(v.c0);
-    _c1.generate_r1cs_witness(v.c1);
+    _c0.generate_r1cs_witness(el.c0);
+    _c1.generate_r1cs_witness(el.c1);
 }
 
 // Fp12_2over3over2_square_gadget methods
