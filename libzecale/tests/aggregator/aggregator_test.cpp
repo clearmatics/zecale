@@ -6,10 +6,7 @@
 #include "libzecale/core/aggregator_circuit_wrapper.hpp"
 
 #include <gtest/gtest.h>
-#include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
-#include <libff/algebra/curves/mnt/mnt6/mnt6_pp.hpp>
 #include <libff/algebra/fields/field_utils.hpp>
-#include <libff/common/default_types/ec_pp.hpp>
 
 // Header to use the merkle tree data structure to keep a local merkle tree
 #include <libsnark/common/data_structures/merkle_tree.hpp>

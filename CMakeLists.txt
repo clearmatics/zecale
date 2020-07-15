@@ -55,7 +55,7 @@ option(
 # Note: This configuration determines over which curve the zeth proofs are verifier/aggregated
 # Here the Zeth proofs are assumed to be generated over MNT4 since we will verify them over MNT6
 set(
-  CURVE
+  ZECALE_CURVE
   "MNT6"
   CACHE
   STRING
@@ -146,7 +146,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(Apple)?Clan
   endif()
 endif()
 
-add_definitions(-DCURVE_${CURVE})
 add_definitions(-DZKSNARK_${ZKSNARK})
 
 enable_testing()
@@ -204,8 +203,6 @@ file(
   ${PROJECT_SOURCE_DIR}/api/*.proto
 )
 
-# Add the compiled proto files of zeth into the set of include directories
-include_directories(${PROJECT_SOURCE_DIR}/build/depends/zeth)
 # Set the import path to be able to re-use the Zeth proto files
 set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/depends/zeth/)
 
