@@ -5,7 +5,6 @@
 #ifndef __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
 #define __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
 
-#include <libzeth/snarks/default/default_snark.hpp>
 #include <libzeth/zeth_constants.hpp>
 
 using namespace libzeth;
@@ -17,17 +16,17 @@ template<
     typename nppT,
     typename wppT,
     typename nSnarkT,
-    typename wSnarkT,
+    typename wVerifierT,
     size_t NumProofs>
-typename wSnarkT::KeypairT aggregator_circuit_wrapper<
+typename wVerifierT::SnarkT::KeypairT aggregator_circuit_wrapper<
     nppT,
     wppT,
     nSnarkT,
-    wSnarkT,
+    wVerifierT,
     NumProofs>::generate_trusted_setup() const
 {
     libsnark::protoboard<libff::Fr<wppT>> pb;
-    aggregator_gadget<nppT, wppT, nSnarkT, NumProofs> g(pb);
+    aggregator_gadget<nppT, wppT, nSnarkT, wVerifierT, NumProofs> g(pb);
     g.generate_r1cs_constraints();
 
     // Generate a verification and proving key (trusted setup)
@@ -40,17 +39,17 @@ template<
     typename nppT,
     typename wppT,
     typename nSnarkT,
-    typename wSnarkT,
+    typename wVerifierT,
     size_t NumProofs>
 libsnark::protoboard<libff::Fr<wppT>> aggregator_circuit_wrapper<
     nppT,
     wppT,
     nSnarkT,
-    wSnarkT,
+    wVerifierT,
     NumProofs>::get_constraint_system() const
 {
     libsnark::protoboard<libff::Fr<wppT>> pb;
-    aggregator_gadget<nppT, wppT, nSnarkT, NumProofs> g(pb);
+    aggregator_gadget<nppT, wppT, nSnarkT, wVerifierT, NumProofs> g(pb);
     g.generate_r1cs_constraints();
     return pb;
 }
@@ -59,24 +58,18 @@ template<
     typename nppT,
     typename wppT,
     typename nSnarkT,
-    typename wSnarkT,
+    typename wVerifierT,
     size_t NumProofs>
-libzeth::extended_proof<wppT, wSnarkT> aggregator_circuit_wrapper<
-    nppT,
-    wppT,
-    nSnarkT,
-    wSnarkT,
-    NumProofs>::
-    prove(
-        typename nSnarkT::VerificationKeyT nested_vk,
-        const std::array<
-            const libzeth::extended_proof<nppT, nSnarkT> *,
-            NumProofs> &extended_proofs,
-        const typename wSnarkT::ProvingKeyT &aggregator_proving_key) const
+libzeth::extended_proof<wppT, typename wVerifierT::SnarkT>
+aggregator_circuit_wrapper<nppT, wppT, nSnarkT, wVerifierT, NumProofs>::prove(
+    typename nSnarkT::VerificationKeyT nested_vk,
+    const std::array<const libzeth::extended_proof<nppT, nSnarkT> *, NumProofs>
+        &extended_proofs,
+    const typename wSnarkT::ProvingKeyT &aggregator_proving_key) const
 {
     libsnark::protoboard<libff::Fr<wppT>> pb;
 
-    aggregator_gadget<nppT, wppT, nSnarkT, NumProofs> g(pb);
+    aggregator_gadget<nppT, wppT, nSnarkT, wVerifierT, NumProofs> g(pb);
     g.generate_r1cs_constraints();
     // We pass to the witness generation function the elements defined
     // over the "other curve". See:

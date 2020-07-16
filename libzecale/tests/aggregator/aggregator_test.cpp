@@ -2,26 +2,17 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
 #include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
+#include "libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp"
 #include "libzecale/core/aggregator_circuit_wrapper.hpp"
 
 #include <gtest/gtest.h>
 #include <libff/algebra/fields/field_utils.hpp>
-
-// Header to use the merkle tree data structure to keep a local merkle tree
 #include <libsnark/common/data_structures/merkle_tree.hpp>
-
-// Include the joinsplit gadget - generate the zeth proofs
-#include <libzeth/circuits/blake2s/blake2s.hpp>
+#include <libzeth/circuits/circuit_types.hpp>
 #include <libzeth/circuits/circuit_wrapper.hpp>
-#include <libzeth/circuits/mimc/mimc_mp.hpp>
 #include <libzeth/core/bits.cpp>
-
-// Include the core files and template instantiations corresponding
-// to the proof system used. We use groth16 here.
-//
-// TODO: Switch to the default to support generic tests
-#include <libzeth/snarks/groth16/groth16_snark.hpp>
 
 using namespace libzeth;
 
@@ -197,15 +188,17 @@ libzeth::extended_proof<nppT, snarkT> generate_valid_zeth_proof(
 /// Here we use the same proof system to generate the "zeth proofs"
 /// and the Zecale proofs, but we could use different proofs systems.
 /// We use the same SNARK for simplicity.
-template<typename nppT, typename wppT, typename nsnarkT, typename wsnarkT>
+template<typename nppT, typename wppT, typename nsnarkT, typename wVerifierT>
 bool test_valid_aggregation_batch_proofs(
-    aggregator_circuit_wrapper<nppT, wppT, nsnarkT, wsnarkT, batch_size>
+    aggregator_circuit_wrapper<nppT, wppT, nsnarkT, wVerifierT, batch_size>
         &aggregator_prover,
-    typename wsnarkT::KeypairT aggregator_keypair,
+    typename wVerifierT::SnarkT::KeypairT aggregator_keypair,
     typename nsnarkT::KeypairT zeth_keypair,
     const std::array<const libzeth::extended_proof<nppT, nsnarkT> *, batch_size>
         &nested_proofs)
 {
+    using wsnarkT = typename wVerifierT::SnarkT;
+
     libff::enter_block("Generate Aggregate proof", true);
     libzeth::extended_proof<wppT, wsnarkT> ext_proof = aggregator_prover.prove(
         // This should cause a crash because the primary inputs are
@@ -228,9 +221,11 @@ bool test_valid_aggregation_batch_proofs(
     return res;
 }
 
-template<typename nppT, typename wppT, typename nsnarkT, typename wsnarkT>
+template<typename nppT, typename wppT, typename nsnarkT, typename wVerifierT>
 void aggregator_test()
 {
+    using wsnarkT = typename wVerifierT::SnarkT;
+
     std::cout << "[DEBUG] Entering test for the aggregator" << std::endl;
 
     // Run the trusted setup once for all tests, and keep the keypair in memory
@@ -271,7 +266,7 @@ void aggregator_test()
 
     std::cout << "[DEBUG] Before creation of the Aggregator prover"
               << std::endl;
-    aggregator_circuit_wrapper<nppT, wppT, nsnarkT, wsnarkT, batch_size>
+    aggregator_circuit_wrapper<nppT, wppT, nsnarkT, wVerifierT, batch_size>
         aggregator_prover;
     std::cout << "[DEBUG] Before gen Aggregator setup" << std::endl;
     typename wsnarkT::KeypairT aggregator_keypair =
@@ -290,13 +285,29 @@ template<typename nppT, typename wppT> void aggregator_test_groth16()
         nppT,
         wppT,
         libzeth::groth16_snark<nppT>,
-        libzeth::groth16_snark<wppT>>();
+        libzecale::groth16_verifier_parameters<wppT>>();
+}
+
+template<typename nppT, typename wppT> void aggregator_test_pghr13()
+{
+    aggregator_test<
+        nppT,
+        wppT,
+        libzeth::pghr13_snark<nppT>,
+        libzecale::pghr13_verifier_parameters<wppT>>();
 }
 
 TEST(AggregatorTests, AggregatorMnt4Mnt6Groth16)
 {
     aggregator_test_groth16<libff::mnt4_pp, libff::mnt6_pp>();
 }
+
+#if 0 // TODO: Enable and fix this test
+TEST(AggregatorTests, AggregatorMnt4Mnt6Pghr13)
+{
+    aggregator_test_pghr13<libff::mnt4_pp, libff::mnt6_pp>();
+}
+#endif
 
 } // namespace
 

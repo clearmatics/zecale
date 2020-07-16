@@ -11,9 +11,6 @@
 #include <queue>
 #include <vector>
 
-// zkSNARK instantiation
-#include <libzeth/snarks/default/default_snark.hpp>
-
 namespace libzecale
 {
 

@@ -8,7 +8,6 @@
 #include "libzecale/circuits/aggregator.tcc"
 
 #include <libzeth/core/extended_proof.hpp>
-#include <libzeth/snarks/default/default_snark.hpp>
 
 using namespace libzeth;
 
@@ -19,12 +18,15 @@ template<
     typename nppT,
     typename wppT,
     typename nSnarkT,
-    typename wSnarkT,
+    typename wVerifierT,
     size_t NumProofs>
 class aggregator_circuit_wrapper
 {
 private:
-    std::shared_ptr<aggregator_gadget<nppT, wppT, nSnarkT, NumProofs>>
+    using wSnarkT = typename wVerifierT::SnarkT;
+
+    std::shared_ptr<
+        aggregator_gadget<nppT, wppT, nSnarkT, wVerifierT, NumProofs>>
         aggregator_g;
 
 public:

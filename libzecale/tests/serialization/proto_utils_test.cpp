@@ -106,7 +106,6 @@ template<typename ppT> void test_parse_transaction_to_aggregate_pghr13()
     transaction_to_aggregate<ppT, libzeth::pghr13_snark<ppT>> retrieved_tx =
         transaction_to_aggregate_from_proto<
             ppT,
-            libzeth::pghr13_snark<ppT>,
             libzeth::pghr13_api_handler<ppT>>(*grpc_tx_to_aggregate_obj);
 
     ASSERT_EQ(
@@ -183,7 +182,6 @@ template<typename ppT> void test_parse_transaction_to_aggregate_groth16()
     transaction_to_aggregate<ppT, libzeth::groth16_snark<ppT>> retrieved_tx =
         transaction_to_aggregate_from_proto<
             ppT,
-            libzeth::groth16_snark<ppT>,
             libzeth::groth16_api_handler<ppT>>(*grpc_tx_to_aggregate_obj);
 
     ASSERT_EQ(

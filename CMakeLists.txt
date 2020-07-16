@@ -22,13 +22,6 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Configure a header file to pass some of the CMake settings
-# to the source code
-configure_file (
-    "${PROJECT_SOURCE_DIR}/zecale_config.h.in"
-    "${PROJECT_BINARY_DIR}/zecale_config.h"
-)
-
 # Flags and compilation options to chose the type of zksnark
 # TODO: Allow Zeth and Zecale to use different snarks. To do so, introduce
 # separate variables in the cmake config
@@ -36,7 +29,7 @@ configure_file (
 # - WSNARK, and NSNARK to match the template names
 # - WCURVE, and NCURVE
 set(
-  ZKSNARK
+  ZECALE_SNARK
   "GROTH16"
   CACHE
   STRING
@@ -61,6 +54,13 @@ set(
   STRING
   "Default curve (Warning: make sure the choosen curve matches the curve used to
   generate the nested proofs): one of MNT6, BW6_761"
+)
+
+# Configure a header file to pass some of the CMake settings
+# to the source code
+configure_file (
+    "${PROJECT_SOURCE_DIR}/zecale_config.h.in"
+    "${PROJECT_BINARY_DIR}/zecale_config.h"
 )
 
 # Dependencies
@@ -145,8 +145,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(Apple)?Clan
     set(OPT_FLAGS "-ggdb3 -O2 -march=native -mtune=native")
   endif()
 endif()
-
-add_definitions(-DZKSNARK_${ZKSNARK})
 
 enable_testing()
 

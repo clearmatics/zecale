@@ -8,7 +8,6 @@
 #include <array>
 #include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 #include <libzeth/core/extended_proof.hpp>
-#include <libzeth/snarks/default/default_snark.hpp>
 #include <queue>
 
 namespace libzecale

@@ -7,7 +7,8 @@
 #define ZECALE_VERSION_MAJOR @ZECALE_VERSION_MAJOR@
 #define ZECALE_VERSION_MINOR @ZECALE_VERSION_MINOR@
 
-// Type to be used by applications.
+// Types to be used by applications.
 #define ZECALE_CURVE_@ZECALE_CURVE@ 1
+#define ZECALE_SNARK_@ZECALE_SNARK@ 1
 
 #endif // __ZECALE_CONFIG_H__

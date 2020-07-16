@@ -5,20 +5,10 @@
 // Read the zecale config, include the appropriate pairing selector and define
 // the corresponding pairing parameters type.
 
-#include "zecale_config.h"
-#if defined(ZECALE_CURVE_MNT6)
-#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
-using wpp = libff::mnt6_pp;
-#elif defined(ZECALE_CURVE_BW6_761)
-#include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
-using wpp = libff::bw6_761_pp;
-#else
-#error "ZECALE_CURVE_* variable not set to supported curve"
-#endif
-
 #include "libzecale/core/aggregator_circuit_wrapper.hpp"
 #include "libzecale/core/application_pool.hpp"
 #include "libzecale/serialization/proto_utils.hpp"
+#include "zecale_config.h"
 
 #include <api/aggregator.grpc.pb.h>
 #include <boost/program_options.hpp>
@@ -34,8 +24,6 @@ using wpp = libff::bw6_761_pp;
 #include <libzeth/core/utils.hpp>
 #include <libzeth/serialization/proto_utils.hpp>
 #include <libzeth/serialization/r1cs_serialization.hpp>
-#include <libzeth/snarks/default/default_api_handler.hpp>
-#include <libzeth/snarks/default/default_snark.hpp>
 #include <libzeth/zeth_constants.hpp>
 #include <map>
 #include <memory>
@@ -45,13 +33,40 @@ using wpp = libff::bw6_761_pp;
 namespace proto = google::protobuf;
 namespace po = boost::program_options;
 
-// Define remaining types
-using wsnark = libzeth::default_snark<wpp>;
-using wapi_handler = libzeth::default_api_handler<wpp>;
+// Set the wrapper curve type (wpp) based on the build configuration.
+#if defined(ZECALE_CURVE_MNT6)
+#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
+using wpp = libff::mnt6_pp;
+#elif defined(ZECALE_CURVE_BW6_761)
+#include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
+using wpp = libff::bw6_761_pp;
+#else
+#error "ZECALE_CURVE_* variable not set to supported curve"
+#endif
 
+// The nested curve type (npp)
 using npp = libzecale::other_curve<wpp>;
-using nsnark = libzeth::default_snark<npp>;
-using napi_handler = libzeth::default_api_handler<npp>;
+
+// Set both wrapper and nested snark schemes based on the build configuration.
+#if defined(ZECALE_SNARK_PGHR13)
+#include <libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp>
+#include <libzeth/snarks/pghr13/pghr13_api_handler.hpp>
+using wverifier = libzecale::pghr13_verifier_parameters<wpp>;
+using wapi_handler = libzeth::pghr13_api_handler<wpp>;
+using nsnark = libzeth::pghr13_snark<npp>;
+using napi_handler = libzeth::pghr13_api_handler<npp>;
+#elif defined(ZECALE_SNARK_GROTH16)
+#include <libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp>
+#include <libzeth/snarks/groth16/groth16_api_handler.hpp>
+using wverifier = libzecale::groth16_verifier_parameters<wpp>;
+using wapi_handler = libzeth::groth16_api_handler<wpp>;
+using nsnark = libzeth::groth16_snark<npp>;
+using napi_handler = libzeth::groth16_api_handler<npp>;
+#else
+#error "ZECALE_SNARK_* variable not set to supported ZK snark"
+#endif
+
+using wsnark = typename wverifier::SnarkT;
 
 static const size_t batch_size = 1;
 
@@ -60,8 +75,9 @@ static const size_t batch_size = 1;
 class aggregator_server final : public zecale_proto::Aggregator::Service
 {
 private:
-    libzecale::aggregator_circuit_wrapper<npp, wpp, nsnark, wsnark, batch_size>
-        aggregator;
+    libzecale::
+        aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
+            aggregator;
 
     // The keypair is the result of the setup for the aggregation circuit
     wsnark::KeypairT keypair;
@@ -73,7 +89,7 @@ private:
 public:
     explicit aggregator_server(
         libzecale::
-            aggregator_circuit_wrapper<npp, wpp, nsnark, wsnark, batch_size>
+            aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
                 &aggregator,
         wsnark::KeypairT &keypair)
         : aggregator(aggregator), keypair(keypair)
@@ -198,7 +214,7 @@ public:
             // Add the application to the list of applications supported by the
             // server.
             libzecale::transaction_to_aggregate<npp, nsnark> tx = libzecale::
-                transaction_to_aggregate_from_proto<npp, nsnark, napi_handler>(
+                transaction_to_aggregate_from_proto<npp, napi_handler>(
                     *transaction);
             libzecale::application_pool<npp, nsnark, batch_size> app_pool =
                 this->pools_map[transaction->application_name()];
@@ -256,8 +272,9 @@ void display_server_start_message()
 }
 
 static void RunServer(
-    libzecale::aggregator_circuit_wrapper<npp, wpp, nsnark, wsnark, batch_size>
-        &aggregator,
+    libzecale::
+        aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
+            &aggregator,
     typename wsnark::KeypairT &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50052
@@ -348,8 +365,9 @@ int main(int argc, char **argv)
     npp::init_public_params();
     wpp::init_public_params();
 
-    libzecale::aggregator_circuit_wrapper<npp, wpp, nsnark, wsnark, batch_size>
-        aggregator;
+    libzecale::
+        aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
+            aggregator;
     wsnark::KeypairT keypair = [&keypair_file, &aggregator]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16
