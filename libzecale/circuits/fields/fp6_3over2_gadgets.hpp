@@ -28,7 +28,7 @@ public:
 
     Fp6_3over2_variable(
         libsnark::protoboard<FieldT> &pb,
-        const Fp6_3over2_variable<Fp6T> &v,
+        const Fp6_3over2_variable<Fp6T> &el,
         const std::string &annotation_prefix);
 
     Fp6_3over2_variable(
@@ -47,7 +47,7 @@ public:
     Fp6_3over2_variable<Fp6T> operator+(const Fp6_3over2_variable<Fp6T> &other);
 
     void evaluate() const;
-    void generate_r1cs_witness(const Fp6T &v);
+    void generate_r1cs_witness(const Fp6T &el);
     Fp6T get_element() const;
 };
 
@@ -85,10 +85,10 @@ public:
     //  (a0 + a1)(b0 + b1) = c1 + v0 + v1 - non_residue * v2
     //  (a0 + a2)(b0 + b2) = c2 + v0 + v2 - v1
 
-    libsnark::Fp2_mul_gadget<Fp2T> _v1;
-    libsnark::Fp2_mul_gadget<Fp2T> _v2;
+    libsnark::Fp2_mul_gadget<Fp2T> _a1_times_b1;
+    libsnark::Fp2_mul_gadget<Fp2T> _a2_times_b2;
     libsnark::Fp2_mul_gadget<Fp2T> _a1a2_times_b1b2;
-    libsnark::Fp2_mul_gadget<Fp2T> _v0;
+    libsnark::Fp2_mul_gadget<Fp2T> _a0_times_b0;
     libsnark::Fp2_mul_gadget<Fp2T> _a0a1_times_b0b1;
     libsnark::Fp2_mul_gadget<Fp2T> _a0a2_times_b0b2;
 
