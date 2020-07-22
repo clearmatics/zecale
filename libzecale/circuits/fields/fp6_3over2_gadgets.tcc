@@ -66,7 +66,7 @@ Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator*(
         _c0 * scalar,
         _c1 * scalar,
         _c2 * scalar,
-        FMT(this->annotation_prefix, " Fp6_var*Fp"));
+        FMT(this->annotation_prefix, " fp6_var*scalar"));
 }
 
 template<typename Fp6T>
@@ -78,7 +78,7 @@ Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator*(
         _c0 * fp2_const,
         _c1 * fp2_const,
         _c2 * fp2_const,
-        FMT(this->annotation_prefix, " Fp6_var*Fp2"));
+        FMT(this->annotation_prefix, " fp6_var*fp2_const"));
 }
 
 template<typename Fp6T>
@@ -95,7 +95,7 @@ Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator*(
         _c0 * fp6_const.c1 + _c1 * fp6_const.c0 +
             _c2 * fp6_const.c2 * Fp6T::non_residue,
         _c0 * fp6_const.c2 + _c1 * fp6_const.c1 + _c2 * fp6_const.c0,
-        FMT(this->annotation_prefix, " Fp6_var*Fp6"));
+        FMT(this->annotation_prefix, " fp6_var*fp6_const"));
 }
 
 template<typename Fp6T>
@@ -107,9 +107,7 @@ Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator+(
         _c0 + other._c0,
         _c1 + other._c1,
         _c2 + other._c2,
-        FMT(this->annotation_prefix.c_str(),
-            " + %s",
-            other.annotation_prefix.c_str()));
+        FMT(this->annotation_prefix.c_str(), " +other"));
 }
 
 template<typename Fp6T>
@@ -128,7 +126,11 @@ template<typename Fp6T>
 Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator-() const
 {
     return Fp6_3over2_variable<Fp6T>(
-        this->pb, -_c0, -_c1, -_c2, FMT(this->annotation_prefix, " neg"));
+        this->pb,
+        -_c0,
+        -_c1,
+        -_c2,
+        FMT(this->annotation_prefix, " fp6_negate"));
 }
 
 template<typename Fp6T>
@@ -140,7 +142,7 @@ Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::frobenius_map(
         _c0.frobenius_map(power),
         _c1.frobenius_map(power) * Fp6T::Frobenius_coeffs_c1[power % 6],
         _c2.frobenius_map(power) * Fp6T::Frobenius_coeffs_c2[power % 6],
-        FMT(this->annotation_prefix, " frobenius"));
+        FMT(this->annotation_prefix, " fp6_frobenius_map"));
 }
 
 template<typename Fp6T> void Fp6_3over2_variable<Fp6T>::evaluate() const
