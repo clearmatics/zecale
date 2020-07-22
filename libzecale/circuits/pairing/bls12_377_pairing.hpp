@@ -335,8 +335,8 @@ public:
 
     // Follows the implementation used in
     // libff::bls12_377_final_exponentiation_first_chunk() (see
-    // libff/algebra/curves/bls12_377/bls12_377_pairing.cpp), which in turn
-    // follows:
+    // clearmatics/libff/algebra/curves/bls12_377/bls12_377_pairing.cpp), which
+    // in turn follows:
     //   https://eprint.iacr.org/2016/130.pdf
 
     Fp12_2over3over2_variable<FqkT> _in;
@@ -405,8 +405,9 @@ public:
 
     // Based on the implementation of
     // libff::bls12_377_final_exponentiation_last_chunk() (see
-    // libff/algebra/curves/bls12_377/bls12_377_pairing.cpp), which follows
-    // Algorithm 1 described in Table 1 of https://eprint.iacr.org/2016/130.pdf
+    // clearmatics/libff/algebra/curves/bls12_377/bls12_377_pairing.cpp), which
+    // follows Algorithm 1 described in Table 1 of
+    // https://eprint.iacr.org/2016/130.pdf
 
     Fp12_2over3over2_variable<FqkT> _in;
     Fp12_2over3over2_variable<FqkT> _result;
