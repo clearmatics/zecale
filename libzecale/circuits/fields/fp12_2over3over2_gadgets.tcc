@@ -43,9 +43,39 @@ Fp12_2over3over2_variable<Fp12T>::Fp12_2over3over2_variable(
 }
 
 template<typename Fp12T>
-Fp12T Fp12_2over3over2_variable<Fp12T>::get_element() const
+Fp12_2over3over2_variable<Fp12T> Fp12_2over3over2_variable<Fp12T>::operator*(
+    const Fp2T &fp2_const) const
 {
-    return Fp12T(_c0.get_element(), _c1.get_element());
+    return Fp12_2over3over2_variable(
+        this->pb,
+        _c0 * fp2_const,
+        _c1 * fp2_const,
+        FMT(this->annotation_prefix, " fp12_var*fp2_const"));
+}
+
+template<typename Fp12T>
+Fp12_2over3over2_variable<Fp12T> Fp12_2over3over2_variable<
+    Fp12T>::frobenius_map(size_t power) const
+{
+    return Fp12_2over3over2_variable(
+        this->pb,
+        _c0.frobenius_map(power),
+        _c1.frobenius_map(power) * Fp12T::Frobenius_coeffs_c1[power % 12],
+        FMT(this->annotation_prefix, " fp12_frobenius_map"));
+}
+
+template<typename Fp12T>
+Fp12_2over3over2_variable<Fp12T> Fp12_2over3over2_variable<
+    Fp12T>::unitary_inverse() const
+{
+    return Fp12_2over3over2_variable(
+        this->pb, _c0, -_c1, FMT(this->annotation_prefix, " fp12_unitary_inv"));
+}
+
+template<typename Fp12T> void Fp12_2over3over2_variable<Fp12T>::evaluate() const
+{
+    _c0.evaluate();
+    _c1.evaluate();
 }
 
 template<typename Fp12T>
@@ -53,6 +83,39 @@ void Fp12_2over3over2_variable<Fp12T>::generate_r1cs_witness(const Fp12T &el)
 {
     _c0.generate_r1cs_witness(el.c0);
     _c1.generate_r1cs_witness(el.c1);
+}
+
+template<typename Fp12T>
+Fp12T Fp12_2over3over2_variable<Fp12T>::get_element() const
+{
+    return Fp12T(_c0.get_element(), _c1.get_element());
+}
+
+// Multiplication of Fp6 elements by Fp12::non-residue and
+// Fp12::non-residue^{-1}.
+
+template<typename Fp12T>
+Fp6_3over2_variable<typename Fp12T::my_Fp6> fp6_mul_by_non_residue(
+    libsnark::protoboard<typename Fp12T::my_Fp> &pb,
+    const Fp6_3over2_variable<typename Fp12T::my_Fp6> &c,
+    const std::string &annotation_prefix)
+{
+    return Fp6_3over2_variable<typename Fp12T::my_Fp6>(
+        pb, c._c2 * Fp12T::non_residue, c._c0, c._c1, annotation_prefix);
+}
+
+template<typename Fp12T>
+Fp6_3over2_variable<typename Fp12T::my_Fp6> fp6_mul_by_non_residue_inverse(
+    libsnark::protoboard<typename Fp12T::my_Fp> &pb,
+    const Fp6_3over2_variable<typename Fp12T::my_Fp6> &c,
+    const std::string &annotation_prefix)
+{
+    return Fp6_3over2_variable<typename Fp12T::my_Fp6>(
+        pb,
+        c._c1,
+        c._c2,
+        c._c0 * Fp12T::non_residue.inverse(),
+        annotation_prefix);
 }
 
 // Fp12_2over3over2_square_gadget methods
@@ -75,10 +138,10 @@ Fp12_2over3over2_square_gadget<Fp12T>::Fp12_2over3over2_square_gadget(
     , _beta(
           pb,
           _A._c0 + _A._c1,
-          _A._c0 +
-              mul_by_non_residue(pb, _A._c1, FMT(annotation_prefix, " a1*v")),
+          _A._c0 + fp6_mul_by_non_residue<Fp12T>(
+                       pb, _A._c1, FMT(annotation_prefix, " a1*v")),
           _result._c0 +
-              mul_by_non_residue(
+              fp6_mul_by_non_residue<Fp12T>(
                   pb, _alpha._result, FMT(annotation_prefix, " alpha*v")) +
               _alpha._result,
           FMT(annotation_prefix, " _beta"))
@@ -114,18 +177,6 @@ void Fp12_2over3over2_square_gadget<Fp12T>::generate_r1cs_witness()
     _beta._A.evaluate();
     _beta._B.evaluate();
     _beta.generate_r1cs_witness();
-}
-
-template<typename Fp12T>
-Fp6_3over2_variable<typename Fp12T::my_Fp6> Fp12_2over3over2_square_gadget<
-    Fp12T>::
-    mul_by_non_residue(
-        libsnark::protoboard<FieldT> &pb,
-        const Fp6_3over2_variable<typename Fp12T::my_Fp6> &c,
-        const std::string &annotation_prefix)
-{
-    return Fp6_3over2_variable<Fp6T>(
-        pb, c._c2 * Fp12T::non_residue, c._c0, c._c1, annotation_prefix);
 }
 
 // Fp12_2over3over2_mul_by_024_gadget methods
@@ -359,6 +410,290 @@ void Fp12_2over3over2_mul_by_024_gadget<Fp12T>::generate_r1cs_witness()
     _z1z3z5_times_x0x2x4.A.evaluate();
     _z1z3z5_times_x0x2x4.B.evaluate();
     _z1z3z5_times_x0x2x4.generate_r1cs_witness();
+}
+
+// Fp12_2over3over2_mul_gadget methods
+
+template<typename Fp12T>
+Fp12_2over3over2_mul_gadget<Fp12T>::Fp12_2over3over2_mul_gadget(
+    libsnark::protoboard<FieldT> &pb,
+    const Fp12_2over3over2_variable<Fp12T> &A,
+    const Fp12_2over3over2_variable<Fp12T> &B,
+    const Fp12_2over3over2_variable<Fp12T> &result,
+    const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , _A(A)
+    , _B(B)
+    , _result(result)
+    , _v0(pb,
+          A._c0,
+          B._c0,
+          Fp6_3over2_variable<Fp6T>(pb, FMT(annotation_prefix, " a0*b0")),
+          " _v0")
+    // result0 = a0*b0 + non_residue*a1*b1
+    //   <=> a1*b1 = (result0 - a0*b0) * non_residue.inverse
+    , _v1(pb,
+          A._c1,
+          B._c1,
+          fp6_mul_by_non_residue_inverse<Fp12T>(
+              pb, _result._c0 - _v0._result, FMT(annotation_prefix, " a1*b1")),
+          FMT(annotation_prefix, " _v1"))
+    // result1 = a0*b1 + a1*b0 = (a0 + a1)*(b0 + b1) - a0*b0 - a1*b1
+    //   <=> (a0 + a1)(b0 + b1) = result1 + a0*b0 + a1*b1
+    , _a0_plus_a1_times_b0_plus_b1(
+          pb,
+          A._c0 + A._c1,
+          B._c0 + B._c1,
+          _result._c1 + _v0._result + _v1._result,
+          FMT(annotation_prefix, " _a0_plus_a1_times_b0_plus_b1"))
+{
+}
+
+template<typename Fp12T>
+const Fp12_2over3over2_variable<Fp12T>
+    &Fp12_2over3over2_mul_gadget<Fp12T>::result() const
+{
+    return _result;
+}
+
+template<typename Fp12T>
+void Fp12_2over3over2_mul_gadget<Fp12T>::generate_r1cs_constraints()
+{
+    _v0.generate_r1cs_constraints();
+    _v1.generate_r1cs_constraints();
+    _a0_plus_a1_times_b0_plus_b1.generate_r1cs_constraints();
+}
+
+template<typename Fp12T>
+void Fp12_2over3over2_mul_gadget<Fp12T>::generate_r1cs_witness()
+{
+    _v0.generate_r1cs_witness();
+    const Fp6T a0 = _v0._A.get_element();
+    const Fp6T a1 = _v1._A.get_element();
+    const Fp6T b0 = _v0._B.get_element();
+    const Fp6T b1 = _v1._B.get_element();
+    const Fp6T a0b0 = _v0._result.get_element();
+    const Fp6T a1b1 = a1 * b1;
+
+    _result._c0.generate_r1cs_witness(a0b0 + Fp12T::mul_by_non_residue(a1b1));
+    _v1._result.evaluate();
+    _v1.generate_r1cs_witness();
+
+    _result._c1.generate_r1cs_witness((a0 + a1) * (b0 + b1) - a0b0 - a1b1);
+
+    _a0_plus_a1_times_b0_plus_b1._A.evaluate();
+    _a0_plus_a1_times_b0_plus_b1._B.evaluate();
+    _a0_plus_a1_times_b0_plus_b1.generate_r1cs_witness();
+}
+
+// Fp12_2over3over2_inv_gadget methods
+
+template<typename Fp12T>
+Fp12_2over3over2_inv_gadget<Fp12T>::Fp12_2over3over2_inv_gadget(
+    libsnark::protoboard<FieldT> &pb,
+    const Fp12_2over3over2_variable<Fp12T> &A,
+    const Fp12_2over3over2_variable<Fp12T> &result,
+    const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , _A(A)
+    , _result(result)
+    // _result == A^{-1}
+    //   <=> _result * A == Fp12::one()
+    , _A_times_result(
+          pb,
+          _A,
+          _result,
+          Fp12_2over3over2_variable<Fp12T>(
+              pb,
+              Fp6_3over2_variable<Fp6T>(pb, Fp6T::one(), " (A*A.inv).c0"),
+              Fp6_3over2_variable<Fp6T>(pb, Fp6T::zero(), " (A*A.inv).c1"),
+              FMT(annotation_prefix, " A*A.inv")),
+          FMT(annotation_prefix, " _A_times_result"))
+{
+}
+
+template<typename Fp12T>
+const Fp12_2over3over2_variable<Fp12T>
+    &Fp12_2over3over2_inv_gadget<Fp12T>::result() const
+{
+    return _result;
+}
+
+template<typename Fp12T>
+void Fp12_2over3over2_inv_gadget<Fp12T>::generate_r1cs_constraints()
+{
+    _A_times_result.generate_r1cs_constraints();
+}
+
+template<typename Fp12T>
+void Fp12_2over3over2_inv_gadget<Fp12T>::generate_r1cs_witness()
+{
+    _result.generate_r1cs_witness(_A.get_element().inverse());
+    _A_times_result.generate_r1cs_witness();
+}
+
+// Fp12_2over3over2_cyclotomic_square_gadget methods
+
+template<typename Fp12T>
+Fp12_2over3over2_cyclotomic_square_gadget<Fp12T>::
+    Fp12_2over3over2_cyclotomic_square_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const Fp12_2over3over2_variable<Fp12T> &A,
+        const Fp12_2over3over2_variable<Fp12T> &result,
+        const std::string &annotation_prefix)
+    : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , _A(A)
+    , _result(result)
+    // z0z4 = 6^{-1} * (result4 - 2*z4)
+    , _z0z4(
+          pb,
+          _A._c0._c0,
+          _A._c1._c1,
+          (_result._c1._c1 - _A._c1._c1 - _A._c1._c1) * FieldT(6).inverse(),
+          FMT(annotation_prefix, " _z0z4"))
+    // 3*(z0 + z4) * (z0 + non_residue * z4)
+    //       = result0 + 3*(1 + non_residue)*z0z4 + 2*z0
+    , _check_result_0(
+          pb,
+          (_A._c0._c0 + _A._c1._c1) * FieldT(3),
+          _A._c0._c0 + _A._c1._c1 * Fp6T::non_residue,
+          _result._c0._c0 + _A._c0._c0 + _A._c0._c0 +
+              _z0z4.result * (Fp2T::one() + Fp6T::non_residue) * FieldT(3),
+          FMT(annotation_prefix, " _check_result_0"))
+    // z3z2 = 6^{-1} * (result5 - 2*z5)
+    , _z3z2(
+          pb,
+          _A._c1._c0,
+          _A._c0._c2,
+          (_result._c1._c2 - _A._c1._c2 - _A._c1._c2) * FieldT(6).inverse(),
+          FMT(annotation_prefix, " _z3z2"))
+    // 3*(z3 + z2)*(z3 + non_residue * z2)
+    //       = result1 + 3*(1 + non_residue)*_z3z2 + 2*z1
+    , _check_result_1(
+          pb,
+          (_A._c1._c0 + _A._c0._c2) * FieldT(3),
+          _A._c1._c0 + _A._c0._c2 * Fp6T::non_residue,
+          _result._c0._c1 + _A._c0._c1 + _A._c0._c1 +
+              _z3z2.result * (Fp2T::one() + Fp6T::non_residue) * FieldT(3),
+          FMT(annotation_prefix, " _check_result_1"))
+    // z1z5 = 6^{-1} * non_residue^{-1} * (result3 - 2*z3)
+    , _z1z5(
+          pb,
+          _A._c0._c1,
+          _A._c1._c2,
+          (_result._c1._c0 - _A._c1._c0 - _A._c1._c0) *
+              Fp6T::non_residue.inverse() * FieldT(6).inverse(),
+          FMT(annotation_prefix, " _z1z5"))
+    // 3*(z1 + z5)*(z1 + non_residue * z5)
+    //       = result2 + 3*(1 + non_residue)*z1z5 + 2*z2
+    , _check_result_2(
+          pb,
+          (_A._c0._c1 + _A._c1._c2) * FieldT(3),
+          _A._c0._c1 + _A._c1._c2 * Fp6T::non_residue,
+          _result._c0._c2 + _A._c0._c2 + _A._c0._c2 +
+              _z1z5.result * (Fp2T::one() + Fp6T::non_residue) * FieldT(3),
+          FMT(annotation_prefix, " _check_result_2"))
+{
+}
+
+template<typename Fp12T>
+const Fp12_2over3over2_variable<Fp12T>
+    &Fp12_2over3over2_cyclotomic_square_gadget<Fp12T>::result() const
+{
+    return _result;
+}
+
+template<typename Fp12T>
+void Fp12_2over3over2_cyclotomic_square_gadget<
+    Fp12T>::generate_r1cs_constraints()
+{
+    _z0z4.generate_r1cs_constraints();
+    _check_result_0.generate_r1cs_constraints();
+    _z3z2.generate_r1cs_constraints();
+    _check_result_1.generate_r1cs_constraints();
+    _z1z5.generate_r1cs_constraints();
+    _check_result_2.generate_r1cs_constraints();
+}
+
+template<typename Fp12T>
+void Fp12_2over3over2_cyclotomic_square_gadget<Fp12T>::generate_r1cs_witness()
+{
+    const Fp2T z0 = _A._c0._c0.get_element();
+    const Fp2T z1 = _A._c0._c1.get_element();
+    const Fp2T z2 = _A._c0._c2.get_element();
+    const Fp2T z3 = _A._c1._c0.get_element();
+    const Fp2T z4 = _A._c1._c1.get_element();
+    const Fp2T z5 = _A._c1._c2.get_element();
+
+    // result4 = 6 * z0z4 + 2 * z4
+    // <=> z0z4 = 6^{-1} * (result4 - 2*z4)
+    const Fp2T z0z4 = z0 * z4;
+    const Fp2T z0z4_2 = z0z4 + z0z4;
+    _result._c1._c1.generate_r1cs_witness(z0z4_2 + z0z4_2 + z0z4_2 + z4 + z4);
+    _z0z4.result.evaluate();
+    _z0z4.generate_r1cs_witness();
+
+    // result0 = 3*t0_L - 3*t0_R - 2*z0
+    //   where
+    //     t0_L = (z0 + z4) * (z0 + non_residue * z4)
+    //     t0_R = z0z4 * (my_Fp2::one() + my_Fp6::non_residue)
+    // <=> 3*(z0 + z4) * (z0 + non_residue * z4)
+    //       = result0 + 3*(1 + non_residue)*z0z4 + 2*z0
+    const Fp2T t0_L = (z0 + z4) * (z0 + Fp6T::non_residue * z4);
+    const Fp2T t0_R = z0z4 * (Fp2T::one() + Fp6T::non_residue);
+    _result._c0._c0.generate_r1cs_witness(
+        t0_L + t0_L + t0_L - t0_R - t0_R - t0_R - z0 - z0);
+    _check_result_0.A.evaluate();
+    _check_result_0.B.evaluate();
+    _check_result_0.result.evaluate();
+    _check_result_0.generate_r1cs_witness();
+
+    // result5 = 6 * z3z2 + 2 * z5
+    // <=> z3z2 = 6^{-1} * (result5 - 2*z5)
+    const Fp2T z3z2 = z3 * z2;
+    const Fp2T z3z2_2 = z3z2 + z3z2;
+    _result._c1._c2.generate_r1cs_witness(z3z2_2 + z3z2_2 + z3z2_2 + z5 + z5);
+    _z3z2.result.evaluate();
+    _z3z2.generate_r1cs_witness();
+
+    // result1 = 3*t2_L - 3*t2_R - 2*z1
+    //   where
+    //     t2_L = (z3 + z2) * (z3 + non_residue * z2)
+    //     t2_R = z3z2 * (1 + non_residue)
+    // <=> 3*(z3 + z2)*(z3 + non_residue * z2)
+    //       = result1 + 3*(1 + non_residue)*_z3z2 + 2*z1
+    const Fp2T t2_L = (z3 + z2) * (z3 + Fp6T::non_residue * z2);
+    const Fp2T t2_R = z3z2 * (Fp2T::one() + Fp6T::non_residue);
+    _result._c0._c1.generate_r1cs_witness(
+        t2_L + t2_L + t2_L - t2_R - t2_R - t2_R - z1 - z1);
+    _check_result_1.A.evaluate();
+    _check_result_1.B.evaluate();
+    _check_result_1.result.evaluate();
+    _check_result_1.generate_r1cs_witness();
+
+    // result3 = 6 * non_residue * z1z5 + 2*z3
+    // <=> z1z5 = 6^{-1} * non_residue^{-1} * (out3 - 2*z3)
+    const Fp2T z1z5 = z1 * z5;
+    const Fp2T z1z5_2 = z1z5 + z1z5;
+    _result._c1._c0.generate_r1cs_witness(
+        (z1z5_2 + z1z5_2 + z1z5_2) * Fp6T::non_residue + z3 + z3);
+    _z1z5.result.evaluate();
+    _z1z5.generate_r1cs_witness();
+
+    // result2 = 3*t4_L - 3*t4_R - 2*z2
+    //   where
+    //     t4_L = (z1 + z5) * (z1 + non_residue * z5)
+    //     t4_R = z1z5 * (1 + non_residue);
+    // <=> 3*(z1 + z5)*(z1 + non_residue * z5)
+    //       = result2 + 3*(1 + non_residue)*z1z5 + 2*z2
+    const Fp2T t4_L = (z1 + z5) * (z1 + Fp6T::non_residue * z5);
+    const Fp2T t4_R = z1z5 * (Fp2T::one() + Fp6T::non_residue);
+    _result._c0._c2.generate_r1cs_witness(
+        t4_L + t4_L + t4_L - t4_R - t4_R - t4_R - z2 - z2);
+    _check_result_2.A.evaluate();
+    _check_result_2.B.evaluate();
+    _check_result_2.result.evaluate();
+    _check_result_2.generate_r1cs_witness();
 }
 
 } // namespace libzecale

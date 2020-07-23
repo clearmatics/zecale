@@ -22,6 +22,7 @@ class Fp12_2over3over2_variable : public libsnark::gadget<typename Fp12T::my_Fp>
 public:
     using FieldT = typename Fp12T::my_Fp;
     using Fp6T = typename Fp12T::my_Fp6;
+    using Fp2T = typename Fp12T::my_Fp2;
 
     Fp6_3over2_variable<Fp6T> _c0;
     Fp6_3over2_variable<Fp6T> _c1;
@@ -32,16 +33,44 @@ public:
         libsnark::protoboard<FieldT> &pb,
         const Fp12T &el,
         const std::string &annotation_prefix);
-
     Fp12_2over3over2_variable(
         libsnark::protoboard<FieldT> &pb,
         const Fp6_3over2_variable<Fp6T> &c0,
         const Fp6_3over2_variable<Fp6T> &c1,
         const std::string &annotation_prefix);
 
-    Fp12T get_element() const;
+    Fp12_2over3over2_variable<Fp12T> operator*(const Fp2T &fp2_const) const;
+    Fp12_2over3over2_variable<Fp12T> frobenius_map(size_t power) const;
+    Fp12_2over3over2_variable<Fp12T> unitary_inverse() const;
+    void evaluate() const;
     void generate_r1cs_witness(const Fp12T &el);
+    Fp12T get_element() const;
 };
+
+/// Multiply an element in Fq6 by Fq12::non_residue. Let c = c0 + c1 * v +
+/// c2 * v^2 be an element of Fq6T, where v is a root of:
+///   v^3 - Fq6::non_residue
+/// Return c * v.
+///
+/// Note, this simplification does not save any complexity in the final
+/// circuit since Fp6_3over2_variable::operator*(const Fp6T &)
+/// (multiplication by a constant) can be implemented as linear
+/// combinations.
+template<typename Fp12T>
+Fp6_3over2_variable<typename Fp12T::my_Fp6> fp6_mul_by_non_residue(
+    libsnark::protoboard<typename Fp12T::my_Fp> &pb,
+    const Fp6_3over2_variable<typename Fp12T::my_Fp6> &c,
+    const std::string &annotation_prefix);
+
+/// Let c = c0 + c1 * v + c2 * v^2 be an element of Fq6T, where v is a root of:
+///   v^3 - Fq6::non_residue
+/// and v is used as Fp12::non_residue.
+/// Return c * v^{-1} (= c * Fp12::non_residue^{-1})
+template<typename Fp12T>
+Fp6_3over2_variable<typename Fp12T::my_Fp6> fp6_mul_by_non_residue_inverse(
+    libsnark::protoboard<typename Fp12T::my_Fp> &pb,
+    const Fp6_3over2_variable<typename Fp12T::my_Fp6> &c,
+    const std::string &annotation_prefix);
 
 /// Follows implementation in libff::Fp12_2over3over2_model, which is based on
 /// Section 3 of [DOSD06].
@@ -88,20 +117,6 @@ public:
     const Fp12_2over3over2_variable<Fp12T> &result() const;
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
-
-    /// Multiply an element in Fq6 by Fq12::non_residue. Let c = c0 + c1 * v +
-    /// c2 * v^2 be an element of Fq6T, where v is a root of:
-    ///   v^3 - Fq6::non_residue
-    /// Return c * v.
-    ///
-    /// Note, this simplification does not save any complexity in the final
-    /// circuit since Fp6_3over2_variable::operator*(const Fp6T &)
-    /// (multiplication by a constant) can be implemented as linear
-    /// combinations.
-    static Fp6_3over2_variable<Fp6T> mul_by_non_residue(
-        libsnark::protoboard<FieldT> &pb,
-        const Fp6_3over2_variable<Fp6T> &c,
-        const std::string &annotation_prefix);
 };
 
 /// Optimal multiplication in Fp12 of z = ((z0, z1, z2), (z3, z4, z5)), by some
@@ -158,6 +173,120 @@ public:
         const libsnark::Fp2_variable<Fp2T> &B_ell_0,
         const libsnark::Fp2_variable<Fp2T> &B_ell_vv,
         const libsnark::Fp2_variable<Fp2T> &B_ell_vw,
+        const Fp12_2over3over2_variable<Fp12T> &result,
+        const std::string &annotation_prefix);
+
+    const Fp12_2over3over2_variable<Fp12T> &result() const;
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
+};
+
+/// Full multiplication of Fp12 variables.
+template<typename Fp12T>
+class Fp12_2over3over2_mul_gadget
+    : public libsnark::gadget<typename Fp12T::my_Fp>
+{
+public:
+    using FieldT = typename Fp12T::my_Fp;
+    using Fp6T = typename Fp12T::my_Fp6;
+
+    Fp12_2over3over2_variable<Fp12T> _A;
+    Fp12_2over3over2_variable<Fp12T> _B;
+    Fp12_2over3over2_variable<Fp12T> _result;
+    Fp6_3over2_mul_gadget<Fp6T> _v0;
+    Fp6_3over2_mul_gadget<Fp6T> _v1;
+    Fp6_3over2_mul_gadget<Fp6T> _a0_plus_a1_times_b0_plus_b1;
+
+    Fp12_2over3over2_mul_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const Fp12_2over3over2_variable<Fp12T> &A,
+        const Fp12_2over3over2_variable<Fp12T> &B,
+        const Fp12_2over3over2_variable<Fp12T> &result,
+        const std::string &annotation_prefix);
+    const Fp12_2over3over2_variable<Fp12T> &result() const;
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
+};
+
+/// Inverse of Fp12 variable
+template<typename Fp12T>
+class Fp12_2over3over2_inv_gadget
+    : public libsnark::gadget<typename Fp12T::my_Fp>
+{
+public:
+    using FieldT = typename Fp12T::my_Fp;
+    using Fp2T = typename Fp12T::my_Fp2;
+    using Fp6T = typename Fp12T::my_Fp6;
+
+    Fp12_2over3over2_variable<Fp12T> _A;
+    Fp12_2over3over2_variable<Fp12T> _result;
+    Fp12_2over3over2_mul_gadget<Fp12T> _A_times_result;
+
+    Fp12_2over3over2_inv_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const Fp12_2over3over2_variable<Fp12T> &A,
+        const Fp12_2over3over2_variable<Fp12T> &result,
+        const std::string &annotation_prefix);
+    const Fp12_2over3over2_variable<Fp12T> &result() const;
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
+};
+
+template<typename Fp12T>
+class Fp12_2over3over2_cyclotomic_square_gadget
+    : public libsnark::gadget<typename Fp12T::my_Fp>
+{
+public:
+    using FieldT = typename Fp12T::my_Fp;
+    using Fp2T = typename Fp12T::my_Fp2;
+    using Fp6T = typename Fp12T::my_Fp6;
+
+    Fp12_2over3over2_variable<Fp12T> _A;
+    Fp12_2over3over2_variable<Fp12T> _result;
+
+    // Follows the implementation of
+    // libff::Fp12_2over3over2::cyclotomic_squared(), see
+    // libff/algebra/fields/fp12_2over3over2.tcc
+
+    // result4 = 6 * z0z4 + 2 * z4
+    // <=> z0z4 = 6^{-1} * (result4 - 2*z4)
+    libsnark::Fp2_mul_gadget<Fp2T> _z0z4;
+
+    // result0 = 3*t0_L - 3*t0_R - 2*z0
+    //   where
+    //     t0_L = (z0 + z4) * (z0 + non_residue * z4)
+    //     t0_R = z0z4 * (my_Fp2::one() + my_Fp6::non_residue)
+    // <=> 3*(z0 + z4) * (z0 + non_residue * z4)
+    //       = result0 + 3*(1 + non_residue)*z0z4 + 2*z0
+    libsnark::Fp2_mul_gadget<Fp2T> _check_result_0;
+
+    // result5 = 6 * z3z2 + 2 * z5
+    // <=> z3z2 = 6^{-1} * (result5 - 2*z5)
+    libsnark::Fp2_mul_gadget<Fp2T> _z3z2;
+
+    // result1 = 3*t2_L - 3*t2_R - 2*z1
+    //   where
+    //     t2_L = (z3 + z2) * (z3 + non_residue * z2)
+    //     t2_R = z3z2 * (1 + non_residue)
+    // <=> 3*(z3 + z2)*(z3 + non_residue * z2)
+    //       = result1 + 3*(1 + non_residue)*_z3z2 + 2*z1
+    libsnark::Fp2_mul_gadget<Fp2T> _check_result_1;
+
+    // result3 = 6 * non_residue * z1z5 + 2*z3
+    // <=> z1z5 = 6^{-1} * non_residue^{-1} * (out3 - 2*z3)
+    libsnark::Fp2_mul_gadget<Fp2T> _z1z5;
+
+    // result2 = 3*t4_L - 3*t4_R - 2*z2
+    //   where
+    //     t4_L = (z1 + z5) * (z1 + non_residue * z5)
+    //     t4_R = z1z5 * (1 + non_residue);
+    // <=> 3*(z1 + z5)*(z1 + non_residue * z5)
+    //       = result2 + 3*(1 + non_residue)*z1z5 + 2*z2
+    libsnark::Fp2_mul_gadget<Fp2T> _check_result_2;
+
+    Fp12_2over3over2_cyclotomic_square_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const Fp12_2over3over2_variable<Fp12T> &A,
         const Fp12_2over3over2_variable<Fp12T> &result,
         const std::string &annotation_prefix);
 
