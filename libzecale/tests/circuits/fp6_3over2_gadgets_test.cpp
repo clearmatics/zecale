@@ -127,14 +127,20 @@ TEST(Fp6_3over2_Test, MulGadgetTest)
 
     ASSERT_EQ(a, a_val);
     ASSERT_EQ(b, b_val);
-    ASSERT_EQ(a.c1 * b.c1, v1);
-    ASSERT_EQ(a.c2 * b.c2, v2);
-    ASSERT_EQ((a.c1 + a.c2) * (b.c1 + b.c2), a1a2_times_b1b2);
-    ASSERT_EQ(a.c0 * b.c0, v0);
-    ASSERT_EQ((a.c0 + a.c1) * (b.c0 + b.c1), a0a1_times_b0b1);
-    ASSERT_EQ((a.c0 + a.c2) * (b.c0 + b.c2), a0a2_times_b0b2);
-    ASSERT_EQ(c.c1, c_val.c1);
-    ASSERT_EQ(c.c2, c_val.c2);
+    ASSERT_EQ(a.coeffs[1] * b.coeffs[1], v1);
+    ASSERT_EQ(a.coeffs[2] * b.coeffs[2], v2);
+    ASSERT_EQ(
+        (a.coeffs[1] + a.coeffs[2]) * (b.coeffs[1] + b.coeffs[2]),
+        a1a2_times_b1b2);
+    ASSERT_EQ(a.coeffs[0] * b.coeffs[0], v0);
+    ASSERT_EQ(
+        (a.coeffs[0] + a.coeffs[1]) * (b.coeffs[0] + b.coeffs[1]),
+        a0a1_times_b0b1);
+    ASSERT_EQ(
+        (a.coeffs[0] + a.coeffs[2]) * (b.coeffs[0] + b.coeffs[2]),
+        a0a2_times_b0b2);
+    ASSERT_EQ(c.coeffs[1], c_val.coeffs[1]);
+    ASSERT_EQ(c.coeffs[2], c_val.coeffs[2]);
     ASSERT_EQ(c, c_val);
 
     // Generate and check the proof

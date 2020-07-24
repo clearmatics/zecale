@@ -27,8 +27,8 @@ Fp12_2over3over2_variable<Fp12T>::Fp12_2over3over2_variable(
     const Fp12T &el,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
-    , _c0(pb, el.c0, FMT(annotation_prefix, " c0"))
-    , _c1(pb, el.c1, FMT(annotation_prefix, " c1"))
+    , _c0(pb, el.coeffs[0], FMT(annotation_prefix, " c0"))
+    , _c1(pb, el.coeffs[1], FMT(annotation_prefix, " c1"))
 {
 }
 
@@ -81,8 +81,8 @@ template<typename Fp12T> void Fp12_2over3over2_variable<Fp12T>::evaluate() const
 template<typename Fp12T>
 void Fp12_2over3over2_variable<Fp12T>::generate_r1cs_witness(const Fp12T &el)
 {
-    _c0.generate_r1cs_witness(el.c0);
-    _c1.generate_r1cs_witness(el.c1);
+    _c0.generate_r1cs_witness(el.coeffs[0]);
+    _c1.generate_r1cs_witness(el.coeffs[1]);
 }
 
 template<typename Fp12T>

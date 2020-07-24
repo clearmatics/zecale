@@ -40,9 +40,9 @@ Fp6_3over2_variable<Fp6T>::Fp6_3over2_variable(
     const Fp6T &el,
     const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
-    , _c0(pb, el.c0, FMT(annotation_prefix, " c0"))
-    , _c1(pb, el.c1, FMT(annotation_prefix, " c1"))
-    , _c2(pb, el.c2, FMT(annotation_prefix, " c2"))
+    , _c0(pb, el.coeffs[0], FMT(annotation_prefix, " c0"))
+    , _c1(pb, el.coeffs[1], FMT(annotation_prefix, " c1"))
+    , _c2(pb, el.coeffs[2], FMT(annotation_prefix, " c2"))
 {
 }
 
@@ -90,11 +90,13 @@ Fp6_3over2_variable<Fp6T> Fp6_3over2_variable<Fp6T>::operator*(
     // c3 = a0*b2 + a1*b1 + a2*b0
     return Fp6_3over2_variable<Fp6T>(
         this->pb,
-        _c0 * fp6_const.c0 +
-            (_c1 * fp6_const.c2 + _c2 * fp6_const.c1) * Fp6T::non_residue,
-        _c0 * fp6_const.c1 + _c1 * fp6_const.c0 +
-            _c2 * fp6_const.c2 * Fp6T::non_residue,
-        _c0 * fp6_const.c2 + _c1 * fp6_const.c1 + _c2 * fp6_const.c0,
+        _c0 * fp6_const.coeffs[0] +
+            (_c1 * fp6_const.coeffs[2] + _c2 * fp6_const.coeffs[1]) *
+                Fp6T::non_residue,
+        _c0 * fp6_const.coeffs[1] + _c1 * fp6_const.coeffs[0] +
+            _c2 * fp6_const.coeffs[2] * Fp6T::non_residue,
+        _c0 * fp6_const.coeffs[2] + _c1 * fp6_const.coeffs[1] +
+            _c2 * fp6_const.coeffs[0],
         FMT(this->annotation_prefix, " fp6_var*fp6_const"));
 }
 
@@ -155,9 +157,9 @@ template<typename Fp6T> void Fp6_3over2_variable<Fp6T>::evaluate() const
 template<typename Fp6T>
 void Fp6_3over2_variable<Fp6T>::generate_r1cs_witness(const Fp6T &el)
 {
-    _c0.generate_r1cs_witness(el.c0);
-    _c1.generate_r1cs_witness(el.c1);
-    _c2.generate_r1cs_witness(el.c2);
+    _c0.generate_r1cs_witness(el.coeffs[0]);
+    _c1.generate_r1cs_witness(el.coeffs[1]);
+    _c2.generate_r1cs_witness(el.coeffs[2]);
 }
 
 template<typename Fp6T> Fp6T Fp6_3over2_variable<Fp6T>::get_element() const
