@@ -28,7 +28,7 @@ public:
 template<typename ppT> class dummy_provider<libzeth::pghr13_snark<ppT>>
 {
 public:
-    static typename libzeth::pghr13_snark<ppT>::ProofT get_proof()
+    static typename libzeth::pghr13_snark<ppT>::proof get_proof()
     {
         libsnark::r1cs_ppzksnark_proof<ppT> dummy_proof(
             libsnark::knowledge_commitment<libff::G1<ppT>, libff::G1<ppT>>(
@@ -46,7 +46,7 @@ public:
         return dummy_proof;
     }
 
-    static typename libzeth::pghr13_snark<ppT>::VerificationKeyT
+    static typename libzeth::pghr13_snark<ppT>::verification_key
     get_verification_key(size_t input_size)
     {
         return libsnark::r1cs_ppzksnark_verification_key<
@@ -58,7 +58,7 @@ public:
 template<typename ppT> class dummy_provider<libzeth::groth16_snark<ppT>>
 {
 public:
-    static typename libzeth::groth16_snark<ppT>::ProofT get_proof()
+    static typename libzeth::groth16_snark<ppT>::proof get_proof()
     {
         libsnark::r1cs_gg_ppzksnark_proof<ppT> dummy_proof(
             libff::G1<ppT>::random_element(),
@@ -68,7 +68,7 @@ public:
         return dummy_proof;
     }
 
-    static typename libzeth::groth16_snark<ppT>::VerificationKeyT
+    static typename libzeth::groth16_snark<ppT>::verification_key
     get_verification_key(size_t input_size)
     {
         return libsnark::r1cs_gg_ppzksnark_verification_key<
@@ -83,7 +83,7 @@ void test_add_and_retrieve_transactions()
     // (set with arbitrary number of inputs)
     const size_t BATCH_SIZE = 2;
     std::string dummy_app_name = std::string("test_application");
-    typename snarkT::VerificationKeyT vk =
+    typename snarkT::verification_key vk =
         dummy_provider<snarkT>::get_verification_key(42);
     application_pool<ppT, snarkT, BATCH_SIZE> pool(dummy_app_name, vk);
 
@@ -92,7 +92,7 @@ void test_add_and_retrieve_transactions()
 
     // Create a dummy extended proof to build the set of transactions to
     // aggregate
-    typename snarkT::ProofT proof = dummy_provider<snarkT>::get_proof();
+    typename snarkT::proof proof = dummy_provider<snarkT>::get_proof();
     std::vector<libff::Fr<ppT>> dummy_inputs;
     dummy_inputs.push_back(libff::Fr<ppT>::random_element());
     dummy_inputs.push_back(libff::Fr<ppT>::random_element());

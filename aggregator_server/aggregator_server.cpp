@@ -80,7 +80,7 @@ private:
             aggregator;
 
     // The keypair is the result of the setup for the aggregation circuit
-    wsnark::KeypairT keypair;
+    wsnark::keypair keypair;
 
     // The nested verification key is the vk used to verify the nested proofs
     std::map<std::string, libzecale::application_pool<npp, nsnark, batch_size>>
@@ -91,7 +91,7 @@ public:
         libzecale::
             aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
                 &aggregator,
-        wsnark::KeypairT &keypair)
+        wsnark::keypair &keypair)
         : aggregator(aggregator), keypair(keypair)
     {
         // Nothing
@@ -131,7 +131,7 @@ public:
         try {
             // Add the application to the list of supported applications on the
             // aggregator server.
-            typename nsnark::VerificationKeyT registered_vk =
+            typename nsnark::verification_key registered_vk =
                 napi_handler::verification_key_from_proto(registration->vk());
             libzecale::application_pool<npp, nsnark, batch_size> app_pool(
                 registration->name(), registered_vk);
@@ -178,7 +178,7 @@ public:
 
             // Retrieve the application verification key for the proof
             // aggregation
-            nsnark::VerificationKeyT nested_vk = app_pool.verification_key();
+            nsnark::verification_key nested_vk = app_pool.verification_key();
 
             std::cout << "[DEBUG] Generating the proof..." << std::endl;
             libzeth::extended_proof<wpp, wsnark> wrapping_proof =
@@ -275,7 +275,7 @@ static void RunServer(
     libzecale::
         aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
             &aggregator,
-    typename wsnark::KeypairT &keypair)
+    typename wsnark::keypair &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50052
     // TODO: Move this in a config file
@@ -368,7 +368,7 @@ int main(int argc, char **argv)
     libzecale::
         aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
             aggregator;
-    wsnark::KeypairT keypair = [&keypair_file, &aggregator]() {
+    wsnark::keypair keypair = [&keypair_file, &aggregator]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16
             std::cout << "[INFO] Loading keypair: " << keypair_file
@@ -382,7 +382,7 @@ int main(int argc, char **argv)
         }
 
         std::cout << "[INFO] Generate new keypair" << std::endl;
-        wsnark::KeypairT keypair = aggregator.generate_trusted_setup();
+        wsnark::keypair keypair = aggregator.generate_trusted_setup();
         return keypair;
     }();
 

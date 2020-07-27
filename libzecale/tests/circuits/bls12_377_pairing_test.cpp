@@ -145,12 +145,12 @@ TEST(BLS12_377_PairingTest, PrecomputeDoubleGadgetTest)
 
     // Generate and check the proof
     ASSERT_TRUE(pb.is_satisfied());
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    const typename snark::keypair keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<libff::Fr<wpp>> primary_input =
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<wpp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -254,12 +254,12 @@ TEST(BLS12_377_PairingTest, PrecomputeAddGadgetTest)
 
     // Generate and check the proof
     ASSERT_TRUE(pb.is_satisfied());
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    const typename snark::keypair keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<libff::Fr<wpp>> primary_input =
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<wpp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -325,12 +325,12 @@ TEST(BLS12_377_PairingTest, G2PrecomputeGadgetTest)
 
     // Generate and check the proof
     ASSERT_TRUE(pb.is_satisfied());
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    const typename snark::keypair keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<libff::Fr<wpp>> primary_input =
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<wpp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -385,12 +385,12 @@ TEST(BLS12_377_PairingTest, MillerLoopGadgetTest)
 
     // Generate and check the proof
     ASSERT_TRUE(pb.is_satisfied());
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    const typename snark::keypair keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<libff::Fr<wpp>> primary_input =
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<wpp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -439,12 +439,12 @@ TEST(BLS12_377_PairingTest, MillerLoopGadgetWithConstantG1Precomputation)
 
     // Generate and check the proof
     ASSERT_TRUE(pb.is_satisfied());
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    const typename snark::keypair keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<libff::Fr<wpp>> primary_input =
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<wpp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -493,12 +493,12 @@ TEST(BLS12_377_PairingTest, MillerLoopGadgetWithConstantG2Precomputation)
 
     // Generate and check the proof
     ASSERT_TRUE(pb.is_satisfied());
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    const typename snark::keypair keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<libff::Fr<wpp>> primary_input =
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<wpp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -545,11 +545,11 @@ TEST(BLS12_377_PairingTest, FinalExpFirstPart)
 
     // Generate and check the proof
     ASSERT_TRUE(pb.is_satisfied());
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    const typename snark::keypair keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<FieldT> primary_input = pb.primary_input();
     libsnark::r1cs_auxiliary_input<FieldT> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -594,11 +594,11 @@ TEST(BLS12_377_PairingTest, ExpByZ)
 
     // Generate and check the proof
     ASSERT_TRUE(pb.is_satisfied());
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    const typename snark::keypair keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<FieldT> primary_input = pb.primary_input();
     libsnark::r1cs_auxiliary_input<FieldT> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -644,11 +644,11 @@ TEST(BLS12_377_PairingTest, FinalExpLastPart)
 
     // Generate and check the proof
     ASSERT_TRUE(pb.is_satisfied());
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    const typename snark::keypair keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<FieldT> primary_input = pb.primary_input();
     libsnark::r1cs_auxiliary_input<FieldT> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -713,11 +713,11 @@ TEST(BLS12_377_PairingTest, FullPairingCircuit)
 
     // Generate and check the proof
     ASSERT_TRUE(pb.is_satisfied());
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    const typename snark::keypair keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<FieldT> primary_input = pb.primary_input();
     libsnark::r1cs_auxiliary_input<FieldT> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 

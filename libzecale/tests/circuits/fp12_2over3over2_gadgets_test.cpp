@@ -122,12 +122,12 @@ TEST(Fp12_2over3over2_Test, SquareGadgetTest)
     ASSERT_EQ(z_squared, z_squared_val);
 
     // Generate and check the proof
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    const typename snark::keypair keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<libff::Fr<ppp>> primary_input =
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<ppp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -225,12 +225,12 @@ TEST(Fp12_2over3over2_Test, MulBy024GadgetTest)
     ASSERT_EQ(z_times_x, z_times_x_var.get_element());
 
     // Generate and check the proof
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    const typename snark::keypair keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<libff::Fr<ppp>> primary_input =
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<ppp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -308,12 +308,12 @@ TEST(Fp12_2over3over2_Test, MulGadgetTest)
     ASSERT_EQ(c.c1, c_value.c1);
 
     // Generate and check the proof
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    const typename snark::keypair keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<libff::Fr<ppp>> primary_input =
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<ppp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -356,12 +356,12 @@ TEST(Fp12_2over3over2_Test, InvGadgetTest)
     ASSERT_EQ(a_inv, a_inv_value);
 
     // Generate and check the proof
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    const typename snark::keypair keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<libff::Fr<ppp>> primary_input =
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<ppp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -444,12 +444,12 @@ TEST(Fp12_2over3over2_Test, CyclotomicSquareGadget)
     ASSERT_EQ(u_squared, u_squared_var.get_element());
 
     // Generate and check the proof
-    const typename snark::KeypairT keypair = snark::generate_setup(pb);
+    const typename snark::keypair keypair = snark::generate_setup(pb);
     libsnark::r1cs_primary_input<libff::Fr<ppp>> primary_input =
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<ppp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::ProofT proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 

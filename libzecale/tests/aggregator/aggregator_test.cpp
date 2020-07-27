@@ -52,7 +52,7 @@ libzeth::extended_proof<nppT, snarkT> generate_valid_zeth_proof(
         inputs_number,
         outputs_number,
         tree_depth> &zeth_prover,
-    typename snarkT::KeypairT zeth_keypair)
+    typename snarkT::keypair zeth_keypair)
 {
     using zethScalarField = libff::Fr<nppT>;
 
@@ -169,7 +169,7 @@ libzeth::extended_proof<nppT, snarkT> generate_valid_zeth_proof(
     libff::leave_block("Generate Zeth proof", true);
 
     libff::enter_block("Verify Zeth proof", true);
-    typename snarkT::VerificationKeyT vk = zeth_keypair.vk;
+    typename snarkT::verification_key vk = zeth_keypair.vk;
     bool res = snarkT::verify(
         ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verify? " << res << std::endl;
@@ -192,15 +192,15 @@ template<typename nppT, typename wppT, typename nsnarkT, typename wVerifierT>
 bool test_valid_aggregation_batch_proofs(
     aggregator_circuit_wrapper<nppT, wppT, nsnarkT, wVerifierT, batch_size>
         &aggregator_prover,
-    typename wVerifierT::SnarkT::KeypairT aggregator_keypair,
-    typename nsnarkT::KeypairT zeth_keypair,
+    typename wVerifierT::SnarkT::keypair aggregator_keypair,
+    typename nsnarkT::keypair zeth_keypair,
     const std::array<const libzeth::extended_proof<nppT, nsnarkT> *, batch_size>
         &nested_proofs)
 {
-    using wsnarkT = typename wVerifierT::SnarkT;
+    using wsnark = typename wVerifierT::SnarkT;
 
     libff::enter_block("Generate Aggregate proof", true);
-    libzeth::extended_proof<wppT, wsnarkT> ext_proof = aggregator_prover.prove(
+    libzeth::extended_proof<wppT, wsnark> ext_proof = aggregator_prover.prove(
         // This should cause a crash because the primary inputs are
         // packed in Zeth and are processed as unpacked here.
         zeth_keypair.vk,
@@ -209,8 +209,8 @@ bool test_valid_aggregation_batch_proofs(
     libff::leave_block("Generate Aggregate proof", true);
 
     libff::enter_block("Verify Aggregate proof", true);
-    typename wsnarkT::VerificationKeyT vk = aggregator_keypair.vk;
-    bool res = wsnarkT::verify(
+    typename wsnark::verification_key vk = aggregator_keypair.vk;
+    bool res = wsnark::verify(
         ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("Verify Aggregate proof", true);
@@ -224,7 +224,7 @@ bool test_valid_aggregation_batch_proofs(
 template<typename nppT, typename wppT, typename nsnarkT, typename wVerifierT>
 void aggregator_test()
 {
-    using wsnarkT = typename wVerifierT::SnarkT;
+    using wsnark = typename wVerifierT::SnarkT;
 
     std::cout << "[DEBUG] Entering test for the aggregator" << std::endl;
 
@@ -240,7 +240,7 @@ void aggregator_test()
         tree_depth>
         zeth_prover;
     std::cout << "[DEBUG] Before Zeth trusted setup" << std::endl;
-    typename nsnarkT::KeypairT zeth_keypair =
+    typename nsnarkT::keypair zeth_keypair =
         zeth_prover.generate_trusted_setup();
 
     // Test to aggregate a single proof (i.e. generate a proof for the
@@ -269,7 +269,7 @@ void aggregator_test()
     aggregator_circuit_wrapper<nppT, wppT, nsnarkT, wVerifierT, batch_size>
         aggregator_prover;
     std::cout << "[DEBUG] Before gen Aggregator setup" << std::endl;
-    typename wsnarkT::KeypairT aggregator_keypair =
+    typename wsnark::keypair aggregator_keypair =
         aggregator_prover.generate_trusted_setup();
 
     std::cout << "[DEBUG] Before first test" << std::endl;

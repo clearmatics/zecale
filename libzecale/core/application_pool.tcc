@@ -15,11 +15,11 @@ namespace libzecale
 
 template<typename nppT, typename nSnarkT, size_t NumProofs>
 application_pool<nppT, nSnarkT, NumProofs>::application_pool(
-    std::string name, typename nSnarkT::VerificationKeyT vk)
+    std::string name, typename nSnarkT::verification_key vk)
     : _name(name), _tx_pool()
 {
     this->_verification_key =
-        std::make_shared<typename nSnarkT::VerificationKeyT>(vk);
+        std::make_shared<typename nSnarkT::verification_key>(vk);
 }
 
 template<typename nppT, typename nSnarkT, size_t NumProofs>

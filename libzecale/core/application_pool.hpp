@@ -27,7 +27,7 @@ private:
     /// Name/Identifier of the application (E.g. "zeth")
     std::string _name;
     /// Verification key used to verify the nested proofs
-    std::shared_ptr<typename nSnarkT::VerificationKeyT> _verification_key;
+    std::shared_ptr<typename nSnarkT::verification_key> _verification_key;
     /// Pool of transactions to aggregate
     std::priority_queue<
         transaction_to_aggregate<nppT, nSnarkT>,
@@ -36,7 +36,7 @@ private:
 
 public:
     application_pool() = default;
-    application_pool(std::string name, typename nSnarkT::VerificationKeyT vk);
+    application_pool(std::string name, typename nSnarkT::verification_key vk);
     virtual ~application_pool(){};
 
     inline std::string name() const { return this->_name; };
@@ -44,7 +44,7 @@ public:
     /// Function that returns the verification key associated with this
     /// application. This constitutes part of the witness of the aggregator
     /// circuit.
-    inline typename nSnarkT::VerificationKeyT verification_key() const
+    inline typename nSnarkT::verification_key verification_key() const
     {
         return *(this->_verification_key);
     };

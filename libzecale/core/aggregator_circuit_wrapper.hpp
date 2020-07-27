@@ -32,16 +32,16 @@ private:
 public:
     aggregator_circuit_wrapper(){};
 
-    typename wSnarkT::KeypairT generate_trusted_setup() const;
+    typename wSnarkT::keypair generate_trusted_setup() const;
     libsnark::protoboard<libff::Fr<wppT>> get_constraint_system() const;
 
     /// Generate a proof and returns an extended proof
     extended_proof<wppT, wSnarkT> prove(
-        typename nSnarkT::VerificationKeyT nested_vk,
+        typename nSnarkT::verification_key nested_vk,
         const std::array<
             const libzeth::extended_proof<nppT, nSnarkT> *,
             NumProofs> &extended_proofs,
-        const typename wSnarkT::ProvingKeyT &aggregator_proving_key) const;
+        const typename wSnarkT::proving_key &aggregator_proving_key) const;
 };
 
 } // namespace libzecale
