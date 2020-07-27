@@ -49,7 +49,7 @@ TEST(BLS12_377_PairingTest, G1PrecomputeGadgetTest)
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
     libzecale::bls12_377_G1_precompute_gadget<wpp> precompute_gadget(
-        pb, P_var, P_prec_var, "bls12_317 G1 precompute gadget");
+        pb, P_var, P_prec_var, " P_precompute_gadget");
 
     precompute_gadget.generate_r1cs_constraints();
 
@@ -313,7 +313,7 @@ TEST(BLS12_377_PairingTest, G2PrecomputeGadgetTest)
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
     libzecale::bls12_377_G2_precompute_gadget<wpp> precompute_gadget(
-        pb, Q_var, Q_prec_var, "bls12_317 Q2 precompute gadget");
+        pb, Q_var, Q_prec_var, " Q_precompute_gadget");
 
     precompute_gadget.generate_r1cs_constraints();
 
