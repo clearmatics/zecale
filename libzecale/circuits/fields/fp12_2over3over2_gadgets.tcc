@@ -129,22 +129,24 @@ Fp12_2over3over2_square_gadget<Fp12T>::Fp12_2over3over2_square_gadget(
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
     , _A(A)
     , _result(result)
-    , _alpha(
+    , _compute_alpha(
           pb,
           _A._c0,
           _A._c1,
           _result._c1 * (FieldT("2").inverse()),
-          FMT(annotation_prefix, " _alpha"))
-    , _beta(
+          FMT(annotation_prefix, " _compute_alpha"))
+    , _compute_beta(
           pb,
           _A._c0 + _A._c1,
           _A._c0 + fp6_mul_by_non_residue<Fp12T>(
                        pb, _A._c1, FMT(annotation_prefix, " a1*v")),
           _result._c0 +
               fp6_mul_by_non_residue<Fp12T>(
-                  pb, _alpha._result, FMT(annotation_prefix, " alpha*v")) +
-              _alpha._result,
-          FMT(annotation_prefix, " _beta"))
+                  pb,
+                  _compute_alpha._result,
+                  FMT(annotation_prefix, " alpha*v")) +
+              _compute_alpha._result,
+          FMT(annotation_prefix, " _compute_beta"))
 {
 }
 
@@ -158,8 +160,8 @@ const Fp12_2over3over2_variable<Fp12T>
 template<typename Fp12T>
 void Fp12_2over3over2_square_gadget<Fp12T>::generate_r1cs_constraints()
 {
-    _alpha.generate_r1cs_constraints();
-    _beta.generate_r1cs_constraints();
+    _compute_alpha.generate_r1cs_constraints();
+    _compute_beta.generate_r1cs_constraints();
 }
 
 template<typename Fp12T>
@@ -169,14 +171,14 @@ void Fp12_2over3over2_square_gadget<Fp12T>::generate_r1cs_witness()
     const Fp6T a1 = _A._c1.get_element();
     const Fp6T alpha = a0 * a1;
     _result._c1.generate_r1cs_witness(alpha + alpha);
-    _alpha.generate_r1cs_witness();
+    _compute_alpha.generate_r1cs_witness();
 
     const Fp6T beta = (a0 + a1) * (a0 + Fp12T::mul_by_non_residue(a1));
     _result._c0.generate_r1cs_witness(
         beta - Fp12T::mul_by_non_residue(alpha) - alpha);
-    _beta._A.evaluate();
-    _beta._B.evaluate();
-    _beta.generate_r1cs_witness();
+    _compute_beta._A.evaluate();
+    _compute_beta._B.evaluate();
+    _compute_beta.generate_r1cs_witness();
 }
 
 // Fp12_2over3over2_mul_by_024_gadget methods

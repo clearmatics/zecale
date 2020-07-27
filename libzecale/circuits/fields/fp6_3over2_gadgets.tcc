@@ -180,62 +180,62 @@ Fp6_3over2_mul_gadget<Fp6T>::Fp6_3over2_mul_gadget(
     , _A(A)
     , _B(B)
     , _result(result)
-    , _a1_times_b1(
+    , _compute_v1(
           pb,
           A._c1,
           B._c1,
           libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " v1")),
-          FMT(annotation_prefix, " _a1_times_b1"))
-    , _a2_times_b2(
+          FMT(annotation_prefix, " _compute_v1"))
+    , _compute_v2(
           pb,
           A._c2,
           B._c2,
           libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " v2")),
-          FMT(annotation_prefix, " _a2_times_b2"))
-    , _a1a2_times_b1b2(
+          FMT(annotation_prefix, " _compute_v2"))
+    , _compute_a1a2_times_b1b2(
           pb,
           A._c1 + A._c2,
           B._c1 + B._c2,
           libsnark::Fp2_variable<Fp2T>(
               pb, FMT(annotation_prefix, " (a1+a2)*(b1+b2)")),
-          FMT(annotation_prefix, " _a1a2_times_b1b2"))
+          FMT(annotation_prefix, " _compute_a1a2_times_b1b2"))
     // c0 = a0*b0 + non_residue*((a1 + a2)(b1 + b2) - a1*b1 - a2*b2)
-    , _a0_times_b0(
+    , _compute_v0(
           pb,
           A._c0,
           B._c0,
-          _result._c0 - (_a1a2_times_b1b2.result - _a1_times_b1.result -
-                         _a2_times_b2.result) *
+          _result._c0 - (_compute_a1a2_times_b1b2.result - _compute_v1.result -
+                         _compute_v2.result) *
                             Fp6T::non_residue,
-          FMT(annotation_prefix, " _a0_times_b0"))
+          FMT(annotation_prefix, " _compute_v0"))
     // c1 = (a0 + a1)(b0 + b1) - a0*b0 - a1*b1 + non_residue * a2*b2
-    , _a0a1_times_b0b1(
+    , _compute_a0a1_times_b0b1(
           pb,
           A._c0 + A._c1,
           B._c0 + B._c1,
-          _result._c1 + _a0_times_b0.result + _a1_times_b1.result -
-              _a2_times_b2.result * Fp6T::non_residue,
-          FMT(annotation_prefix, " _a0a1_times_b0b1"))
+          _result._c1 + _compute_v0.result + _compute_v1.result -
+              _compute_v2.result * Fp6T::non_residue,
+          FMT(annotation_prefix, " _compute_a0a1_times_b0b1"))
     // c2 = (a0 + a2)(b0 + b2) - a0*b0 - a2*b2 + a1*b1
-    , _a0a2_times_b0b2(
+    , _compute_a0a2_times_b0b2(
           pb,
           A._c0 + A._c2,
           B._c0 + B._c2,
-          _result._c2 + _a0_times_b0.result + _a2_times_b2.result -
-              _a1_times_b1.result,
-          FMT(annotation_prefix, " _a0a2_times_b0b2"))
+          _result._c2 + _compute_v0.result + _compute_v2.result -
+              _compute_v1.result,
+          FMT(annotation_prefix, " _compute_a0a2_times_b0b2"))
 {
 }
 
 template<typename Fp6T>
 void Fp6_3over2_mul_gadget<Fp6T>::generate_r1cs_constraints()
 {
-    _a1_times_b1.generate_r1cs_constraints();
-    _a2_times_b2.generate_r1cs_constraints();
-    _a1a2_times_b1b2.generate_r1cs_constraints();
-    _a0_times_b0.generate_r1cs_constraints();
-    _a0a1_times_b0b1.generate_r1cs_constraints();
-    _a0a2_times_b0b2.generate_r1cs_constraints();
+    _compute_v1.generate_r1cs_constraints();
+    _compute_v2.generate_r1cs_constraints();
+    _compute_a1a2_times_b1b2.generate_r1cs_constraints();
+    _compute_v0.generate_r1cs_constraints();
+    _compute_a0a1_times_b0b1.generate_r1cs_constraints();
+    _compute_a0a2_times_b0b2.generate_r1cs_constraints();
 }
 
 template<typename Fp6T>
@@ -249,33 +249,33 @@ void Fp6_3over2_mul_gadget<Fp6T>::generate_r1cs_witness()
     const Fp2T b2 = _B._c2.get_element();
 
     // c0 = v1 + non_residue*((a1 + a2)(b1 + b2) - v1 - v2)
-    _a1_times_b1.generate_r1cs_witness();
-    const Fp2T v1 = _a1_times_b1.result.get_element();
-    _a2_times_b2.generate_r1cs_witness();
-    const Fp2T v2 = _a2_times_b2.result.get_element();
-    _a1a2_times_b1b2.A.evaluate();
-    _a1a2_times_b1b2.B.evaluate();
-    _a1a2_times_b1b2.generate_r1cs_witness();
-    const Fp2T a1a2_times_b1b2 = _a1a2_times_b1b2.result.get_element();
+    _compute_v1.generate_r1cs_witness();
+    const Fp2T v1 = _compute_v1.result.get_element();
+    _compute_v2.generate_r1cs_witness();
+    const Fp2T v2 = _compute_v2.result.get_element();
+    _compute_a1a2_times_b1b2.A.evaluate();
+    _compute_a1a2_times_b1b2.B.evaluate();
+    _compute_a1a2_times_b1b2.generate_r1cs_witness();
+    const Fp2T a1a2_times_b1b2 = _compute_a1a2_times_b1b2.result.get_element();
     const Fp2T v0 = a0 * b0;
     _result._c0.generate_r1cs_witness(
         v0 + Fp6T::mul_by_non_residue(a1a2_times_b1b2 - v1 - v2));
-    _a0_times_b0.generate_r1cs_witness();
+    _compute_v0.generate_r1cs_witness();
 
     // c1 = (a0 + a1)(b0 + b1) - v1 - v1 + non_residue * v2
     const Fp2T a0a1_times_b0b1 = (a0 + a1) * (b0 + b1);
     _result._c1.generate_r1cs_witness(
         a0a1_times_b0b1 - v0 - v1 + Fp6T::mul_by_non_residue(v2));
-    _a0a1_times_b0b1.A.evaluate();
-    _a0a1_times_b0b1.B.evaluate();
-    _a0a1_times_b0b1.generate_r1cs_witness();
+    _compute_a0a1_times_b0b1.A.evaluate();
+    _compute_a0a1_times_b0b1.B.evaluate();
+    _compute_a0a1_times_b0b1.generate_r1cs_witness();
 
     // c2 = (a0 + a2)(b0 + b2) - v1 - v2 + v1
     const Fp2T a0a2_times_b0b2 = (a0 + a2) * (b0 + b2);
     _result._c2.generate_r1cs_witness(a0a2_times_b0b2 - v0 - v2 + v1);
-    _a0a2_times_b0b2.A.evaluate();
-    _a0a2_times_b0b2.B.evaluate();
-    _a0a2_times_b0b2.generate_r1cs_witness();
+    _compute_a0a2_times_b0b2.A.evaluate();
+    _compute_a0a2_times_b0b2.B.evaluate();
+    _compute_a0a2_times_b0b2.generate_r1cs_witness();
 }
 
 } // namespace libzecale

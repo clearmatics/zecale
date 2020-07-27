@@ -105,8 +105,8 @@ public:
     //       <=>  \beta = _result.c0 + \alpha * v - \alpha
     Fp12_2over3over2_variable<Fp12T> _A;
     Fp12_2over3over2_variable<Fp12T> _result;
-    Fp6_3over2_mul_gadget<Fp6T> _alpha;
-    Fp6_3over2_mul_gadget<Fp6T> _beta;
+    Fp6_3over2_mul_gadget<Fp6T> _compute_alpha;
+    Fp6_3over2_mul_gadget<Fp6T> _compute_beta;
 
     Fp12_2over3over2_square_gadget(
         libsnark::protoboard<FieldT> &pb,
