@@ -50,8 +50,6 @@ template<
 class aggregator_gadget : libsnark::gadget<libff::Fr<wppT>>
 {
 private:
-    using wsnarkT = typename wVerifierT::SnarkT;
-
     using VerifierGadgetT = typename wVerifierT::VerifierGadgetT;
     using ProofVariableGadgetT = typename wVerifierT::ProofVariableGadgetT;
     using VerificationKeyVariableGadgetT =
