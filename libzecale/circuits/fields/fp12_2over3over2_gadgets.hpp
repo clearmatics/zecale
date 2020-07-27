@@ -138,32 +138,32 @@ public:
     libsnark::Fp2_variable<Fp2T> _X_4;
 
     // out_z0 = z0*x0 + non_residue * ( z1*x2 + z4*x4 )
-    libsnark::Fp2_mul_gadget<Fp2T> _z1_x2;
-    libsnark::Fp2_mul_gadget<Fp2T> _z4_x4;
-    libsnark::Fp2_mul_gadget<Fp2T> _z0_x0;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z1_x2;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z4_x4;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z0_x0;
 
     // out_z1 = z1*x0 + non_residue * ( z2*x2 + z5*x4 )
-    libsnark::Fp2_mul_gadget<Fp2T> _z2_x2;
-    libsnark::Fp2_mul_gadget<Fp2T> _z5_x4;
-    libsnark::Fp2_mul_gadget<Fp2T> _z1_x0;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z2_x2;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z5_x4;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z1_x0;
 
     // out_z2 = z0*x2 + z2*x0 + z3*x4
-    libsnark::Fp2_mul_gadget<Fp2T> _z3_x4;
-    libsnark::Fp2_mul_gadget<Fp2T> _z02_x02;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z3_x4;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z02_x02;
 
     // out_z3 = z3*x0 + non_residue * (z2*x4 + z4*x2)
-    libsnark::Fp2_mul_gadget<Fp2T> _z3_x0;
-    libsnark::Fp2_mul_gadget<Fp2T> _z24_x24;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z3_x0;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z24_x24;
 
     // out_z4 = z0*x4 + z4*x0 + non_residue * z5*x2
-    libsnark::Fp2_mul_gadget<Fp2T> _z5_x2;
-    libsnark::Fp2_mul_gadget<Fp2T> _z04_x04;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z5_x2;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z04_x04;
 
     // S = z1_x0 - z1_x2 - z3_x0 - z3*x4 - z5_x2 - z5*x4
     // out_z5 = z1*x4 + z3*x2 + z5*x0
     //        = (z1 + z3 + z5)*(x0 + x2 + x4) - S
     libsnark::Fp2_variable<Fp2T> _S;
-    libsnark::Fp2_mul_gadget<Fp2T> _z1z3z5_times_x0x2x4;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z1z3z5_times_x0x2x4;
 
     Fp12_2over3over2_variable<Fp12T> _result;
 
@@ -193,9 +193,9 @@ public:
     Fp12_2over3over2_variable<Fp12T> _A;
     Fp12_2over3over2_variable<Fp12T> _B;
     Fp12_2over3over2_variable<Fp12T> _result;
-    Fp6_3over2_mul_gadget<Fp6T> _v0;
-    Fp6_3over2_mul_gadget<Fp6T> _v1;
-    Fp6_3over2_mul_gadget<Fp6T> _a0_plus_a1_times_b0_plus_b1;
+    Fp6_3over2_mul_gadget<Fp6T> _compute_v0;
+    Fp6_3over2_mul_gadget<Fp6T> _compute_v1;
+    Fp6_3over2_mul_gadget<Fp6T> _compute_a0_plus_a1_times_b0_plus_b1;
 
     Fp12_2over3over2_mul_gadget(
         libsnark::protoboard<FieldT> &pb,
@@ -220,7 +220,7 @@ public:
 
     Fp12_2over3over2_variable<Fp12T> _A;
     Fp12_2over3over2_variable<Fp12T> _result;
-    Fp12_2over3over2_mul_gadget<Fp12T> _A_times_result;
+    Fp12_2over3over2_mul_gadget<Fp12T> _compute_A_times_result;
 
     Fp12_2over3over2_inv_gadget(
         libsnark::protoboard<FieldT> &pb,
@@ -250,7 +250,7 @@ public:
 
     // result4 = 6 * z0z4 + 2 * z4
     // <=> z0z4 = 6^{-1} * (result4 - 2*z4)
-    libsnark::Fp2_mul_gadget<Fp2T> _z0z4;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z0z4;
 
     // result0 = 3*t0_L - 3*t0_R - 2*z0
     //   where
@@ -262,7 +262,7 @@ public:
 
     // result5 = 6 * z3z2 + 2 * z5
     // <=> z3z2 = 6^{-1} * (result5 - 2*z5)
-    libsnark::Fp2_mul_gadget<Fp2T> _z3z2;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z3z2;
 
     // result1 = 3*t2_L - 3*t2_R - 2*z1
     //   where
@@ -274,7 +274,7 @@ public:
 
     // result3 = 6 * non_residue * z1z5 + 2*z3
     // <=> z1z5 = 6^{-1} * non_residue^{-1} * (out3 - 2*z3)
-    libsnark::Fp2_mul_gadget<Fp2T> _z1z5;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_z1z5;
 
     // result2 = 3*t4_L - 3*t4_R - 2*z2
     //   where
