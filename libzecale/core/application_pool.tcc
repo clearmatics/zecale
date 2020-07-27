@@ -13,22 +13,22 @@
 namespace libzecale
 {
 
-template<typename nppT, typename nSnarkT, size_t NumProofs>
-application_pool<nppT, nSnarkT, NumProofs>::application_pool(
-    std::string name, typename nSnarkT::verification_key vk)
+template<typename nppT, typename nsnarkT, size_t NumProofs>
+application_pool<nppT, nsnarkT, NumProofs>::application_pool(
+    std::string name, typename nsnarkT::verification_key vk)
     : _name(name), _tx_pool()
 {
     this->_verification_key =
-        std::make_shared<typename nSnarkT::verification_key>(vk);
+        std::make_shared<typename nsnarkT::verification_key>(vk);
 }
 
-template<typename nppT, typename nSnarkT, size_t NumProofs>
-std::array<transaction_to_aggregate<nppT, nSnarkT>, NumProofs> application_pool<
+template<typename nppT, typename nsnarkT, size_t NumProofs>
+std::array<transaction_to_aggregate<nppT, nsnarkT>, NumProofs> application_pool<
     nppT,
-    nSnarkT,
+    nsnarkT,
     NumProofs>::get_next_batch()
 {
-    std::array<transaction_to_aggregate<nppT, nSnarkT>, NumProofs> batch;
+    std::array<transaction_to_aggregate<nppT, nsnarkT>, NumProofs> batch;
     if (this->_tx_pool.size() < NumProofs) {
         for (size_t i = 0; i < this->_tx_pool.size(); i++) {
             batch[i] = this->_tx_pool.top();

@@ -188,16 +188,16 @@ libzeth::extended_proof<nppT, snarkT> generate_valid_zeth_proof(
 /// Here we use the same proof system to generate the "zeth proofs"
 /// and the Zecale proofs, but we could use different proofs systems.
 /// We use the same SNARK for simplicity.
-template<typename nppT, typename wppT, typename nsnarkT, typename wVerifierT>
+template<typename nppT, typename wppT, typename nsnarkT, typename wverifierT>
 bool test_valid_aggregation_batch_proofs(
-    aggregator_circuit_wrapper<nppT, wppT, nsnarkT, wVerifierT, batch_size>
+    aggregator_circuit_wrapper<nppT, wppT, nsnarkT, wverifierT, batch_size>
         &aggregator_prover,
-    typename wVerifierT::SnarkT::keypair aggregator_keypair,
-    typename nsnarkT::keypair zeth_keypair,
+    typename wverifierT::snark::keypair &aggregator_keypair,
+    typename nsnarkT::keypair &zeth_keypair,
     const std::array<const libzeth::extended_proof<nppT, nsnarkT> *, batch_size>
         &nested_proofs)
 {
-    using wsnark = typename wVerifierT::SnarkT;
+    using wsnark = typename wverifierT::snark;
 
     libff::enter_block("Generate Aggregate proof", true);
     libzeth::extended_proof<wppT, wsnark> ext_proof = aggregator_prover.prove(
@@ -221,10 +221,10 @@ bool test_valid_aggregation_batch_proofs(
     return res;
 }
 
-template<typename nppT, typename wppT, typename nsnarkT, typename wVerifierT>
+template<typename nppT, typename wppT, typename nsnarkT, typename wverifierT>
 void aggregator_test()
 {
-    using wsnark = typename wVerifierT::SnarkT;
+    using wsnark = typename wverifierT::snark;
 
     std::cout << "[DEBUG] Entering test for the aggregator" << std::endl;
 
@@ -266,7 +266,7 @@ void aggregator_test()
 
     std::cout << "[DEBUG] Before creation of the Aggregator prover"
               << std::endl;
-    aggregator_circuit_wrapper<nppT, wppT, nsnarkT, wVerifierT, batch_size>
+    aggregator_circuit_wrapper<nppT, wppT, nsnarkT, wverifierT, batch_size>
         aggregator_prover;
     std::cout << "[DEBUG] Before gen Aggregator setup" << std::endl;
     typename wsnark::keypair aggregator_keypair =

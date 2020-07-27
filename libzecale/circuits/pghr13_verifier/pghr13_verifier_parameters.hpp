@@ -14,11 +14,11 @@ namespace libzecale
 template<typename ppT> class pghr13_verifier_parameters
 {
 public:
-    using SnarkT = libzeth::pghr13_snark<ppT>;
+    using snark = libzeth::pghr13_snark<ppT>;
 
-    using VerifierGadgetT = libsnark::r1cs_ppzksnark_verifier_gadget<ppT>;
-    using ProofVariableGadgetT = libsnark::r1cs_ppzksnark_proof_variable<ppT>;
-    using VerificationKeyVariableGadgetT =
+    using verifier_gadget = libsnark::r1cs_ppzksnark_verifier_gadget<ppT>;
+    using proof_variable_gadget = libsnark::r1cs_ppzksnark_proof_variable<ppT>;
+    using verification_key_variable_gadget =
         libsnark::r1cs_ppzksnark_verification_key_variable<ppT>;
 };
 

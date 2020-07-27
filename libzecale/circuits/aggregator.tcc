@@ -44,18 +44,18 @@ namespace libzecale
 template<
     typename nppT,
     typename wppT,
-    typename nSnarkT,
-    typename wVerifierT,
+    typename nsnarkT,
+    typename wverifierT,
     size_t NumProofs>
 class aggregator_gadget : libsnark::gadget<libff::Fr<wppT>>
 {
 private:
-    using VerifierGadgetT = typename wVerifierT::VerifierGadgetT;
-    using ProofVariableGadgetT = typename wVerifierT::ProofVariableGadgetT;
-    using VerificationKeyVariableGadgetT =
-        typename wVerifierT::VerificationKeyVariableGadgetT;
+    using verifier_gadget = typename wverifierT::verifier_gadget;
+    using proof_variable_gadget = typename wverifierT::proof_variable_gadget;
+    using verification_key_variable_gadget =
+        typename wverifierT::verification_key_variable_gadget;
 
-    std::array<std::shared_ptr<VerifierGadgetT>, NumProofs> verifiers;
+    std::array<std::shared_ptr<verifier_gadget>, NumProofs> verifiers;
 
     libsnark::pb_variable<libff::Fr<wppT>> wZero;
 
@@ -100,7 +100,7 @@ private:
     /// `r1cs_ppzksnark_proof<other_curve<ppT> >` for the witness!
     /// https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp#L55
     ///
-    std::array<std::shared_ptr<ProofVariableGadgetT>, NumProofs> nested_proofs;
+    std::array<std::shared_ptr<proof_variable_gadget>, NumProofs> nested_proofs;
 
     /// Likewise, this is not strictly necessary, but we do not need to pass the
     /// VK to the contract everytime as such we move it to the auxiliary inputs
@@ -110,7 +110,7 @@ private:
     /// again, makes sense because elements of `nppT` are defined over
     /// `E/BaseFieldZethT`, and `BaseFieldZethT` is `libff::Fr<wppT>`
     /// which is where we do arithmetic here
-    std::shared_ptr<VerificationKeyVariableGadgetT> nested_vk;
+    std::shared_ptr<verification_key_variable_gadget> nested_vk;
 
 public:
     // Make sure that we do not exceed the number of proofs
@@ -205,13 +205,13 @@ public:
             // determine the size of the zeth VK which is the one we manipulate
             // below.
             const size_t vk_size_in_bits =
-                VerificationKeyVariableGadgetT::size_in_bits(nb_zeth_inputs);
+                verification_key_variable_gadget::size_in_bits(nb_zeth_inputs);
             libsnark::pb_variable_array<libff::Fr<wppT>> nested_vk_bits;
             nested_vk_bits.allocate(
                 pb,
                 vk_size_in_bits,
                 FMT(this->annotation_prefix, " vk_size_in_bits"));
-            nested_vk.reset(new VerificationKeyVariableGadgetT(
+            nested_vk.reset(new verification_key_variable_gadget(
                 pb,
                 nested_vk_bits,
                 nb_zeth_inputs,
@@ -220,7 +220,7 @@ public:
             // Initialize the proof variable gadgets. The protoboard allocation
             // is done in the constructor `r1cs_ppzksnark_proof_variable()`
             for (size_t i = 0; i < NumProofs; i++) {
-                nested_proofs[i].reset(new ProofVariableGadgetT(
+                nested_proofs[i].reset(new proof_variable_gadget(
                     pb,
                     FMT(this->annotation_prefix, " nested_proofs[%zu]", i)));
             }
@@ -228,7 +228,7 @@ public:
 
         // Initialize the verifier gadgets
         for (size_t i = 0; i < NumProofs; i++) {
-            verifiers[i].reset(new VerifierGadgetT(
+            verifiers[i].reset(new verifier_gadget(
                 pb,
                 *nested_vk,
                 nested_primary_inputs[i],
@@ -272,9 +272,9 @@ public:
     // see:
     // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp#L98
     void generate_r1cs_witness(
-        const typename nSnarkT::verification_key &in_nested_vk,
+        const typename nsnarkT::verification_key &in_nested_vk,
         const std::array<
-            const libzeth::extended_proof<nppT, nSnarkT> *,
+            const libzeth::extended_proof<nppT, nsnarkT> *,
             NumProofs> &in_extended_proofs)
     {
         // Witness `zero`

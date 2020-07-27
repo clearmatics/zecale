@@ -16,11 +16,11 @@ namespace libzecale
 template<typename ppT> class groth16_verifier_parameters
 {
 public:
-    using SnarkT = libzeth::groth16_snark<ppT>;
+    using snark = libzeth::groth16_snark<ppT>;
 
-    using VerifierGadgetT = r1cs_gg_ppzksnark_verifier_gadget<ppT>;
-    using ProofVariableGadgetT = r1cs_gg_ppzksnark_proof_variable<ppT>;
-    using VerificationKeyVariableGadgetT =
+    using verifier_gadget = r1cs_gg_ppzksnark_verifier_gadget<ppT>;
+    using proof_variable_gadget = r1cs_gg_ppzksnark_proof_variable<ppT>;
+    using verification_key_variable_gadget =
         r1cs_gg_ppzksnark_verification_key_variable<ppT>;
 };
 

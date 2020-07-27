@@ -66,7 +66,7 @@ using napi_handler = libzeth::groth16_api_handler<npp>;
 #error "ZECALE_SNARK_* variable not set to supported ZK snark"
 #endif
 
-using wsnark = typename wverifier::SnarkT;
+using wsnark = typename wverifier::snark;
 
 static const size_t batch_size = 1;
 
