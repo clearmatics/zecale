@@ -28,7 +28,7 @@ public:
     bls12_377_G1_precomputation();
 
     // Construct a populated G1_precomputation from a value. All terms are
-    // created as constants, generating no cost in the circuit.
+    // created as constants, requiring no new gates in the circuit.
     bls12_377_G1_precomputation(
         libsnark::protoboard<FieldT> &pb,
         const libff::G1<other_curve<ppT>> &P_val,
@@ -89,7 +89,7 @@ public:
     bls12_377_G2_precomputation();
 
     // Construct a populated G2_precomputation from a value. All terms are
-    // created as constants, generating no cost in the circuit.
+    // created as constants, requiring no new gates in the circuit.
     bls12_377_G2_precomputation(
         libsnark::protoboard<FieldT> &pb,
         const libff::G2<other_curve<ppT>> &Q_val,
