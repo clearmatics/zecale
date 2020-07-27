@@ -210,59 +210,59 @@ TEST(MillerLoopGadgets, TestMntEEEoverEmillerLoop)
 
 TEST(MillerLoopGadgets, TestBlsEEEoverEmillerLoop)
 {
-    using opp = libff::bw6_761_pp;   // outer pairing
-    using ipp = libff::bls12_377_pp; // inner pairing
+    using wpp = libff::bw6_761_pp;
+    using npp = libff::bls12_377_pp;
 
-    libff::G1<ipp> P1_val =
-        libff::Fr<ipp>::random_element() * libff::G1<ipp>::one();
-    libff::G2<ipp> Q1_val =
-        libff::Fr<ipp>::random_element() * libff::G2<ipp>::one();
+    libff::G1<npp> P1_val =
+        libff::Fr<npp>::random_element() * libff::G1<npp>::one();
+    libff::G2<npp> Q1_val =
+        libff::Fr<npp>::random_element() * libff::G2<npp>::one();
 
-    libff::G1<ipp> P2_val =
-        libff::Fr<ipp>::random_element() * libff::G1<ipp>::one();
-    libff::G2<ipp> Q2_val =
-        libff::Fr<ipp>::random_element() * libff::G2<ipp>::one();
+    libff::G1<npp> P2_val =
+        libff::Fr<npp>::random_element() * libff::G1<npp>::one();
+    libff::G2<npp> Q2_val =
+        libff::Fr<npp>::random_element() * libff::G2<npp>::one();
 
-    libff::G1<ipp> P3_val =
-        libff::Fr<ipp>::random_element() * libff::G1<ipp>::one();
-    libff::G2<ipp> Q3_val =
-        libff::Fr<ipp>::random_element() * libff::G2<ipp>::one();
+    libff::G1<npp> P3_val =
+        libff::Fr<npp>::random_element() * libff::G1<npp>::one();
+    libff::G2<npp> Q3_val =
+        libff::Fr<npp>::random_element() * libff::G2<npp>::one();
 
-    libff::G1<ipp> P4_val =
-        libff::Fr<ipp>::random_element() * libff::G1<ipp>::one();
-    libff::G2<ipp> Q4_val =
-        libff::Fr<ipp>::random_element() * libff::G2<ipp>::one();
+    libff::G1<npp> P4_val =
+        libff::Fr<npp>::random_element() * libff::G1<npp>::one();
+    libff::G2<npp> Q4_val =
+        libff::Fr<npp>::random_element() * libff::G2<npp>::one();
 
-    libff::G1_precomp<ipp> native_prec_P1 = ipp::precompute_G1(P1_val);
-    libff::G2_precomp<ipp> native_prec_Q1 = ipp::precompute_G2(Q1_val);
-    libff::G1_precomp<ipp> native_prec_P2 = ipp::precompute_G1(P2_val);
-    libff::G2_precomp<ipp> native_prec_Q2 = ipp::precompute_G2(Q2_val);
-    libff::G1_precomp<ipp> native_prec_P3 = ipp::precompute_G1(P3_val);
-    libff::G2_precomp<ipp> native_prec_Q3 = ipp::precompute_G2(Q3_val);
-    libff::G1_precomp<ipp> native_prec_minus_P4 = ipp::precompute_G1(-P4_val);
-    libff::G2_precomp<ipp> native_prec_Q4 = ipp::precompute_G2(Q4_val);
+    libff::G1_precomp<npp> native_prec_P1 = npp::precompute_G1(P1_val);
+    libff::G2_precomp<npp> native_prec_Q1 = npp::precompute_G2(Q1_val);
+    libff::G1_precomp<npp> native_prec_P2 = npp::precompute_G1(P2_val);
+    libff::G2_precomp<npp> native_prec_Q2 = npp::precompute_G2(Q2_val);
+    libff::G1_precomp<npp> native_prec_P3 = npp::precompute_G1(P3_val);
+    libff::G2_precomp<npp> native_prec_Q3 = npp::precompute_G2(Q3_val);
+    libff::G1_precomp<npp> native_prec_minus_P4 = npp::precompute_G1(-P4_val);
+    libff::G2_precomp<npp> native_prec_Q4 = npp::precompute_G2(Q4_val);
 
-    libff::Fqk<ipp> miller_P1_Q1 =
-        ipp::miller_loop(native_prec_P1, native_prec_Q1);
-    libff::Fqk<ipp> miller_P2_Q2 =
-        ipp::miller_loop(native_prec_P2, native_prec_Q2);
-    libff::Fqk<ipp> miller_P3_Q3 =
-        ipp::miller_loop(native_prec_P3, native_prec_Q3);
-    libff::Fqk<ipp> miller_P4_Q4_inv =
-        ipp::miller_loop(native_prec_minus_P4, native_prec_Q4);
-    libff::Fqk<ipp> native_result =
+    libff::Fqk<npp> miller_P1_Q1 =
+        npp::miller_loop(native_prec_P1, native_prec_Q1);
+    libff::Fqk<npp> miller_P2_Q2 =
+        npp::miller_loop(native_prec_P2, native_prec_Q2);
+    libff::Fqk<npp> miller_P3_Q3 =
+        npp::miller_loop(native_prec_P3, native_prec_Q3);
+    libff::Fqk<npp> miller_P4_Q4_inv =
+        npp::miller_loop(native_prec_minus_P4, native_prec_Q4);
+    libff::Fqk<npp> native_result =
         miller_P1_Q1 * miller_P2_Q2 * miller_P3_Q3 * miller_P4_Q4_inv;
 
     // Ensure that miller_P4_Q4_inv is indeed equivalent to
     // miller_P4_Q4.inverse()
-    libff::G1_precomp<ipp> native_prec_P4 = ipp::precompute_G1(P4_val);
-    libff::Fqk<ipp> miller_P4_Q4 =
-        ipp::miller_loop(native_prec_P4, native_prec_Q4);
+    libff::G1_precomp<npp> native_prec_P4 = npp::precompute_G1(P4_val);
+    libff::Fqk<npp> miller_P4_Q4 =
+        npp::miller_loop(native_prec_P4, native_prec_Q4);
     ASSERT_EQ(
-        ipp::final_exponentiation(miller_P4_Q4.inverse()),
-        ipp::final_exponentiation(miller_P4_Q4_inv));
+        npp::final_exponentiation(miller_P4_Q4.inverse()),
+        npp::final_exponentiation(miller_P4_Q4_inv));
 
-    ASSERT_TRUE(test_e_times_e_times_e_over_e_miller_loop<opp>(
+    ASSERT_TRUE(test_e_times_e_times_e_over_e_miller_loop<wpp>(
         P1_val,
         Q1_val,
         P2_val,
