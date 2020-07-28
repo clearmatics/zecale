@@ -176,12 +176,12 @@ TEST(Fp12_2over3over2_Test, MulBy024GadgetTest)
     x4_var.generate_r1cs_witness(x4);
     mul_024.generate_r1cs_witness();
 
-    const Fp2T &z0 = z.c0.c0;
-    const Fp2T &z1 = z.c0.c1;
-    const Fp2T &z2 = z.c0.c2;
-    const Fp2T &z3 = z.c1.c0;
-    const Fp2T &z4 = z.c1.c1;
-    const Fp2T &z5 = z.c1.c2;
+    const Fp2T &z0 = z.coeffs[0].coeffs[0];
+    const Fp2T &z1 = z.coeffs[0].coeffs[1];
+    const Fp2T &z2 = z.coeffs[0].coeffs[2];
+    const Fp2T &z3 = z.coeffs[1].coeffs[0];
+    const Fp2T &z4 = z.coeffs[1].coeffs[1];
+    const Fp2T &z5 = z.coeffs[1].coeffs[2];
     ASSERT_EQ(z, mul_024._Z.get_element());
     ASSERT_EQ(x0, mul_024._X_0.get_element());
     ASSERT_EQ(x2, mul_024._X_2.get_element());
@@ -194,32 +194,33 @@ TEST(Fp12_2over3over2_Test, MulBy024GadgetTest)
     ASSERT_EQ(z1 * x2, mul_024._z1_x2.result.get_element());
     ASSERT_EQ(z4 * x4, mul_024._z4_x4.result.get_element());
     ASSERT_EQ(z0 * x0, mul_024._z0_x0.result.get_element());
-    ASSERT_EQ(z_times_x.c0.c0, z_times_x_val.c0.c0);
+    ASSERT_EQ(z_times_x.coeffs[0].coeffs[0], z_times_x_val.coeffs[0].coeffs[0]);
 
     // result.c0.c1
     ASSERT_EQ(z2 * x2, mul_024._z2_x2.result.get_element());
     ASSERT_EQ(z5 * x4, mul_024._z5_x4.result.get_element());
-    ASSERT_EQ(z_times_x.c0.c1, z_times_x_val.c0.c1);
+    ASSERT_EQ(z_times_x.coeffs[0].coeffs[1], z_times_x_val.coeffs[0].coeffs[1]);
 
     // result.c0.c2
     ASSERT_EQ(z3 * x4, mul_024._z3_x4.result.get_element());
-    ASSERT_EQ(z_times_x.c0.c2, z_times_x_val.c0.c2);
+    ASSERT_EQ(z_times_x.coeffs[0].coeffs[2], z_times_x_val.coeffs[0].coeffs[2]);
 
     // result.c1.c0
     ASSERT_EQ(z3 * x0, mul_024._z3_x0.result.get_element());
-    ASSERT_EQ(z_times_x.c1.c0, z_times_x_val.c1.c0);
+    ASSERT_EQ(z_times_x.coeffs[1].coeffs[0], z_times_x_val.coeffs[1].coeffs[0]);
 
     // result.c1.c1
     ASSERT_EQ(z5 * x2, mul_024._z5_x2.result.get_element());
-    ASSERT_EQ(z_times_x.c1.c1, z_times_x_val.c1.c1);
+    ASSERT_EQ(z_times_x.coeffs[1].coeffs[1], z_times_x_val.coeffs[1].coeffs[1]);
 
     // result.c1.c2
     ASSERT_EQ(z1 * x0, mul_024._z1_x0.result.get_element());
     const Fp2T S =
         (z1 * x2) + (z1 * x0) + (z5 * x4) + (z3 * x4) + (z3 * x0) + (z5 * x2);
     ASSERT_EQ(S, mul_024._S.get_element());
-    ASSERT_EQ((z1 + z3 + z5) * (x0 + x2 + x4) - S, z_times_x_val.c1.c2);
-    ASSERT_EQ(z_times_x.c1.c2, z_times_x_val.c1.c2);
+    ASSERT_EQ(
+        (z1 + z3 + z5) * (x0 + x2 + x4) - S, z_times_x_val.coeffs[1].coeffs[2]);
+    ASSERT_EQ(z_times_x.coeffs[1].coeffs[2], z_times_x_val.coeffs[1].coeffs[2]);
 
     // result
     ASSERT_EQ(z_times_x, z_times_x_var.get_element());
@@ -283,16 +284,16 @@ TEST(Fp12_2over3over2_Test, MulGadgetTest)
     const Fp6T a0b0 = a_times_b._v0._result.get_element();
     const Fp6T a1b1 = a_times_b._v1._result.get_element();
     const Fp12T c_value = c_var.get_element();
-    const Fp6T expect_a1b1_result = a.c1 * b.c1;
+    const Fp6T expect_a1b1_result = a.coeffs[1] * b.coeffs[1];
 
-    ASSERT_EQ(a.c0 * b.c0, a0b0);
-    ASSERT_EQ(a.c1, a_times_b._v1._A.get_element());
-    ASSERT_EQ(b.c1, a_times_b._v1._B.get_element());
+    ASSERT_EQ(a.coeffs[0] * b.coeffs[0], a0b0);
+    ASSERT_EQ(a.coeffs[1], a_times_b._v1._A.get_element());
+    ASSERT_EQ(b.coeffs[1], a_times_b._v1._B.get_element());
     ASSERT_EQ(expect_a1b1_result, a1b1);
 
-    const Fp6T expect_a0a1_times_b0b1_A = a.c0 + a.c1;
-    const Fp6T expect_a0a1_times_b0b1_B = b.c0 + b.c1;
-    const Fp6T expect_a0a1_times_b0b1_result = c.c1 + a0b0 + a1b1;
+    const Fp6T expect_a0a1_times_b0b1_A = a.coeffs[0] + a.coeffs[1];
+    const Fp6T expect_a0a1_times_b0b1_B = b.coeffs[0] + b.coeffs[1];
+    const Fp6T expect_a0a1_times_b0b1_result = c.coeffs[1] + a0b0 + a1b1;
 
     ASSERT_EQ(
         expect_a0a1_times_b0b1_A,
@@ -304,8 +305,8 @@ TEST(Fp12_2over3over2_Test, MulGadgetTest)
         expect_a0a1_times_b0b1_result,
         a_times_b._a0_plus_a1_times_b0_plus_b1._result.get_element());
 
-    ASSERT_EQ(c.c0, c_value.c0);
-    ASSERT_EQ(c.c1, c_value.c1);
+    ASSERT_EQ(c.coeffs[0], c_value.coeffs[0]);
+    ASSERT_EQ(c.coeffs[1], c_value.coeffs[1]);
 
     // Generate and check the proof
     const typename snark::keypair keypair = snark::generate_setup(pb);
@@ -409,17 +410,19 @@ TEST(Fp12_2over3over2_Test, CyclotomicSquareGadget)
     const Fp2T z4 = cyclotomic_square_gadget._A._c1._c1.get_element();
     const Fp2T z5 = cyclotomic_square_gadget._A._c1._c2.get_element();
 
-    ASSERT_EQ(u.c0.c0, z0);
-    ASSERT_EQ(u.c0.c1, z1);
-    ASSERT_EQ(u.c0.c2, z2);
-    ASSERT_EQ(u.c1.c0, z3);
-    ASSERT_EQ(u.c1.c1, z4);
-    ASSERT_EQ(u.c1.c2, z5);
+    ASSERT_EQ(u.coeffs[0].coeffs[0], z0);
+    ASSERT_EQ(u.coeffs[0].coeffs[1], z1);
+    ASSERT_EQ(u.coeffs[0].coeffs[2], z2);
+    ASSERT_EQ(u.coeffs[1].coeffs[0], z3);
+    ASSERT_EQ(u.coeffs[1].coeffs[1], z4);
+    ASSERT_EQ(u.coeffs[1].coeffs[2], z5);
 
     ASSERT_EQ(z0, cyclotomic_square_gadget._z0z4.A.get_element());
     ASSERT_EQ(z4, cyclotomic_square_gadget._z0z4.B.get_element());
     ASSERT_EQ(z0 * z4, cyclotomic_square_gadget._z0z4.result.get_element());
-    ASSERT_EQ(FieldT(6).inverse() * (u_squared.c1.c1 - z4 - z4), z0 * z4);
+    ASSERT_EQ(
+        FieldT(6).inverse() * (u_squared.coeffs[1].coeffs[1] - z4 - z4),
+        z0 * z4);
 
     ASSERT_EQ(
         FieldT(3) * (z0 + z4),
@@ -432,15 +435,22 @@ TEST(Fp12_2over3over2_Test, CyclotomicSquareGadget)
         cyclotomic_square_gadget._check_result_0.result.get_element());
     ASSERT_EQ(
         FieldT(3) * (z0 + z4) * (z0 + Fp6T::non_residue * z4),
-        u_squared.c0.c0 + u.c0.c0 + u.c0.c0 +
+        u_squared.coeffs[0].coeffs[0] + u.coeffs[0].coeffs[0] +
+            u.coeffs[0].coeffs[0] +
             FieldT(3) * z0 * z4 * (Fp2T::one() + Fp6T::non_residue));
 
-    ASSERT_EQ(u_squared.c0.c0, u_squared_var._c0._c0.get_element());
-    ASSERT_EQ(u_squared.c0.c1, u_squared_var._c0._c1.get_element());
-    ASSERT_EQ(u_squared.c0.c2, u_squared_var._c0._c2.get_element());
-    ASSERT_EQ(u_squared.c1.c0, u_squared_var._c1._c0.get_element());
-    ASSERT_EQ(u_squared.c1.c1, u_squared_var._c1._c1.get_element());
-    ASSERT_EQ(u_squared.c1.c2, u_squared_var._c1._c2.get_element());
+    ASSERT_EQ(
+        u_squared.coeffs[0].coeffs[0], u_squared_var._c0._c0.get_element());
+    ASSERT_EQ(
+        u_squared.coeffs[0].coeffs[1], u_squared_var._c0._c1.get_element());
+    ASSERT_EQ(
+        u_squared.coeffs[0].coeffs[2], u_squared_var._c0._c2.get_element());
+    ASSERT_EQ(
+        u_squared.coeffs[1].coeffs[0], u_squared_var._c1._c0.get_element());
+    ASSERT_EQ(
+        u_squared.coeffs[1].coeffs[1], u_squared_var._c1._c1.get_element());
+    ASSERT_EQ(
+        u_squared.coeffs[1].coeffs[2], u_squared_var._c1._c2.get_element());
     ASSERT_EQ(u_squared, u_squared_var.get_element());
 
     // Generate and check the proof

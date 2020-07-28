@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
+#include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
 #include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
 #include "libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp"
 #include "libzecale/core/aggregator_circuit_wrapper.hpp"
@@ -302,6 +303,11 @@ TEST(AggregatorTests, AggregatorMnt4Mnt6Groth16)
     aggregator_test_groth16<libff::mnt4_pp, libff::mnt6_pp>();
 }
 
+TEST(AggregatorTests, AggregatorBls12Bw6Groth16)
+{
+    aggregator_test_groth16<libff::bls12_377_pp, libff::bw6_761_pp>();
+}
+
 #if 0 // TODO: Enable and fix this test
 TEST(AggregatorTests, AggregatorMnt4Mnt6Pghr13)
 {
@@ -318,6 +324,8 @@ int main(int argc, char **argv)
     // Initialize the curve parameters before running the tests
     libff::mnt4_pp::init_public_params();
     libff::mnt6_pp::init_public_params();
+    libff::bls12_377_pp::init_public_params();
+    libff::bw6_761_pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
