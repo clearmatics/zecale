@@ -14,19 +14,11 @@
 #include <libsnark/gadgetlib1/gadgets/fields/fp3_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/fields/fp4_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/fields/fp6_gadgets.hpp>
+#include <libsnark/gadgetlib1/gadgets/pairing/weierstrass_final_exponentiation.hpp>
+#include <libsnark/gadgetlib1/gadgets/pairing/weierstrass_precomputation.hpp>
 
 namespace libzecale
 {
-
-template<typename ppT> class mnt_e_over_e_miller_loop_gadget;
-
-template<typename ppT> class mnt_e_times_e_over_e_miller_loop_gadget;
-
-template<typename ppT> class mnt_e_times_e_times_e_over_e_miller_loop_gadget;
-
-template<typename ppT> class mnt4_final_exp_gadget;
-
-template<typename ppT> class mnt6_final_exp_gadget;
 
 // Specialization for MNT4.
 //
@@ -49,14 +41,23 @@ public:
 
     typedef libff::mnt6_pp other_curve_type;
 
-    typedef mnt_e_over_e_miller_loop_gadget<libff::mnt4_pp>
+    typedef libsnark::G1_precomputation<libff::mnt4_pp> G1_precomputation_type;
+    typedef libsnark::precompute_G1_gadget<libff::mnt4_pp>
+        G1_precompute_gadget_type;
+
+    typedef libsnark::G2_precomputation<libff::mnt4_pp> G2_precomputation_type;
+    typedef libsnark::precompute_G2_gadget<libff::mnt4_pp>
+        G2_precompute_gadget_type;
+
+    typedef libsnark::mnt_e_over_e_miller_loop_gadget<libff::mnt4_pp>
         e_over_e_miller_loop_gadget_type;
-    typedef mnt_e_times_e_over_e_miller_loop_gadget<libff::mnt4_pp>
+    typedef libsnark::mnt_e_times_e_over_e_miller_loop_gadget<libff::mnt4_pp>
         e_times_e_over_e_miller_loop_gadget_type;
     // Add typedef for the `e_times_e_times_e_over_e_miller_loop_gadget` gadget
     typedef mnt_e_times_e_times_e_over_e_miller_loop_gadget<libff::mnt4_pp>
         e_times_e_times_e_over_e_miller_loop_gadget_type;
-    typedef mnt4_final_exp_gadget<libff::mnt4_pp> final_exp_gadget_type;
+    typedef libsnark::mnt4_final_exp_gadget<libff::mnt4_pp>
+        final_exp_gadget_type;
 
     static const constexpr libff::bigint<libff::mnt6_Fr::num_limbs>
         &pairing_loop_count = libff::mnt6_ate_loop_count;
@@ -84,14 +85,23 @@ public:
 
     typedef libff::mnt4_pp other_curve_type;
 
-    typedef mnt_e_over_e_miller_loop_gadget<libff::mnt6_pp>
+    typedef libsnark::G1_precomputation<libff::mnt6_pp> G1_precomputation_type;
+    typedef libsnark::precompute_G1_gadget<libff::mnt6_pp>
+        G1_precompute_gadget_type;
+
+    typedef libsnark::G2_precomputation<libff::mnt6_pp> G2_precomputation_type;
+    typedef libsnark::precompute_G2_gadget<libff::mnt6_pp>
+        G2_precompute_gadget_type;
+
+    typedef libsnark::mnt_e_over_e_miller_loop_gadget<libff::mnt6_pp>
         e_over_e_miller_loop_gadget_type;
-    typedef mnt_e_times_e_over_e_miller_loop_gadget<libff::mnt6_pp>
+    typedef libsnark::mnt_e_times_e_over_e_miller_loop_gadget<libff::mnt6_pp>
         e_times_e_over_e_miller_loop_gadget_type;
     // Add typedef for the `e_times_e_times_e_over_e_miller_loop_gadget` gadget
     typedef mnt_e_times_e_times_e_over_e_miller_loop_gadget<libff::mnt6_pp>
         e_times_e_times_e_over_e_miller_loop_gadget_type;
-    typedef mnt6_final_exp_gadget<libff::mnt6_pp> final_exp_gadget_type;
+    typedef libsnark::mnt6_final_exp_gadget<libff::mnt6_pp>
+        final_exp_gadget_type;
 
     static const constexpr libff::bigint<libff::mnt4_Fr::num_limbs>
         &pairing_loop_count = libff::mnt4_ate_loop_count;

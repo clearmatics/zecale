@@ -22,13 +22,6 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Configure a header file to pass some of the CMake settings
-# to the source code
-configure_file (
-    "${PROJECT_SOURCE_DIR}/zecale_config.h.in"
-    "${PROJECT_BINARY_DIR}/zecale_config.h"
-)
-
 # Flags and compilation options to chose the type of zksnark
 # TODO: Allow Zeth and Zecale to use different snarks. To do so, introduce
 # separate variables in the cmake config
@@ -36,7 +29,7 @@ configure_file (
 # - WSNARK, and NSNARK to match the template names
 # - WCURVE, and NCURVE
 set(
-  ZKSNARK
+  ZECALE_SNARK
   "GROTH16"
   CACHE
   STRING
@@ -55,12 +48,19 @@ option(
 # Note: This configuration determines over which curve the zeth proofs are verifier/aggregated
 # Here the Zeth proofs are assumed to be generated over MNT4 since we will verify them over MNT6
 set(
-  CURVE
+  ZECALE_CURVE
   "MNT6"
   CACHE
   STRING
   "Default curve (Warning: make sure the choosen curve matches the curve used to
   generate the nested proofs): one of MNT6, BW6_761"
+)
+
+# Configure a header file to pass some of the CMake settings
+# to the source code
+configure_file (
+    "${PROJECT_SOURCE_DIR}/zecale_config.h.in"
+    "${PROJECT_BINARY_DIR}/zecale_config.h"
 )
 
 # Dependencies
@@ -146,9 +146,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(Apple)?Clan
   endif()
 endif()
 
-add_definitions(-DCURVE_${CURVE})
-add_definitions(-DZKSNARK_${ZKSNARK})
-
 enable_testing()
 
 if("${VERBOSE}")
@@ -204,8 +201,6 @@ file(
   ${PROJECT_SOURCE_DIR}/api/*.proto
 )
 
-# Add the compiled proto files of zeth into the set of include directories
-include_directories(${PROJECT_SOURCE_DIR}/build/depends/zeth)
 # Set the import path to be able to re-use the Zeth proto files
 set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/depends/zeth/)
 

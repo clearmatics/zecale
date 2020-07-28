@@ -22,12 +22,6 @@ set_property(SOURCE ${GRPC_SRCS} PROPERTY
 find_package( Boost REQUIRED COMPONENTS system filesystem program_options )
 include_directories( ${Boost_INCLUDE_DIR} )
 
-# Add the binary tree to the search path for include files
-# so that we will find zecaleConfig.h
-include_directories( ${PROJECT_BINARY_DIR} )
-
-string(TOLOWER ${ZKSNARK} ZKSNARK_NAME)
-
 # zecale library
 file(
   GLOB_RECURSE
@@ -52,6 +46,7 @@ target_include_directories(
   ${DEPENDS_DIR}/zeth/depends/libsnark
   ${DEPENDS_DIR}/zeth/depends/libsnark/depends/libff
   ${DEPENDS_DIR}/zeth/depends/libsnark/depends/libfqfft
+  ${PROJECT_BINARY_DIR}/depends/zeth
 )
 target_link_libraries(
   zecale

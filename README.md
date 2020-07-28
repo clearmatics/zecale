@@ -73,10 +73,10 @@ docker run -ti -p 50052:50052 --name zecale zecale-dev:0.1
 
 #### Notes
 
-- `nppT`: Represents the public parameters defining the nested curve (i.e. the curve over which "nested proofs" are generated. If a pairing-friendly amicable chain is used, `nppT` refers to the first curve of the chain)
-- `nSnarkT`: Represents the Snark scheme used to generate the nested arguments
-- `wppT`: Represents the public parameters defining the wrapping curve (i.e. the curve over which the "nested proofs" are verified - and the wrapping proof is generated. If a pairing-friendly amicable chain is used, `wppT` refers to the last curve of the chain)
-- `wSnarkT`: Represents the Snark scheme used to generate the wrapping argument
+- `nppT`: Type parameter representing the public parameters defining the nested curve (i.e. the curve over which "nested proofs" are generated. If a pairing-friendly amicable chain is used, `nppT` refers to the first curve of the chain)
+- `nsnarkT`: Type parameter representing the Snark scheme used to generate the nested arguments
+- `wppT`: Type paramer representing the public parameters defining the wrapping curve (i.e. the curve over which the "nested proofs" are verified - and the wrapping proof is generated. If a pairing-friendly amicable chain is used, `wppT` refers to the last curve of the chain)
+- `wsnarkT`: Type parameter representing the Snark scheme used to generate the wrapping argument
 
 ## License notices:
 

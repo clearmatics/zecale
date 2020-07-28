@@ -5,9 +5,6 @@
 #ifndef __ZECALE_CIRCUITS_AGGREGATOR_TCC__
 #define __ZECALE_CIRCUITS_AGGREGATOR_TCC__
 
-// Include the verifier gadgets
-#include "libzecale/circuits/verifier_gagdet_imports.hpp"
-
 // Contains the circuits for the notes
 #include <libzeth/circuits/notes/note.hpp>
 #include <libzeth/core/joinsplit_input.hpp>
@@ -17,14 +14,9 @@
 #include <libff/algebra/fields/field_utils.hpp>
 #include <libzeth/core/extended_proof.hpp>
 #include <libzeth/core/merkle_tree_field.hpp>
-#include <libzeth/snarks/default/default_snark.hpp>
 #include <libzeth/zeth_constants.hpp>
 
 using namespace libzeth;
-
-// TODO: Templatize this file, and use similar apparoach as in
-// Zeth to import the good includes and set the right aliases
-// and use the right gadgets for the verification key gadgets and so on.
 
 namespace libzecale
 {
@@ -49,11 +41,21 @@ namespace libzecale
 /// ----------------------------------------------------------------
 /// |  Base field  |  Pi_z (over Fq)      |     Pi_a (over Fr)     |
 /// | Scalar field |  PrimIn_z (over Fr)  |   PrimIn_a (over Fq)   |
-template<typename nppT, typename wppT, typename nSnarkT, size_t NumProofs>
+template<
+    typename nppT,
+    typename wppT,
+    typename nsnarkT,
+    typename wverifierT,
+    size_t NumProofs>
 class aggregator_gadget : libsnark::gadget<libff::Fr<wppT>>
 {
 private:
-    std::array<std::shared_ptr<VerifierGadgetT<wppT>>, NumProofs> verifiers;
+    using verifier_gadget = typename wverifierT::verifier_gadget;
+    using proof_variable_gadget = typename wverifierT::proof_variable_gadget;
+    using verification_key_variable_gadget =
+        typename wverifierT::verification_key_variable_gadget;
+
+    std::array<std::shared_ptr<verifier_gadget>, NumProofs> verifiers;
 
     libsnark::pb_variable<libff::Fr<wppT>> wZero;
 
@@ -98,8 +100,7 @@ private:
     /// `r1cs_ppzksnark_proof<other_curve<ppT> >` for the witness!
     /// https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp#L55
     ///
-    std::array<std::shared_ptr<ProofVariableGadgetT<wppT>>, NumProofs>
-        nested_proofs;
+    std::array<std::shared_ptr<proof_variable_gadget>, NumProofs> nested_proofs;
 
     /// Likewise, this is not strictly necessary, but we do not need to pass the
     /// VK to the contract everytime as such we move it to the auxiliary inputs
@@ -109,7 +110,7 @@ private:
     /// again, makes sense because elements of `nppT` are defined over
     /// `E/BaseFieldZethT`, and `BaseFieldZethT` is `libff::Fr<wppT>`
     /// which is where we do arithmetic here
-    std::shared_ptr<VerificationKeyVariableGadgetT<wppT>> nested_vk;
+    std::shared_ptr<verification_key_variable_gadget> nested_vk;
 
 public:
     // Make sure that we do not exceed the number of proofs
@@ -204,14 +205,13 @@ public:
             // determine the size of the zeth VK which is the one we manipulate
             // below.
             const size_t vk_size_in_bits =
-                VerificationKeyVariableGadgetT<wppT>::size_in_bits(
-                    nb_zeth_inputs);
+                verification_key_variable_gadget::size_in_bits(nb_zeth_inputs);
             libsnark::pb_variable_array<libff::Fr<wppT>> nested_vk_bits;
             nested_vk_bits.allocate(
                 pb,
                 vk_size_in_bits,
                 FMT(this->annotation_prefix, " vk_size_in_bits"));
-            nested_vk.reset(new VerificationKeyVariableGadgetT<wppT>(
+            nested_vk.reset(new verification_key_variable_gadget(
                 pb,
                 nested_vk_bits,
                 nb_zeth_inputs,
@@ -220,7 +220,7 @@ public:
             // Initialize the proof variable gadgets. The protoboard allocation
             // is done in the constructor `r1cs_ppzksnark_proof_variable()`
             for (size_t i = 0; i < NumProofs; i++) {
-                nested_proofs[i].reset(new ProofVariableGadgetT<wppT>(
+                nested_proofs[i].reset(new proof_variable_gadget(
                     pb,
                     FMT(this->annotation_prefix, " nested_proofs[%zu]", i)));
             }
@@ -228,7 +228,7 @@ public:
 
         // Initialize the verifier gadgets
         for (size_t i = 0; i < NumProofs; i++) {
-            verifiers[i].reset(new VerifierGadgetT<wppT>(
+            verifiers[i].reset(new verifier_gadget(
                 pb,
                 *nested_vk,
                 nested_primary_inputs[i],
@@ -272,9 +272,9 @@ public:
     // see:
     // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp#L98
     void generate_r1cs_witness(
-        const typename nSnarkT::VerificationKeyT &in_nested_vk,
+        const typename nsnarkT::verification_key &in_nested_vk,
         const std::array<
-            const libzeth::extended_proof<nppT, nSnarkT> *,
+            const libzeth::extended_proof<nppT, nsnarkT> *,
             NumProofs> &in_extended_proofs)
     {
         // Witness `zero`

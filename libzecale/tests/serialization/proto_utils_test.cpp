@@ -17,14 +17,12 @@
 #include <libzeth/snarks/pghr13/pghr13_api_handler.hpp>
 #include <stdio.h>
 
-typedef libff::mnt4_pp ppT;
-
 using namespace libzecale;
 
 namespace
 {
 
-TEST(MainTests, ParseTransactionToAggregatePGHR13)
+template<typename ppT> void test_parse_transaction_to_aggregate_pghr13()
 {
     // 1. Format arbitary data that will be parsed afterwards
     libsnark::r1cs_ppzksnark_proof<ppT> proof(
@@ -108,7 +106,6 @@ TEST(MainTests, ParseTransactionToAggregatePGHR13)
     transaction_to_aggregate<ppT, libzeth::pghr13_snark<ppT>> retrieved_tx =
         transaction_to_aggregate_from_proto<
             ppT,
-            libzeth::pghr13_snark<ppT>,
             libzeth::pghr13_api_handler<ppT>>(*grpc_tx_to_aggregate_obj);
 
     ASSERT_EQ(
@@ -126,7 +123,7 @@ TEST(MainTests, ParseTransactionToAggregatePGHR13)
     delete grpc_tx_to_aggregate_obj;
 }
 
-TEST(MainTests, ParseTransactionToAggregateGROTH16)
+template<typename ppT> void test_parse_transaction_to_aggregate_groth16()
 {
     // 1. Format arbitary data that will be parsed afterwards
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof(
@@ -185,7 +182,6 @@ TEST(MainTests, ParseTransactionToAggregateGROTH16)
     transaction_to_aggregate<ppT, libzeth::groth16_snark<ppT>> retrieved_tx =
         transaction_to_aggregate_from_proto<
             ppT,
-            libzeth::groth16_snark<ppT>,
             libzeth::groth16_api_handler<ppT>>(*grpc_tx_to_aggregate_obj);
 
     ASSERT_EQ(
@@ -203,12 +199,22 @@ TEST(MainTests, ParseTransactionToAggregateGROTH16)
     delete grpc_tx_to_aggregate_obj;
 }
 
+TEST(MainTests, ParseTransactionToAggregatePGHR13Mnt4)
+{
+    test_parse_transaction_to_aggregate_pghr13<libff::mnt4_pp>();
+}
+
+TEST(MainTests, ParseTransactionToAggregateGROTH16Mnt4)
+{
+    test_parse_transaction_to_aggregate_groth16<libff::mnt4_pp>();
+}
+
 } // namespace
 
 int main(int argc, char **argv)
 {
     // Initialize the curve parameters before running the tests
-    ppT::init_public_params();
+    libff::mnt4_pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

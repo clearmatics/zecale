@@ -3,8 +3,11 @@
 // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/tests/test_r1cs_ppzksnark_verifier_gadget.cpp
 
 #include "libzecale/circuits/groth16_verifier/r1cs_gg_ppzksnark_verifier_gadget.hpp"
+#include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
+#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
+#include "libzecale/circuits/pairing/pairing_params.hpp"
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
 #include <libff/algebra/curves/mnt/mnt6/mnt6_pp.hpp>
 #include <libsnark/relations/constraint_satisfaction_problems/r1cs/examples/r1cs_examples.hpp>
@@ -200,13 +203,22 @@ void test_hardcoded_verifier(
         annotation_A.c_str());
 }
 
-TEST(MainTests, TestGroth16VerifierGadget)
+TEST(Groth16VerifierGadgetTests, MntGroth16VerifierGadget)
 {
     test_verifier<libff::mnt4_pp, libff::mnt6_pp>("mnt4", "mnt6");
     test_verifier<libff::mnt6_pp, libff::mnt4_pp>("mnt6", "mnt4");
 
     test_hardcoded_verifier<libff::mnt4_pp, libff::mnt6_pp>("mnt4", "mnt6");
     test_hardcoded_verifier<libff::mnt6_pp, libff::mnt4_pp>("mnt6", "mnt4");
+}
+
+TEST(Groth16VerifierGadgetTests, BlsGroth16VerifierGadget)
+{
+    test_verifier<libff::bls12_377_pp, libff::bw6_761_pp>(
+        "bls12-377", "bw6-761");
+
+    test_hardcoded_verifier<libff::bls12_377_pp, libff::bw6_761_pp>(
+        "bls12-377", "bw6-761");
 }
 
 } // namespace
@@ -217,6 +229,8 @@ int main(int argc, char **argv)
 
     libff::mnt4_pp::init_public_params();
     libff::mnt6_pp::init_public_params();
+    libff::bls12_377_pp::init_public_params();
+    libff::bw6_761_pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

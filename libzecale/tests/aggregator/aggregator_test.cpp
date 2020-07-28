@@ -2,29 +2,17 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
+#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
+#include "libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp"
 #include "libzecale/core/aggregator_circuit_wrapper.hpp"
 
-#include "gtest/gtest.h"
-#include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
-#include <libff/algebra/curves/mnt/mnt6/mnt6_pp.hpp>
+#include <gtest/gtest.h>
 #include <libff/algebra/fields/field_utils.hpp>
-#include <libff/common/default_types/ec_pp.hpp>
-
-// Header to use the merkle tree data structure to keep a local merkle tree
 #include <libsnark/common/data_structures/merkle_tree.hpp>
-
-// Include the joinsplit gadget - generate the zeth proofs
-#include "libzeth/circuits/blake2s/blake2s.hpp"
-
+#include <libzeth/circuits/circuit_types.hpp>
 #include <libzeth/circuits/circuit_wrapper.hpp>
-#include <libzeth/circuits/mimc/mimc_mp.hpp>
 #include <libzeth/core/bits.cpp>
-
-// Include the core files and template instantiations corresponding
-// to the proof system used. We use groth16 here.
-//
-// TODO: Switch to the default to support generic tests
-#include <libzeth/snarks/groth16/groth16_snark.hpp>
 
 using namespace libzeth;
 
@@ -36,19 +24,11 @@ using namespace libzeth;
 // As such, we need to modify the Zeth statement to remove the "residual" bits
 // because now, a digest can be fully packed into a field element without
 // residual bits
-//
-// The Field capacity of the fields associated with the MNT curves is 297bits
-using zethProofCurve = libff::mnt4_pp;
-using zecaleProofCurve = libff::mnt6_pp;
 
-using zethSnark = libzeth::groth16_snark<zethProofCurve>;
-using zecaleSnark = libzeth::groth16_snark<zecaleProofCurve>;
-
-// The templates below are used in the Zeth circuit, hence
-// why they are instantiated from the `zethScalarField` scalar field
-using zethScalarField = libff::Fr<zethProofCurve>;
-using hash = libzeth::BLAKE2s_256<zethScalarField>;
-using hashTree = libzeth::MiMC_mp_gadget<zethScalarField>;
+// The templates and constants used in the Zeth circuit.
+template<typename nppT> using hash = libzeth::BLAKE2s_256<libff::Fr<nppT>>;
+template<typename nppT>
+using hashTree = libzeth::MiMC_mp_gadget<libff::Fr<nppT>>;
 
 static const size_t tree_depth = 4;
 static const size_t inputs_number = 2;
@@ -62,24 +42,28 @@ namespace
 
 /// This function generates one valid zeth proof.
 /// It returns the extended proof generated (snark + primary inputs)
-libzeth::extended_proof<zethProofCurve, zethSnark> generate_valid_zeth_proof(
+template<typename nppT, typename snarkT>
+libzeth::extended_proof<nppT, snarkT> generate_valid_zeth_proof(
     circuit_wrapper<
-        hash,
-        hashTree,
-        zethProofCurve,
-        zethSnark,
+        hash<nppT>,
+        hashTree<nppT>,
+        nppT,
+        snarkT,
         inputs_number,
         outputs_number,
         tree_depth> &zeth_prover,
-    typename zethSnark::KeypairT zeth_keypair)
+    typename snarkT::keypair zeth_keypair)
 {
+    using zethScalarField = libff::Fr<nppT>;
+
     libff::print_header("Entering generate_valid_zeth_proof");
 
     libff::enter_block("Instantiate merkle tree for the tests", true);
-    std::unique_ptr<merkle_tree_field<zethScalarField, hashTree>>
+    std::unique_ptr<merkle_tree_field<zethScalarField, hashTree<nppT>>>
         test_merkle_tree =
-            std::unique_ptr<merkle_tree_field<zethScalarField, hashTree>>(
-                new merkle_tree_field<zethScalarField, hashTree>(tree_depth));
+            std::unique_ptr<merkle_tree_field<zethScalarField, hashTree<nppT>>>(
+                new merkle_tree_field<zethScalarField, hashTree<nppT>>(
+                    tree_depth));
     libff::leave_block("Instantiate merkle tree for the tests", true);
 
     // Generate a valid proof for commitment inserted at address 1
@@ -172,22 +156,21 @@ libzeth::extended_proof<zethProofCurve, zethSnark> generate_valid_zeth_proof(
     libff::leave_block("Create JSOutput/zeth_note", true);
 
     libff::enter_block("Generate Zeth proof", true);
-    libzeth::extended_proof<zethProofCurve, zethSnark> ext_proof =
-        zeth_prover.prove(
-            updated_root_value,
-            inputs,
-            outputs,
-            // vpub_in = 0
-            libzeth::bits64::from_hex("0000000000000000"),
-            value_pub_out_bits64,
-            h_sig,
-            phi,
-            zeth_keypair.pk);
+    libzeth::extended_proof<nppT, snarkT> ext_proof = zeth_prover.prove(
+        updated_root_value,
+        inputs,
+        outputs,
+        // vpub_in = 0
+        libzeth::bits64::from_hex("0000000000000000"),
+        value_pub_out_bits64,
+        h_sig,
+        phi,
+        zeth_keypair.pk);
     libff::leave_block("Generate Zeth proof", true);
 
     libff::enter_block("Verify Zeth proof", true);
-    typename zethSnark::VerificationKeyT vk = zeth_keypair.vk;
-    bool res = zethSnark::verify(
+    typename snarkT::verification_key vk = zeth_keypair.vk;
+    bool res = snarkT::verify(
         ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verify? " << res << std::endl;
 
@@ -205,32 +188,29 @@ libzeth::extended_proof<zethProofCurve, zethSnark> generate_valid_zeth_proof(
 /// Here we use the same proof system to generate the "zeth proofs"
 /// and the Zecale proofs, but we could use different proofs systems.
 /// We use the same SNARK for simplicity.
+template<typename nppT, typename wppT, typename nsnarkT, typename wverifierT>
 bool test_valid_aggregation_batch_proofs(
-    aggregator_circuit_wrapper<
-        zethProofCurve,
-        zecaleProofCurve,
-        zethSnark,
-        zecaleSnark,
-        batch_size> &aggregator_prover,
-    typename zecaleSnark::KeypairT aggregator_keypair,
-    typename zethSnark::KeypairT zeth_keypair,
-    const std::array<
-        const libzeth::extended_proof<zethProofCurve, zethSnark> *,
-        batch_size> &nested_proofs)
+    aggregator_circuit_wrapper<nppT, wppT, nsnarkT, wverifierT, batch_size>
+        &aggregator_prover,
+    typename wverifierT::snark::keypair &aggregator_keypair,
+    typename nsnarkT::keypair &zeth_keypair,
+    const std::array<const libzeth::extended_proof<nppT, nsnarkT> *, batch_size>
+        &nested_proofs)
 {
+    using wsnark = typename wverifierT::snark;
+
     libff::enter_block("Generate Aggregate proof", true);
-    libzeth::extended_proof<zecaleProofCurve, zecaleSnark> ext_proof =
-        aggregator_prover.prove(
-            // This should cause a crash because the primary inputs are
-            // packed in Zeth and are processed as unpacked here.
-            zeth_keypair.vk,
-            nested_proofs,
-            aggregator_keypair.pk);
+    libzeth::extended_proof<wppT, wsnark> ext_proof = aggregator_prover.prove(
+        // This should cause a crash because the primary inputs are
+        // packed in Zeth and are processed as unpacked here.
+        zeth_keypair.vk,
+        nested_proofs,
+        aggregator_keypair.pk);
     libff::leave_block("Generate Aggregate proof", true);
 
     libff::enter_block("Verify Aggregate proof", true);
-    typename zecaleSnark::VerificationKeyT vk = aggregator_keypair.vk;
-    bool res = zecaleSnark::verify(
+    typename wsnark::verification_key vk = aggregator_keypair.vk;
+    bool res = wsnark::verify(
         ext_proof.get_primary_inputs(), ext_proof.get_proof(), vk);
     std::cout << "Does the proof verify? " << res << std::endl;
     libff::leave_block("Verify Aggregate proof", true);
@@ -241,29 +221,32 @@ bool test_valid_aggregation_batch_proofs(
     return res;
 }
 
-TEST(MainTests, AggregatorTest)
+template<typename nppT, typename wppT, typename nsnarkT, typename wverifierT>
+void aggregator_test()
 {
+    using wsnark = typename wverifierT::snark;
+
     std::cout << "[DEBUG] Entering test for the aggregator" << std::endl;
 
     // Run the trusted setup once for all tests, and keep the keypair in memory
     // for the duration of the tests
     libzeth::circuit_wrapper<
-        hash,
-        hashTree,
-        zethProofCurve,
-        zethSnark,
+        hash<nppT>,
+        hashTree<nppT>,
+        nppT,
+        nsnarkT,
         inputs_number,
         outputs_number,
         tree_depth>
         zeth_prover;
     std::cout << "[DEBUG] Before Zeth trusted setup" << std::endl;
-    typename zethSnark::KeypairT zeth_keypair =
+    typename nsnarkT::keypair zeth_keypair =
         zeth_prover.generate_trusted_setup();
 
     // Test to aggregate a single proof (i.e. generate a proof for the
     // verification of the proof)
     std::cout << "[DEBUG] Before gen Zeth proof" << std::endl;
-    libzeth::extended_proof<zethProofCurve, zethSnark> valid_proof =
+    libzeth::extended_proof<nppT, nsnarkT> valid_proof =
         generate_valid_zeth_proof(zeth_prover, zeth_keypair);
 
     /*
@@ -272,9 +255,7 @@ TEST(MainTests, AggregatorTest)
      * invalid_proof.get_primary_input
      **/
 
-    std::array<
-        const libzeth::extended_proof<zethProofCurve, zethSnark> *,
-        batch_size>
+    std::array<const libzeth::extended_proof<nppT, nsnarkT> *, batch_size>
         batch = {&valid_proof, &valid_proof};
     // Make sure that the number of primary inputs matches the one we set in the
     // `aggregator_prover` circuit
@@ -285,15 +266,10 @@ TEST(MainTests, AggregatorTest)
 
     std::cout << "[DEBUG] Before creation of the Aggregator prover"
               << std::endl;
-    aggregator_circuit_wrapper<
-        zethProofCurve,
-        zecaleProofCurve,
-        zethSnark,
-        zecaleSnark,
-        batch_size>
+    aggregator_circuit_wrapper<nppT, wppT, nsnarkT, wverifierT, batch_size>
         aggregator_prover;
     std::cout << "[DEBUG] Before gen Aggregator setup" << std::endl;
-    typename zecaleSnark::KeypairT aggregator_keypair =
+    typename wsnark::keypair aggregator_keypair =
         aggregator_prover.generate_trusted_setup();
 
     std::cout << "[DEBUG] Before first test" << std::endl;
@@ -303,6 +279,36 @@ TEST(MainTests, AggregatorTest)
     ASSERT_TRUE(res);
 }
 
+template<typename nppT, typename wppT> void aggregator_test_groth16()
+{
+    aggregator_test<
+        nppT,
+        wppT,
+        libzeth::groth16_snark<nppT>,
+        libzecale::groth16_verifier_parameters<wppT>>();
+}
+
+template<typename nppT, typename wppT> void aggregator_test_pghr13()
+{
+    aggregator_test<
+        nppT,
+        wppT,
+        libzeth::pghr13_snark<nppT>,
+        libzecale::pghr13_verifier_parameters<wppT>>();
+}
+
+TEST(AggregatorTests, AggregatorMnt4Mnt6Groth16)
+{
+    aggregator_test_groth16<libff::mnt4_pp, libff::mnt6_pp>();
+}
+
+#if 0 // TODO: Enable and fix this test
+TEST(AggregatorTests, AggregatorMnt4Mnt6Pghr13)
+{
+    aggregator_test_pghr13<libff::mnt4_pp, libff::mnt6_pp>();
+}
+#endif
+
 } // namespace
 
 int main(int argc, char **argv)
@@ -310,8 +316,8 @@ int main(int argc, char **argv)
     libff::start_profiling();
 
     // Initialize the curve parameters before running the tests
-    zethProofCurve::init_public_params();
-    zecaleProofCurve::init_public_params();
+    libff::mnt4_pp::init_public_params();
+    libff::mnt6_pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

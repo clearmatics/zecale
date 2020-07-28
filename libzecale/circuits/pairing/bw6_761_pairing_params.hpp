@@ -6,6 +6,7 @@
 #define __ZECALE_CIRCUITS_PAIRING_BW6_761_PAIRING_PARAMS_HPP__
 
 #include "libzecale/circuits/fields/fp12_2over3over2_gadgets.hpp"
+#include "libzecale/circuits/pairing/bls12_377_pairing.hpp"
 #include "libzecale/circuits/pairing/pairing_params.hpp"
 
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
@@ -15,6 +16,14 @@
 
 namespace libzecale
 {
+
+template<typename ppT> class bls12_377_G1_precomputation;
+template<typename ppT> class bls12_377_G1_precompute_gadget;
+template<typename ppT> class bls12_377_G2_precomputation;
+template<typename ppT> class bls12_377_G2_precompute_gadget;
+template<typename ppT>
+class bls12_377_e_times_e_times_e_over_e_miller_loop_gadget;
+template<typename ppT> class bls12_377_final_exp_gadget;
 
 // Parameters for creating BW6-761 proofs that include statements about
 // BLS12_377 pairings.
@@ -44,16 +53,34 @@ public:
 
     typedef libff::bls12_377_pp other_curve_type;
 
+    typedef bls12_377_G1_precomputation<libff::bw6_761_pp>
+        G1_precomputation_type;
+    typedef bls12_377_G1_precompute_gadget<libff::bw6_761_pp>
+        G1_precompute_gadget_type;
+    typedef bls12_377_G2_precomputation<libff::bw6_761_pp>
+        G2_precomputation_type;
+    typedef bls12_377_G2_precompute_gadget<libff::bw6_761_pp>
+        G2_precompute_gadget_type;
+
     // typedef bls12_377_e_over_e_miller_loop_gadget
     //     bls12_377_over_e_miller_loop_gadget_type;
     // typedef bls12_377_e_times_e_over_e_miller_loop_gadget
     //     e_times_e_over_e_miller_loop_gadget_type;
-    // typedef bls12_377_e_times_e_times_e_over_e_miller_loop_gadget
-    //     e_times_e_times_e_over_e_miller_loop_gadget_type;
-    // typedef bls12_377_final_exp_gadget final_exp_gadget_type;
+
+    typedef bls12_377_e_times_e_times_e_over_e_miller_loop_gadget<
+        libff::bw6_761_pp>
+        e_times_e_times_e_over_e_miller_loop_gadget_type;
+
+    typedef bls12_377_final_exp_gadget<libff::bw6_761_pp> final_exp_gadget_type;
 
     static const constexpr libff::bigint<libff::bw6_761_Fr::num_limbs>
         &pairing_loop_count = libff::bls12_377_ate_loop_count;
+};
+
+template<>
+class pairing_selector<libff::bw6_761_pp>
+    : public libzecale::bw6_761_pairing_selector
+{
 };
 
 } // namespace libzecale
