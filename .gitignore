@@ -1,4 +1,4 @@
-# Ignore the build repo
+# Ignore the build directory
 /build/
 
 # Ignore the content of the debug folder
@@ -6,6 +6,12 @@ debug/*json
 
 # Ignore node_modules
 /zecale_contracts/node_modules/*
+
+# Ignore client env and build files
+/client/env
+/client/api
+__pycache__
+*.egg-info
 
 # Ignore some unix temp files
 *~
