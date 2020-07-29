@@ -162,8 +162,9 @@ public:
     // S = z1_x0 - z1_x2 - z3_x0 - z3*x4 - z5_x2 - z5*x4
     // out_z5 = z1*x4 + z3*x2 + z5*x0
     //        = (z1 + z3 + z5)*(x0 + x2 + x4) - S
+    // => (z1 + z3 + z5)*(x0 + x2 + x4) = out_z5 + S
     libsnark::Fp2_variable<Fp2T> _S;
-    libsnark::Fp2_mul_gadget<Fp2T> _compute_z1z3z5_times_x0x2x4;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_out_z5_plus_S;
 
     Fp12_2over3over2_variable<Fp12T> _result;
 

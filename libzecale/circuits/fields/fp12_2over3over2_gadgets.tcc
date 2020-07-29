@@ -297,12 +297,12 @@ Fp12_2over3over2_mul_by_024_gadget<Fp12T>::Fp12_2over3over2_mul_by_024_gadget(
     // => (z1 + z3 + z5)*(x0 + x2 + x4) = out_z5 + S
     , _S(_compute_z1_x2.result + _compute_z1_x0.result + _compute_z5_x4.result +
          _compute_z3_x4.result + _compute_z3_x0.result + _compute_z5_x2.result)
-    , _compute_z1z3z5_times_x0x2x4(
+    , _compute_out_z5_plus_S(
           pb,
           Z._c0._c1 + Z._c1._c0 + Z._c1._c2,
           X_0 + X_2 + X_4,
           result._c1._c2 + _S,
-          FMT(annotation_prefix, " _compute_z1z3z5_times_x0x2x4"))
+          FMT(annotation_prefix, " _compute_out_z5_plus_S"))
     , _result(result)
 {
 }
@@ -329,7 +329,7 @@ void Fp12_2over3over2_mul_by_024_gadget<Fp12T>::generate_r1cs_constraints()
     _compute_z24_x24.generate_r1cs_constraints();
     _compute_z5_x2.generate_r1cs_constraints();
     _compute_z04_x04.generate_r1cs_constraints();
-    _compute_z1z3z5_times_x0x2x4.generate_r1cs_constraints();
+    _compute_out_z5_plus_S.generate_r1cs_constraints();
 }
 
 template<typename Fp12T>
@@ -411,9 +411,9 @@ void Fp12_2over3over2_mul_by_024_gadget<Fp12T>::generate_r1cs_witness()
     _S.evaluate();
     const Fp2T S = _S.get_element();
     _result._c1._c2.generate_r1cs_witness((z1 + z3 + z5) * (x0 + x2 + x4) - S);
-    _compute_z1z3z5_times_x0x2x4.A.evaluate();
-    _compute_z1z3z5_times_x0x2x4.B.evaluate();
-    _compute_z1z3z5_times_x0x2x4.generate_r1cs_witness();
+    _compute_out_z5_plus_S.A.evaluate();
+    _compute_out_z5_plus_S.B.evaluate();
+    _compute_out_z5_plus_S.generate_r1cs_witness();
 }
 
 // Fp12_2over3over2_mul_gadget methods
