@@ -203,13 +203,13 @@ Fp12_2over3over2_mul_by_024_gadget<Fp12T>::Fp12_2over3over2_mul_by_024_gadget(
           pb,
           Z._c0._c1,
           X_2,
-          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " z1*x2")),
+          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " z1_x2")),
           FMT(annotation_prefix, "_compute_z1_x2"))
     , _compute_z4_x4(
           pb,
           Z._c1._c1,
           X_4,
-          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " z4*x4")),
+          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " z4_x4")),
           FMT(annotation_prefix, " _compute_z4_x4"))
     , _compute_z0_x0(
           pb,
@@ -224,13 +224,13 @@ Fp12_2over3over2_mul_by_024_gadget<Fp12T>::Fp12_2over3over2_mul_by_024_gadget(
           pb,
           Z._c0._c2,
           X_2,
-          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " z2*x2")),
+          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " z2_x2")),
           FMT(annotation_prefix, " _compute_z2_x2"))
     , _compute_z5_x4(
           pb,
           Z._c1._c2,
           X_4,
-          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " z5*x4")),
+          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " z5_x4")),
           FMT(annotation_prefix, " _compute_z5_x4"))
     , _compute_z1_x0(
           pb,
@@ -247,7 +247,7 @@ Fp12_2over3over2_mul_by_024_gadget<Fp12T>::Fp12_2over3over2_mul_by_024_gadget(
           pb,
           Z._c1._c0,
           X_4,
-          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " z3*x4")),
+          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " z3_x4")),
           FMT(annotation_prefix, " _compute_z3_x4"))
     , _compute_z02_x02(
           pb,
@@ -264,7 +264,7 @@ Fp12_2over3over2_mul_by_024_gadget<Fp12T>::Fp12_2over3over2_mul_by_024_gadget(
           pb,
           Z._c1._c0,
           X_0,
-          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " z3*x0")),
+          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " z3_x0")),
           FMT(annotation_prefix, " _compute_z3_x0"))
     , _compute_z24_x24(
           pb,
@@ -282,7 +282,7 @@ Fp12_2over3over2_mul_by_024_gadget<Fp12T>::Fp12_2over3over2_mul_by_024_gadget(
           pb,
           Z._c1._c2,
           X_2,
-          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " z5*x2")),
+          libsnark::Fp2_variable<Fp2T>(pb, FMT(annotation_prefix, " z5_x2")),
           FMT(annotation_prefix, " _compute_z5_x2"))
     , _compute_z04_x04(
           pb,
@@ -433,7 +433,7 @@ Fp12_2over3over2_mul_gadget<Fp12T>::Fp12_2over3over2_mul_gadget(
           pb,
           A._c0,
           B._c0,
-          Fp6_3over2_variable<Fp6T>(pb, FMT(annotation_prefix, " a0*b0")),
+          Fp6_3over2_variable<Fp6T>(pb, FMT(annotation_prefix, " v0")),
           " _compute_v0")
     // result0 = a0*b0 + non_residue*a1*b1
     //   <=> a1*b1 = (result0 - a0*b0) * non_residue.inverse
@@ -444,7 +444,7 @@ Fp12_2over3over2_mul_gadget<Fp12T>::Fp12_2over3over2_mul_gadget(
           fp6_mul_by_non_residue_inverse<Fp12T>(
               pb,
               _result._c0 - _compute_v0._result,
-              FMT(annotation_prefix, " a1*b1")),
+              FMT(annotation_prefix, " v1")),
           FMT(annotation_prefix, " _compute_v1"))
     // result1 = a0*b1 + a1*b0 = (a0 + a1)*(b0 + b1) - a0*b0 - a1*b1
     //   <=> (a0 + a1)(b0 + b1) = result1 + a0*b0 + a1*b1

@@ -278,7 +278,7 @@ bls12_377_ate_dbl_gadget<ppT>::bls12_377_ate_dbl_gadget(
     , _compute_E_squared(
           pb,
           _compute_C.result * libff::bls12_377_twist_coeff_b * FqT(3), // E
-          Fqe_variable<ppT>(pb, FMT(annotation_prefix, " E^2")),
+          Fqe_variable<ppT>(pb, FMT(annotation_prefix, " E_squared")),
           FMT(annotation_prefix, " _compute_E_squared"))
     , _compute_G_squared(
           pb,
@@ -496,7 +496,7 @@ bls12_377_ate_add_gadget<ppT>::bls12_377_ate_add_gadget(
           pb,
           -_out_coeffs.ell_vv,
           _Q_X,
-          Fqe_variable<ppT>(pb, FMT(annotation_prefix, " theta*Qx")),
+          Fqe_variable<ppT>(pb, FMT(annotation_prefix, " theta_times_Qx")),
           FMT(annotation_prefix, " _compute_theta_times_Qx"))
     , _compute_lambda_times_Qy(
           pb,
@@ -726,13 +726,13 @@ bls12_377_ate_compute_f_ell_P<ppT>::bls12_377_ate_compute_f_ell_P(
           pb,
           ell_coeffs.ell_vv,
           Px,
-          Fqe_variable<ppT>(pb, FMT(annotation_prefix, " Px.ell_vv")),
+          Fqe_variable<ppT>(pb, FMT(annotation_prefix, " ell_vv_times_Px")),
           FMT(annotation_prefix, " _compute_ell_vv_times_Px"))
     , _compute_ell_vw_times_Py(
           pb,
           ell_coeffs.ell_vw,
           Py,
-          Fqe_variable<ppT>(pb, FMT(annotation_prefix, " Py.ell_vw")),
+          Fqe_variable<ppT>(pb, FMT(annotation_prefix, " ell_vw_times_Py")),
           FMT(annotation_prefix, " _compute_ell_vw_times_Py"))
     , _compute_f_mul_ell_P(
           pb,
@@ -904,15 +904,13 @@ bls12_377_final_exp_first_part_gadget<ppT>::
     , _compute_B(
           pb,
           in,
-          Fp12_2over3over2_variable<FqkT>(
-              pb, FMT(annotation_prefix, " in.inv")),
+          Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " B")),
           FMT(annotation_prefix, " _B"))
     , _compute_C(
           pb,
           in.frobenius_map(6), // _A
           _compute_B.result(),
-          Fp12_2over3over2_variable<FqkT>(
-              pb, FMT(annotation_prefix, " in.frobenius(6)*_B")),
+          Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " C")),
           FMT(annotation_prefix, " _C"))
     , _compute_D_times_C(
           pb,
@@ -1122,13 +1120,14 @@ bls12_377_final_exp_last_part_gadget<ppT>::bls12_377_final_exp_last_part_gadget(
     , _compute_in_squared(
           pb,
           in,
-          Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " in^2")),
+          Fp12_2over3over2_variable<FqkT>(
+              pb, FMT(annotation_prefix, " in_squared")),
           FMT(annotation_prefix, " _compute_in_squared"))
     // B = [z]
     , _compute_B(
           pb,
           in,
-          Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " in^z")),
+          Fp12_2over3over2_variable<FqkT>(pb, FMT(annotation_prefix, " B")),
           FMT(annotation_prefix, " _compute_B"))
     // C = [2z]
     , _compute_C(
