@@ -12,6 +12,7 @@ debug/*json
 /client/api
 __pycache__
 *.egg-info
+.mypy_cache
 
 # Ignore some unix temp files
 *~

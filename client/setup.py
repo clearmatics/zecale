@@ -30,5 +30,8 @@ setup(
         "protobuf==3.13.0",
         "grpcio==1.30",
         "grpcio-tools==1.30",
+    ],
+    scripts=[
+        "commands/zecale",
     ]
 )

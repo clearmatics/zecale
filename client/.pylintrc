@@ -14,7 +14,7 @@ disable=
     missing-module-docstring,
     broad-except,
     too-many-function-args,
-    duplicate-code,
+    duplicate-code
 
 good-names=i,e,x,y,m,k,h,c,cm,rc,ek,ct,vk,sk,pk,X,Y,r,el,nf,tx
 
