@@ -4,11 +4,12 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from commands.defaults import AGGREGATOR_SERVER_ENDPOINT_DEFAULT
+from .defaults import AGGREGATOR_SERVER_ENDPOINT_DEFAULT
 from commands.command_context import CommandContext
 from commands.zecale_register import register
 from click import command, group, option, pass_context, Context, ClickException
 from click_default_group import DefaultGroup
+
 
 @command()
 @pass_context

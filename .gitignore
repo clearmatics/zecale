@@ -9,7 +9,7 @@ debug/*json
 
 # Ignore client env and build files
 /client/env
-/client/api
+/client/zecale/api
 __pycache__
 *.egg-info
 .mypy_cache
