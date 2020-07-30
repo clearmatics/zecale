@@ -139,12 +139,12 @@ Fp12_2over3over2_square_gadget<Fp12T>::Fp12_2over3over2_square_gadget(
           pb,
           _A._c0 + _A._c1,
           _A._c0 + fp6_mul_by_non_residue<Fp12T>(
-                       pb, _A._c1, FMT(annotation_prefix, " a1*v")),
+                       pb, _A._c1, FMT(annotation_prefix, " a1_times_v")),
           _result._c0 +
               fp6_mul_by_non_residue<Fp12T>(
                   pb,
                   _compute_alpha._result,
-                  FMT(annotation_prefix, " alpha*v")) +
+                  FMT(annotation_prefix, " alpha_times_v")) +
               _compute_alpha._result,
           FMT(annotation_prefix, " _compute_beta"))
 {
