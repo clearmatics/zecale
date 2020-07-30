@@ -10,15 +10,25 @@ This project can be used to:
 
 ## Building and running the project:
 
+:computer: **Warning** This project primarily targets x86_64 Linux and macOS platforms.
+
 ### Environment
 
 In order to follow the README below, you will need:
 - [Docker](https://www.docker.com/get-started)
 - [Python3](https://www.python.org/downloads/) (at least version `3.7`)
 
+Additionally, several tools from the GCC and LLVM tools suite are used to improve code quality and generate the documentation of the project. These are required in order to compile the project with all options enabled:
+- [Doxygen](http://www.doxygen.nl/)
+- [clang-format](https://clang.llvm.org/docs/ClangFormat.html)
+- [clang-tidy](https://clang.llvm.org/extra/clang-tidy/)
+- [cppcheck](http://cppcheck.sourceforge.net/)
+- [include-what-you-use](https://include-what-you-use.org/)
+- [llvm-symbolizer](https://llvm.org/docs/CommandGuide/llvm-symbolizer.html)
+
 ### Development dependencies (for building outside of the Docker container)
 
-Immediate dependencies are provided as submodules and compiled during the Zeth build.
+Immediate dependencies are provided as submodules and compiled during the Zecale build.
 Ensure submodules are synced (`git submodule update --init --recursive`).
 
 The following libraries are also required to build:
@@ -77,6 +87,43 @@ docker run -ti -p 50052:50052 --name zecale zecale-dev:0.1
 - `nsnarkT`: Type parameter representing the SNARK scheme used to generate the nested arguments
 - `wppT`: Type parameter representing the public parameters defining the wrapping curve (i.e. the curve over which the "nested proofs" are verified - and the wrapping proof is generated. If a pairing-friendly amicable chain is used, `wppT` refers to the last curve of the chain)
 - `wsnarkT`: Type parameter representing the SNARK scheme used to generate the wrapping argument
+
+## Generate the Doxygen documentation
+
+To generate the documentation of Zecale:
+``bash
+cd build
+cmake .. -DGEN_DOC=ON && make docs
+``
+
+## Compile the project using 'sanitizers'
+
+You can select the sanitizer of your choice (one of the sanitizers listed [here](./cmake/sanitizers.cmake)) by passing the flag `-DSANITIZER=<sanitizer>` to `cmake`.
+
+Example:
+``bash
+cd build
+cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DSANITIZER=Address -DCMAKE_BUILD_TYPE=Debug ..
+make check
+``
+
+## Run analysis tools on the code
+
+Several tools can be ran on the code. These can be enabled via a set of compilation options.
+
+Note: The `clang-tidy` target runs a clang-tidy python script that should be fetched from [here](https://github.com/llvm/llvm-project/blob/master/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py). To do so, run: `cd build && wget https://raw.githubusercontent.com/llvm/llvm-project/master/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py`
+
+Example:
+```bash
+# run-clang-tidy.py needs to be in the PATH to be found
+PATH=$PATH:${PWD}
+chmod +x run-clang-tidy.py
+
+cmake -DUSE_CLANG_FORMAT=ON -DUSE_CPP_CHECK=ON -DUSE_CLANG_TIDY=ON ..
+make cppcheck
+make clang-format
+make clang-tidy
+```
 
 ## License notices:
 
