@@ -137,12 +137,12 @@ public:
     libsnark::Fp2_variable<Fp2T> _X_2;
     libsnark::Fp2_variable<Fp2T> _X_4;
 
-    // out_z0 = z0*x0 + non_residue * ( z1*x2 + z4*x4 )
+    // out_z0 = z0*x0 + non_residue * (z1*x2 + z4*x4)
     libsnark::Fp2_mul_gadget<Fp2T> _compute_z1_x2;
     libsnark::Fp2_mul_gadget<Fp2T> _compute_z4_x4;
     libsnark::Fp2_mul_gadget<Fp2T> _compute_z0_x0;
 
-    // out_z1 = z1*x0 + non_residue * ( z2*x2 + z5*x4 )
+    // out_z1 = z1*x0 + non_residue * (z2*x2 + z5*x4)
     libsnark::Fp2_mul_gadget<Fp2T> _compute_z2_x2;
     libsnark::Fp2_mul_gadget<Fp2T> _compute_z5_x4;
     libsnark::Fp2_mul_gadget<Fp2T> _compute_z1_x0;

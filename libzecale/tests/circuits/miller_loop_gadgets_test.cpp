@@ -128,7 +128,7 @@ bool test_e_times_e_times_e_over_e_miller_loop(
 
 /// Generate expected test data and expected miller loop output for an MNT
 /// pairing, and call the generic test_e_times_e_times_e_over_e_miller_loop
-/// function above. (To be be specialized to mnt4 or mnt6).
+/// function above. (To be specialized to mnt4 or mnt6).
 template<typename ppT>
 void test_mnt_e_times_e_times_e_over_e_miller_loop(
     const std::string &annotation)

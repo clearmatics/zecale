@@ -291,7 +291,7 @@ bls12_377_ate_dbl_gadget<ppT>::bls12_377_ate_dbl_gadget(
 
     // outRz = B * H
     //   where
-    //     H = (Y + Z) ^ 2 - (B + C)
+    //     H = (Y + Z)^2 - (B + C)
     , _check_out_Rz(
           pb,
           _compute_B.result,

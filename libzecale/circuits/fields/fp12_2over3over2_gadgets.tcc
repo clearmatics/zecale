@@ -197,8 +197,8 @@ Fp12_2over3over2_mul_by_024_gadget<Fp12T>::Fp12_2over3over2_mul_by_024_gadget(
     , _X_0(X_0)
     , _X_2(X_2)
     , _X_4(X_4)
-    // out_z0 = z0*x0 + non_residue * ( z1*x2 + z4*x4 )
-    // => z0 * x0 = out_z0 - non_residue * ( z1*x2 + z4*x4 )
+    // out_z0 = z0*x0 + non_residue * (z1*x2 + z4*x4)
+    // => z0 * x0 = out_z0 - non_residue * (z1*x2 + z4*x4)
     , _compute_z1_x2(
           pb,
           Z._c0._c1,
@@ -218,8 +218,8 @@ Fp12_2over3over2_mul_by_024_gadget<Fp12T>::Fp12_2over3over2_mul_by_024_gadget(
           result._c0._c0 + ((_compute_z1_x2.result + _compute_z4_x4.result) *
                             -Fp6T::non_residue),
           FMT(annotation_prefix, " _compute_z0_x0"))
-    // out_z1 = z1*x0 + non_residue * ( z2*x2 + z5*x4 )
-    // => z1 * z0 = out_z1 - non_residue * ( z2*x2 + z5*x4 )
+    // out_z1 = z1*x0 + non_residue * (z2*x2 + z5*x4)
+    // => z1 * z0 = out_z1 - non_residue * (z2*x2 + z5*x4)
     , _compute_z2_x2(
           pb,
           Z._c0._c2,
@@ -346,8 +346,8 @@ void Fp12_2over3over2_mul_by_024_gadget<Fp12T>::generate_r1cs_witness()
     const Fp2T x2 = _X_2.get_element();
     const Fp2T x4 = _X_4.get_element();
 
-    // out_z0 = z0*x0 + non_residue * ( z1*x2 + z4*x4 )
-    // => z0 * x0 = out_z0 - non_residue * ( z1*x2 + z4*x4 )
+    // out_z0 = z0*x0 + non_residue * (z1*x2 + z4*x4)
+    // => z0 * x0 = out_z0 - non_residue * (z1*x2 + z4*x4)
     _compute_z1_x2.generate_r1cs_witness();
     _compute_z4_x4.generate_r1cs_witness();
     const Fp2T z0_x0 = z0 * x0;
@@ -357,8 +357,8 @@ void Fp12_2over3over2_mul_by_024_gadget<Fp12T>::generate_r1cs_witness()
         Fp6T::non_residue * (_compute_z1_x2.result.get_element() + z4_x4));
     _compute_z0_x0.generate_r1cs_witness();
 
-    // out_z1 = z1*x0 + non_residue * ( z2*x2 + z5*x4 )
-    // => z1 * z0 = out_z1 - non_residue * ( z2*x2 + z5*x4 )
+    // out_z1 = z1*x0 + non_residue * (z2*x2 + z5*x4)
+    // => z1 * z0 = out_z1 - non_residue * (z2*x2 + z5*x4)
     _compute_z2_x2.generate_r1cs_witness();
     _compute_z5_x4.generate_r1cs_witness();
     const Fp2T z2_x2 = _compute_z2_x2.result.get_element();
@@ -515,7 +515,7 @@ Fp12_2over3over2_inv_gadget<Fp12T>::Fp12_2over3over2_inv_gadget(
               pb,
               Fp6_3over2_variable<Fp6T>(pb, Fp6T::one(), " (A*A.inv).c0"),
               Fp6_3over2_variable<Fp6T>(pb, Fp6T::zero(), " (A*A.inv).c1"),
-              FMT(annotation_prefix, " A*A.inv")),
+              FMT(annotation_prefix, " A*A.mult_inv")),
           FMT(annotation_prefix, " _compute_A_times_result"))
 {
 }
