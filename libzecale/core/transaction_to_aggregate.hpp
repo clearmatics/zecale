@@ -14,11 +14,11 @@ namespace libzecale
 /// This class represents the type of transactions that are aggregated using
 /// zecale. The application name is used to determine which verification key
 /// needs to be used to verify the proof in the transaction.
-template<typename nppT, typename nSnarkT> class transaction_to_aggregate
+template<typename nppT, typename nsnarkT> class transaction_to_aggregate
 {
 private:
     std::string _application_name;
-    std::shared_ptr<libzeth::extended_proof<nppT, nSnarkT>> _extended_proof;
+    std::shared_ptr<libzeth::extended_proof<nppT, nsnarkT>> _extended_proof;
     uint32_t _fee_wei;
     // TODO: switch to something better like a hash
     // size_t identifier;
@@ -27,7 +27,7 @@ public:
     transaction_to_aggregate(){};
     transaction_to_aggregate(
         std::string application_name,
-        const libzeth::extended_proof<nppT, nSnarkT> &extended_proof,
+        const libzeth::extended_proof<nppT, nsnarkT> &extended_proof,
         uint32_t fee_wei = 0);
     virtual ~transaction_to_aggregate(){};
 
@@ -36,7 +36,7 @@ public:
         return this->_application_name;
     };
 
-    inline const libzeth::extended_proof<nppT, nSnarkT> &extended_proof() const
+    inline const libzeth::extended_proof<nppT, nsnarkT> &extended_proof() const
     {
         return *(this->_extended_proof);
     };
@@ -47,12 +47,12 @@ public:
 
     /// Overload the less-than operator in order to compare objects in priority
     /// queue
-    bool operator<(const transaction_to_aggregate<nppT, nSnarkT> &right) const;
+    bool operator<(const transaction_to_aggregate<nppT, nsnarkT> &right) const;
 };
 
-template<typename nppT, typename nSnarkT>
-bool transaction_to_aggregate<nppT, nSnarkT>::operator<(
-    const transaction_to_aggregate<nppT, nSnarkT> &right) const
+template<typename nppT, typename nsnarkT>
+bool transaction_to_aggregate<nppT, nsnarkT>::operator<(
+    const transaction_to_aggregate<nppT, nsnarkT> &right) const
 {
     return _fee_wei < right._fee_wei;
 }

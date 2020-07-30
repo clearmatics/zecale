@@ -2,31 +2,174 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
+#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
 #include "libzecale/circuits/pairing/pairing_checks.hpp"
-#include "libzecale/circuits/pairing/weierstrass_miller_loop.hpp"
+#include "libzecale/circuits/pairing/pairing_params.hpp"
 
-#include "gtest/gtest.h"
-
-// Instantiation of the templates for the tests
-typedef libff::mnt4_pp curve_mnt4;
-typedef libff::mnt6_pp curve_mnt6;
+#include <gtest/gtest.h>
 
 using namespace libzecale;
 
 namespace
 {
 
-TEST(MainTests, TestMntEEEoverEmillerLoop)
+/// In this test we carry out - via a circuit defined over Fr<ppT> - a pairing
+/// check between elements of G1 and G2 defined over other_curve<ppT>
+template<typename ppT>
+bool test_check_e_equals_eee_gadget(
+    // Points of the "other curve" that are fed in the pairing check
+    libff::G1<other_curve<ppT>> lhs_pairing_P,
+    libff::G2<other_curve<ppT>> lhs_pairing_Q,
+    libff::G1<other_curve<ppT>> rhs_pairing1_P,
+    libff::G2<other_curve<ppT>> rhs_pairing1_Q,
+    libff::G1<other_curve<ppT>> rhs_pairing2_P,
+    libff::G2<other_curve<ppT>> rhs_pairing2_Q,
+    libff::G1<other_curve<ppT>> rhs_pairing3_P,
+    libff::G2<other_curve<ppT>> rhs_pairing3_Q,
+    // Result of the pairing check (in Fr<ppT> which is the scalar field
+    // over which we define the circuit)
+    libff::Fr<ppT> expected_result,
+    const std::string &annotation_prefix)
 {
-    bool res = false;
-    res = test_mnt_e_times_e_times_e_over_e_miller_loop<curve_mnt4>(
-        " test_eee_over_e_miller_loop_mnt4");
-    ASSERT_TRUE(res);
+    // We verify the pairing check over Fr<ppT> a pairing check
+    // of group elements defined over libff::Fr<other_curve<ppT>>
+    // i.e. we use one curve to verify a pairing check defined over the
+    // "other curve"
+    libsnark::protoboard<libff::Fr<ppT>> pb;
 
-    res = false;
-    res = test_mnt_e_times_e_times_e_over_e_miller_loop<curve_mnt6>(
-        " test_eee_over_e_miller_loop_mnt6");
-    ASSERT_TRUE(res);
+    // bool scalar_check = (scalar7 * scalar8 == scalar1 * scalar2 + scalar3 *
+    // scalar4 + scalar5 * scalar6); std::cout << "[DEBUG] =======
+    // scalar_check:
+    // " << scalar_check << std::endl;
+
+    libsnark::G1_variable<ppT> lhs_P(pb, FMT(annotation_prefix, " lhs_P"));
+    libsnark::G2_variable<ppT> lhs_Q(pb, FMT(annotation_prefix, " lhs_Q"));
+    libsnark::G1_variable<ppT> rhs_P1(pb, FMT(annotation_prefix, " rhs_P1"));
+    libsnark::G2_variable<ppT> rhs_Q1(pb, FMT(annotation_prefix, " rhs_Q1"));
+    libsnark::G1_variable<ppT> rhs_P2(pb, FMT(annotation_prefix, " rhs_P2"));
+    libsnark::G2_variable<ppT> rhs_Q2(pb, FMT(annotation_prefix, " rhs_Q2"));
+    libsnark::G1_variable<ppT> rhs_P3(pb, FMT(annotation_prefix, " rhs_P3"));
+    libsnark::G2_variable<ppT> rhs_Q3(pb, FMT(annotation_prefix, " rhs_Q3"));
+
+    G1_precomputation<ppT> lhs_prec_P;
+    G1_precompute_gadget<ppT> compute_lhs_prec_P(
+        pb, lhs_P, lhs_prec_P, FMT(annotation_prefix, "compute_lhs_prec_P"));
+    G2_precomputation<ppT> lhs_prec_Q;
+    G2_precompute_gadget<ppT> compute_lhs_prec_Q(
+        pb, lhs_Q, lhs_prec_Q, FMT(annotation_prefix, "compute_lhs_prec_Q"));
+
+    G1_precomputation<ppT> rhs_prec1_P;
+    G1_precompute_gadget<ppT> compute_rhs_prec1_P(
+        pb,
+        rhs_P1,
+        rhs_prec1_P,
+        FMT(annotation_prefix, " compute_rhs_prec1_P"));
+    G2_precomputation<ppT> rhs_prec1_Q;
+    G2_precompute_gadget<ppT> compute_rhs_prec1_Q(
+        pb,
+        rhs_Q1,
+        rhs_prec1_Q,
+        FMT(annotation_prefix, " compute_rhs_prec1_Q"));
+
+    G1_precomputation<ppT> rhs_prec2_P;
+    G1_precompute_gadget<ppT> compute_rhs_prec2_P(
+        pb,
+        rhs_P2,
+        rhs_prec2_P,
+        FMT(annotation_prefix, " compute_rhs_prec2_P"));
+    G2_precomputation<ppT> rhs_prec2_Q;
+    G2_precompute_gadget<ppT> compute_rhs_prec2_Q(
+        pb,
+        rhs_Q2,
+        rhs_prec2_Q,
+        FMT(annotation_prefix, " compute_rhs_prec2_Q"));
+
+    G1_precomputation<ppT> rhs_prec3_P;
+    G1_precompute_gadget<ppT> compute_rhs_prec3_P(
+        pb,
+        rhs_P3,
+        rhs_prec3_P,
+        FMT(annotation_prefix, " compute_rhs_prec3_P"));
+    G2_precomputation<ppT> rhs_prec3_Q;
+    G2_precompute_gadget<ppT> compute_rhs_prec3_Q(
+        pb,
+        rhs_Q3,
+        rhs_prec3_Q,
+        FMT(annotation_prefix, " compute_rhs_prec3_Q"));
+
+    libsnark::pb_variable<libff::Fr<ppT>> result;
+    result.allocate(pb, FMT(annotation_prefix, " result"));
+
+    check_e_equals_eee_gadget<ppT> pairing_check(
+        pb,
+        lhs_prec_P,
+        lhs_prec_Q,
+        rhs_prec1_P,
+        rhs_prec1_Q,
+        rhs_prec2_P,
+        rhs_prec2_Q,
+        rhs_prec3_P,
+        rhs_prec3_Q,
+        result,
+        FMT(annotation_prefix, " pairing_check"));
+
+    PROFILE_CONSTRAINTS(pb, "precompute P")
+    {
+        compute_lhs_prec_P.generate_r1cs_constraints();
+
+        compute_rhs_prec1_P.generate_r1cs_constraints();
+        compute_rhs_prec2_P.generate_r1cs_constraints();
+        compute_rhs_prec3_P.generate_r1cs_constraints();
+    }
+    PROFILE_CONSTRAINTS(pb, "precompute Q")
+    {
+        compute_lhs_prec_Q.generate_r1cs_constraints();
+
+        compute_rhs_prec1_Q.generate_r1cs_constraints();
+        compute_rhs_prec2_Q.generate_r1cs_constraints();
+        compute_rhs_prec3_Q.generate_r1cs_constraints();
+    }
+    PROFILE_CONSTRAINTS(pb, "Pairing check")
+    {
+        pairing_check.generate_r1cs_constraints();
+    }
+    libsnark::PRINT_CONSTRAINT_PROFILING();
+
+    libsnark::generate_r1cs_equals_const_constraint<libff::Fr<ppT>>(
+        pb, result, expected_result, FMT(annotation_prefix, " result"));
+
+    lhs_P.generate_r1cs_witness(lhs_pairing_P);
+    compute_lhs_prec_P.generate_r1cs_witness();
+    lhs_Q.generate_r1cs_witness(lhs_pairing_Q);
+    compute_lhs_prec_Q.generate_r1cs_witness();
+
+    rhs_P1.generate_r1cs_witness(rhs_pairing1_P);
+    compute_rhs_prec1_P.generate_r1cs_witness();
+    rhs_Q1.generate_r1cs_witness(rhs_pairing1_Q);
+    compute_rhs_prec1_Q.generate_r1cs_witness();
+
+    rhs_P2.generate_r1cs_witness(rhs_pairing2_P);
+    compute_rhs_prec2_P.generate_r1cs_witness();
+    rhs_Q2.generate_r1cs_witness(rhs_pairing2_Q);
+    compute_rhs_prec2_Q.generate_r1cs_witness();
+
+    rhs_P3.generate_r1cs_witness(rhs_pairing3_P);
+    compute_rhs_prec3_P.generate_r1cs_witness();
+    rhs_Q3.generate_r1cs_witness(rhs_pairing3_Q);
+    compute_rhs_prec3_Q.generate_r1cs_witness();
+
+    pairing_check.generate_r1cs_witness();
+
+    assert(pb.is_satisfied());
+    printf(
+        "number of constraints for check_e_equals_eee_gadget (Fr is "
+        "%s)  = %zu\n",
+        annotation_prefix.c_str(),
+        pb.num_constraints());
+
+    bool test_success = (pb.val(result) == expected_result);
+    return test_success;
 }
 
 /// Create VALID test case by instantiating points from G1 and G2
@@ -217,16 +360,26 @@ template<typename ppT> void test_invalid_pairing_check_e_equals_eee_gadget()
     ASSERT_TRUE(res);
 }
 
-TEST(MainTests, TestValidCheckEequalsEEEgadget)
+TEST(MainTests, TestMntValidCheckEequalsEEEgadget)
 {
-    test_valid_pairing_check_e_equals_eee_gadget<curve_mnt4>();
-    test_valid_pairing_check_e_equals_eee_gadget<curve_mnt6>();
+    test_valid_pairing_check_e_equals_eee_gadget<libff::mnt4_pp>();
+    test_valid_pairing_check_e_equals_eee_gadget<libff::mnt6_pp>();
 }
 
-TEST(MainTests, TestInvalidCheckEequalsEEEgadget)
+TEST(MainTests, TestMntInvalidCheckEequalsEEEgadget)
 {
-    test_invalid_pairing_check_e_equals_eee_gadget<curve_mnt4>();
-    test_invalid_pairing_check_e_equals_eee_gadget<curve_mnt6>();
+    test_invalid_pairing_check_e_equals_eee_gadget<libff::mnt4_pp>();
+    test_invalid_pairing_check_e_equals_eee_gadget<libff::mnt6_pp>();
+}
+
+TEST(MainTests, TestBlsValidCheckEequalsEEEgadget)
+{
+    test_valid_pairing_check_e_equals_eee_gadget<libff::bw6_761_pp>();
+}
+
+TEST(MainTests, TestBlsInvalidCheckEequalsEEEgadget)
+{
+    test_invalid_pairing_check_e_equals_eee_gadget<libff::bw6_761_pp>();
 }
 
 } // namespace
@@ -236,8 +389,10 @@ int main(int argc, char **argv)
     libff::start_profiling();
 
     // Initialize the curve parameters before running the tests
-    curve_mnt4::init_public_params();
-    curve_mnt6::init_public_params();
+    libff::mnt4_pp::init_public_params();
+    libff::mnt6_pp::init_public_params();
+    libff::bw6_761_pp::init_public_params();
+    libff::bls12_377_pp::init_public_params();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
