@@ -24,7 +24,7 @@ jobs:
       run: CI_CONFIG=${{ matrix.config }} scripts/ci build
 
   build-linux:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         config: [ Debug, Release ]

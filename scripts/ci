@@ -7,7 +7,7 @@ echo "running against commit: "`git log --oneline --no-decorate -n 1`
 set -x
 set -e
 
-function format_check() {
+function check_format() {
     scripts/format
     git diff --no-ext-diff | head -n 20 > format_errors
     num_lines=`cat format_errors | wc -l`
@@ -115,7 +115,7 @@ echo CI_CHECK_FORMAT=${CI_CHECK_FORMAT}
 echo CI_EVENT_NAME=${CI_EVENT_NAME}
 
 if [ "${CI_CHECK_FORMAT}" == "1" ] ; then
-    format_check
+    check_format
 fi
 
 # Fallback to PGHR13 until we fully support Groth16
