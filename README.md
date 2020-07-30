@@ -65,10 +65,10 @@ aggregator_server
 docker pull clearmatics/zeth-base:latest
 
 # Build the Zecale dev image
-docker build -f Dockerfile-zecale -t zecale-dev:0.1 .
+docker build -f Dockerfile-zecale -t zecale-dev:0.2 .
 
 # Start the container
-docker run -ti -p 50052:50052 --name zecale zecale-dev:0.1
+docker run -ti -p 50052:50052 --name zecale zecale-dev:0.2
 ```
 
 #### Notes
