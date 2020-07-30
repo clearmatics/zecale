@@ -136,23 +136,17 @@ public:
     // some of the redundancy.
 
     // A = R.X * R.Y / 2
-    Fqe_mul_gadget<ppT> _A;
+    Fqe_mul_gadget<ppT> _compute_A;
 
     // B = R.Y^2
-    Fqe_sqr_gadget<ppT> _B;
+    Fqe_sqr_gadget<ppT> _compute_B;
 
     // C = R.Z^2
-    Fqe_sqr_gadget<ppT> _C;
+    Fqe_sqr_gadget<ppT> _compute_C;
 
     // D = 3 * C
-    Fqe_variable<ppT> _D;
-
     // E = b' * D
-    Fqe_variable<ppT> _E;
-
     // F = 3 * E
-    Fqe_variable<ppT> _F;
-
     // G = (B + F) / 2
 
     // ell_vw = -H
@@ -160,7 +154,7 @@ public:
     //     H = (Y + 2) ^ 2 - (B + C)
     // ell_vw = (B+C) - (Y+2)^2
     // <=> (Y+2)^2 [H] = ell_vw - B - C
-    Fqe_sqr_gadget<ppT> _Y_plus_Z_squared;
+    Fqe_sqr_gadget<ppT> _compute_Y_plus_Z_squared;
 
     // I = E - B
 
@@ -169,15 +163,15 @@ public:
     //     J = Rx^2
     // ell_vv = 3 * Rx^2
     // <=> Rx^2 [J] = ell_vv * 3^{-1}
-    Fqe_sqr_gadget<ppT> _J; // Rx^2 == J
+    Fqe_sqr_gadget<ppT> _compute_J; // Rx^2 == J
 
     // out_R.X = A * (B - F)
     Fqe_mul_gadget<ppT> _check_out_Rx;
 
     // out_R.Y = G^2 - 3 * E^2
     // <=> G^2 = outRy + 3*E^2
-    Fqe_sqr_gadget<ppT> _E_squared;
-    Fqe_sqr_gadget<ppT> _G_squared;
+    Fqe_sqr_gadget<ppT> _compute_E_squared;
+    Fqe_sqr_gadget<ppT> _compute_G_squared;
 
     // out_R.Z = B * H
     Fqe_mul_gadget<ppT> _check_out_Rz;
@@ -211,37 +205,37 @@ public:
     //     theta = R.Y - A
     //     A = Q_Y * R.Z;
     // <=> A = Q_Y * R.Z = ell_vv + Ry
-    Fqe_mul_gadget<ppT> _A;
+    Fqe_mul_gadget<ppT> _compute_A;
     // ell_vw = lambda
     //   where
     //     lambda = R.X - B
     //     B = Q_X * R.Z
     // <=> B = Q_X * R.Z = R.X - ell_vw
-    Fqe_mul_gadget<ppT> _B;
+    Fqe_mul_gadget<ppT> _compute_B;
     // theta = R.Y - A = -ell_vv
     // Fqe_variable<ppT> _theta
     // lambda = R.X - B = ell_vw
     // Fqe_variable<ppT> lambda
     // C = theta.squared() = ell_vv^2
-    Fqe_sqr_gadget<ppT> _C;
+    Fqe_sqr_gadget<ppT> _compute_C;
     // D = lambda.squared() = ell_vw^2
-    Fqe_sqr_gadget<ppT> _D;
+    Fqe_sqr_gadget<ppT> _compute_D;
     // E = lambda * D;
-    Fqe_mul_gadget<ppT> _E;
+    Fqe_mul_gadget<ppT> _compute_E;
     // F = R.Z * C;
-    Fqe_mul_gadget<ppT> _F;
+    Fqe_mul_gadget<ppT> _compute_F;
     // G = R.X * D;
-    Fqe_mul_gadget<ppT> _G;
+    Fqe_mul_gadget<ppT> _compute_G;
     // H = E + F - (G + G);
     Fqe_variable<ppT> _H;
     // I = R.Y * E;
-    Fqe_mul_gadget<ppT> _I;
+    Fqe_mul_gadget<ppT> _compute_I;
     // out_coeffs.ell_0 = xi * J
     //   where
     //     J = theta * Q_X - lambda * Q_Y
     // <=> lambda * Q_Y = theta * Q_X - ell_0 * xi^{-1}
-    Fqe_mul_gadget<ppT> _theta_times_Qx;
-    Fqe_mul_gadget<ppT> _lambda_times_Qy;
+    Fqe_mul_gadget<ppT> _compute_theta_times_Qx;
+    Fqe_mul_gadget<ppT> _compute_lambda_times_Qy;
 
     // out_R.X = lambda * H = ell_vw * H
     Fqe_mul_gadget<ppT> _check_out_Rx;
@@ -273,7 +267,6 @@ public:
     using FqeT = libff::Fqe<other_curve<ppT>>;
 
     bls12_377_G2_proj<ppT> _R0;
-    std::vector<std::shared_ptr<bls12_377_G2_proj<ppT>>> _R;
     std::vector<std::shared_ptr<bls12_377_ate_dbl_gadget<ppT>>> _ate_dbls;
     std::vector<std::shared_ptr<bls12_377_ate_add_gadget<ppT>>> _ate_adds;
 
@@ -300,9 +293,9 @@ public:
     using FieldT = libff::Fr<ppT>;
     using FqkT = libff::Fqk<other_curve<ppT>>;
 
-    Fqe_mul_by_lc_gadget<ppT> _ell_vv_times_Px;
-    Fqe_mul_by_lc_gadget<ppT> _ell_vw_times_Py;
-    Fp12_2over3over2_mul_by_024_gadget<FqkT> _f_mul_ell_P;
+    Fqe_mul_by_lc_gadget<ppT> _compute_ell_vv_times_Px;
+    Fqe_mul_by_lc_gadget<ppT> _compute_ell_vw_times_Py;
+    Fp12_2over3over2_mul_by_024_gadget<FqkT> _compute_f_mul_ell_P;
 
     bls12_377_ate_compute_f_ell_P(
         libsnark::protoboard<FieldT> &pb,
@@ -362,17 +355,16 @@ public:
     // which in turn follows:
     //   https://eprint.iacr.org/2016/130.pdf
 
-    Fp12_2over3over2_variable<FqkT> _in;
     Fp12_2over3over2_variable<FqkT> _result;
 
     // A = elt^(q^6)
     // B = elt^(-1)
-    Fp12_2over3over2_inv_gadget<FqkT> _B;
+    Fp12_2over3over2_inv_gadget<FqkT> _compute_B;
     // C = A * B = elt^(q^6 - 1)
-    Fp12_2over3over2_mul_gadget<FqkT> _C;
+    Fp12_2over3over2_mul_gadget<FqkT> _compute_C;
     // D = C^(q^2) = elt^((q^6 - 1) * (q^2))
     // result = D * C = elt^((q^6 - 1) * (q^2 + 1))
-    Fp12_2over3over2_mul_gadget<FqkT> _D_times_C;
+    Fp12_2over3over2_mul_gadget<FqkT> _compute_D_times_C;
 
     bls12_377_final_exp_first_part_gadget(
         libsnark::protoboard<FieldT> &pb,
@@ -395,7 +387,6 @@ public:
     using multiply = Fp12_2over3over2_mul_gadget<FqkT>;
     using unitary_inverse = Fp12_2over3over2_cyclotomic_square_gadget<FqkT>;
 
-    Fp12_2over3over2_variable<FqkT> _in;
     Fp12_2over3over2_variable<FqkT> _result;
     std::vector<std::shared_ptr<cyclotomic_square>> _squares;
     std::vector<std::shared_ptr<multiply>> _multiplies;
@@ -413,9 +404,13 @@ public:
 
 private:
     void initialize_z_neg(
-        libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix);
+        libsnark::protoboard<FieldT> &pb,
+        const Fp12_2over3over2_variable<FqkT> &in,
+        const std::string &annotation_prefix);
     void initialize_z_pos(
-        libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix);
+        libsnark::protoboard<FieldT> &pb,
+        const Fp12_2over3over2_variable<FqkT> &in,
+        const std::string &annotation_prefix);
 };
 
 template<typename ppT>
@@ -432,26 +427,25 @@ public:
     // which follows Algorithm 1 described in Table 1 of
     // https://eprint.iacr.org/2016/130.pdf
 
-    Fp12_2over3over2_variable<FqkT> _in;
     Fp12_2over3over2_variable<FqkT> _result;
 
-    Fp12_2over3over2_cyclotomic_square_gadget<FqkT> _in_squared;
-    bls12_377_exp_by_z_gadget<ppT> _B;
-    Fp12_2over3over2_square_gadget<FqkT> _C;
-    Fp12_2over3over2_mul_gadget<FqkT> _D;
-    bls12_377_exp_by_z_gadget<ppT> _E;
-    bls12_377_exp_by_z_gadget<ppT> _F;
-    bls12_377_exp_by_z_gadget<ppT> _G;
-    Fp12_2over3over2_mul_gadget<FqkT> _H;
-    bls12_377_exp_by_z_gadget<ppT> _I;
-    Fp12_2over3over2_mul_gadget<FqkT> _K;
-    Fp12_2over3over2_mul_gadget<FqkT> _L;
-    Fp12_2over3over2_mul_gadget<FqkT> _N;
-    Fp12_2over3over2_mul_gadget<FqkT> _P;
-    Fp12_2over3over2_mul_gadget<FqkT> _R;
-    Fp12_2over3over2_mul_gadget<FqkT> _T;
-    Fp12_2over3over2_mul_gadget<FqkT> _U;
-    Fp12_2over3over2_mul_gadget<FqkT> _U_times_L;
+    Fp12_2over3over2_cyclotomic_square_gadget<FqkT> _compute_in_squared;
+    bls12_377_exp_by_z_gadget<ppT> _compute_B;
+    Fp12_2over3over2_square_gadget<FqkT> _compute_C;
+    Fp12_2over3over2_mul_gadget<FqkT> _compute_D;
+    bls12_377_exp_by_z_gadget<ppT> _compute_E;
+    bls12_377_exp_by_z_gadget<ppT> _compute_F;
+    bls12_377_exp_by_z_gadget<ppT> _compute_G;
+    Fp12_2over3over2_mul_gadget<FqkT> _compute_H;
+    bls12_377_exp_by_z_gadget<ppT> _compute_I;
+    Fp12_2over3over2_mul_gadget<FqkT> _compute_K;
+    Fp12_2over3over2_mul_gadget<FqkT> _compute_L;
+    Fp12_2over3over2_mul_gadget<FqkT> _compute_N;
+    Fp12_2over3over2_mul_gadget<FqkT> _compute_P;
+    Fp12_2over3over2_mul_gadget<FqkT> _compute_R;
+    Fp12_2over3over2_mul_gadget<FqkT> _compute_T;
+    Fp12_2over3over2_mul_gadget<FqkT> _compute_U;
+    Fp12_2over3over2_mul_gadget<FqkT> _compute_U_times_L;
 
     bls12_377_final_exp_last_part_gadget(
         libsnark::protoboard<FieldT> &pb,
@@ -482,8 +476,8 @@ public:
     using FieldT = libff::Fr<ppT>;
     using FqkT = libff::Fqk<other_curve<ppT>>;
 
-    bls12_377_final_exp_first_part_gadget<ppT> _first_part;
-    bls12_377_final_exp_last_part_gadget<ppT> _last_part;
+    bls12_377_final_exp_first_part_gadget<ppT> _compute_first_part;
+    bls12_377_final_exp_last_part_gadget<ppT> _compute_last_part;
     libsnark::pb_variable<FieldT> _result_is_one;
 
     bls12_377_final_exp_gadget(

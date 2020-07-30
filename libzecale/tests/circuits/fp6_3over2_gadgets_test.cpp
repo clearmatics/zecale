@@ -117,12 +117,15 @@ TEST(Fp6_3over2_Test, MulGadgetTest)
     // Check values
     const Fp6T a_val = a_var.get_element();
     const Fp6T b_val = b_var.get_element();
-    const Fp2T v1 = mul_a_b._a1_times_b1.result.get_element();
-    const Fp2T v2 = mul_a_b._a2_times_b2.result.get_element();
-    const Fp2T a1a2_times_b1b2 = mul_a_b._a1a2_times_b1b2.result.get_element();
-    const Fp2T v0 = mul_a_b._a0_times_b0.result.get_element();
-    const Fp2T a0a1_times_b0b1 = mul_a_b._a0a1_times_b0b1.result.get_element();
-    const Fp2T a0a2_times_b0b2 = mul_a_b._a0a2_times_b0b2.result.get_element();
+    const Fp2T v1 = mul_a_b._compute_v1.result.get_element();
+    const Fp2T v2 = mul_a_b._compute_v2.result.get_element();
+    const Fp2T a1a2_times_b1b2 =
+        mul_a_b._compute_a1a2_times_b1b2.result.get_element();
+    const Fp2T v0 = mul_a_b._compute_v0.result.get_element();
+    const Fp2T a0a1_times_b0b1 =
+        mul_a_b._compute_a0a1_times_b0b1.result.get_element();
+    const Fp2T a0a2_times_b0b2 =
+        mul_a_b._compute_a0a2_times_b0b2.result.get_element();
     const Fp6T c_val = c_var.get_element();
 
     ASSERT_EQ(a, a_val);

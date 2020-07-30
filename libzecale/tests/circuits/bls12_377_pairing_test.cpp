@@ -97,21 +97,19 @@ TEST(BLS12_377_PairingTest, PrecomputeDoubleGadgetTest)
     check_double_R0.generate_r1cs_witness();
 
     // Check values
-    const libff::Fqe<npp> A = check_double_R0._A.result.get_element();
-    const libff::Fqe<npp> B = check_double_R0._B.result.get_element();
-    const libff::Fqe<npp> C = check_double_R0._C.result.get_element();
-    const libff::Fqe<npp> D = check_double_R0._D.get_element();
-    const libff::Fqe<npp> E = check_double_R0._E.get_element();
-    const libff::Fqe<npp> F = check_double_R0._F.get_element();
+    const libff::Fqe<npp> A = check_double_R0._compute_A.result.get_element();
+    const libff::Fqe<npp> B = check_double_R0._compute_B.result.get_element();
+    const libff::Fqe<npp> C = check_double_R0._compute_C.result.get_element();
+    const libff::Fqe<npp> D = libff::Fr<wpp>(3) * C;
+    const libff::Fqe<npp> E = libff::bls12_377_twist_coeff_b * D;
+    const libff::Fqe<npp> F = libff::Fr<wpp>(3) * E;
     const libff::Fqe<npp> Y_plus_Z_squared =
-        check_double_R0._Y_plus_Z_squared.result.get_element();
-    const libff::Fqe<npp> J = check_double_R0._J.result.get_element();
-    // const libff::Fqe<npp> check_out_Rx =
-    //     check_double_R0._check_out_Rx.result.get_element();
+        check_double_R0._compute_Y_plus_Z_squared.result.get_element();
+    const libff::Fqe<npp> J = check_double_R0._compute_J.result.get_element();
     const libff::Fqe<npp> E_squared =
-        check_double_R0._E_squared.result.get_element();
+        check_double_R0._compute_E_squared.result.get_element();
     const libff::Fqe<npp> G_squared =
-        check_double_R0._G_squared.result.get_element();
+        check_double_R0._compute_G_squared.result.get_element();
     const libff::Fqe<npp> check_out_Rz =
         check_double_R0._check_out_Rz.result.get_element();
 
@@ -201,19 +199,19 @@ TEST(BLS12_377_PairingTest, PrecomputeAddGadgetTest)
 
     // Check values
 
-    const libff::Fqe<npp> A = check_add_R0._A.result.get_element();
-    const libff::Fqe<npp> B = check_add_R0._B.result.get_element();
-    const libff::Fqe<npp> C = check_add_R0._C.result.get_element();
-    const libff::Fqe<npp> D = check_add_R0._D.result.get_element();
-    const libff::Fqe<npp> E = check_add_R0._E.result.get_element();
-    const libff::Fqe<npp> F = check_add_R0._F.result.get_element();
-    const libff::Fqe<npp> G = check_add_R0._G.result.get_element();
+    const libff::Fqe<npp> A = check_add_R0._compute_A.result.get_element();
+    const libff::Fqe<npp> B = check_add_R0._compute_B.result.get_element();
+    const libff::Fqe<npp> C = check_add_R0._compute_C.result.get_element();
+    const libff::Fqe<npp> D = check_add_R0._compute_D.result.get_element();
+    const libff::Fqe<npp> E = check_add_R0._compute_E.result.get_element();
+    const libff::Fqe<npp> F = check_add_R0._compute_F.result.get_element();
+    const libff::Fqe<npp> G = check_add_R0._compute_G.result.get_element();
     const libff::Fqe<npp> H = check_add_R0._H.get_element();
-    const libff::Fqe<npp> I = check_add_R0._I.result.get_element();
+    const libff::Fqe<npp> I = check_add_R0._compute_I.result.get_element();
     const libff::Fqe<npp> theta_times_Qx =
-        check_add_R0._theta_times_Qx.result.get_element();
+        check_add_R0._compute_theta_times_Qx.result.get_element();
     const libff::Fqe<npp> lambda_times_Qy =
-        check_add_R0._lambda_times_Qy.result.get_element();
+        check_add_R0._compute_lambda_times_Qy.result.get_element();
     const libff::Fqe<npp> out_Rx = R1_var.X.get_element();
     const libff::Fqe<npp> out_Ry = R1_var.Y.get_element();
     const libff::Fqe<npp> out_Rz = R1_var.Z.get_element();

@@ -92,12 +92,12 @@ public:
     //  (a0 + a1)(b0 + b1) = c1 + v0 + v1 - non_residue * v2
     //  (a0 + a2)(b0 + b2) = c2 + v0 + v2 - v1
 
-    libsnark::Fp2_mul_gadget<Fp2T> _a1_times_b1;
-    libsnark::Fp2_mul_gadget<Fp2T> _a2_times_b2;
-    libsnark::Fp2_mul_gadget<Fp2T> _a1a2_times_b1b2;
-    libsnark::Fp2_mul_gadget<Fp2T> _a0_times_b0;
-    libsnark::Fp2_mul_gadget<Fp2T> _a0a1_times_b0b1;
-    libsnark::Fp2_mul_gadget<Fp2T> _a0a2_times_b0b2;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_v1;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_v2;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_a1a2_times_b1b2;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_v0;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_a0a1_times_b0b1;
+    libsnark::Fp2_mul_gadget<Fp2T> _compute_a0a2_times_b0b2;
 
     Fp6_3over2_mul_gadget(
         libsnark::protoboard<FieldT> &pb,
