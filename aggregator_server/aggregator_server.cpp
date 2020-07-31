@@ -91,7 +91,7 @@ public:
         libzecale::
             aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
                 &aggregator,
-        wsnark::keypair &keypair)
+        const wsnark::keypair &keypair)
         : aggregator(aggregator), keypair(keypair)
     {
         // Nothing
@@ -275,7 +275,7 @@ static void RunServer(
     libzecale::
         aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
             &aggregator,
-    typename wsnark::keypair &keypair)
+    const typename wsnark::keypair &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50052
     // TODO: Move this in a config file
