@@ -119,7 +119,7 @@ public:
 
     // Primary inputs are packed to be added to the extended proof and given to
     // the verifier on-chain
-    aggregator_gadget(
+    explicit aggregator_gadget(
         libsnark::protoboard<libff::Fr<wppT>> &pb,
         const std::string &annotation_prefix = "aggregator_gadget")
         : libsnark::gadget<libff::Fr<wppT>>(pb, annotation_prefix)
