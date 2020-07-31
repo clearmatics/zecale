@@ -21,6 +21,18 @@ function format_check() {
     scripts/check_copyright
 }
 
+function check_cpp() {
+    apk add cppcheck
+    cppcheck --version
+
+    # Configure and run cppcheck
+    mkdir -p build
+    pushd build
+    cmake -DUSE_CPP_CHECK=ON ..
+    make VERBOSE=1 cppcheck -j 5
+    popd
+}
+
 function build() {
     # Enable warnings-as-errors
     # TODO: Uncomment, and support compilation with -Werror set
