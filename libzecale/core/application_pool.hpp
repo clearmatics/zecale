@@ -36,7 +36,8 @@ private:
 
 public:
     application_pool() = default;
-    application_pool(std::string name, typename nsnarkT::verification_key vk);
+    application_pool(
+        const std::string &name, typename nsnarkT::verification_key vk);
     virtual ~application_pool(){};
 
     inline std::string name() const { return this->_name; };

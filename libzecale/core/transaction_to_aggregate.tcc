@@ -10,7 +10,7 @@ namespace libzecale
 
 template<typename nppT, typename nsnarkT>
 transaction_to_aggregate<nppT, nsnarkT>::transaction_to_aggregate(
-    std::string application_name,
+    const std::string &application_name,
     const libzeth::extended_proof<nppT, nsnarkT> &extended_proof,
     uint32_t fee_wei)
     : _application_name(application_name), _fee_wei(fee_wei)
@@ -33,6 +33,13 @@ std::ostream &transaction_to_aggregate<nppT, nsnarkT>::write_json(
     os << "\n"
           "}\n";
     return os;
+}
+
+template<typename nppT, typename nsnarkT>
+bool transaction_to_aggregate<nppT, nsnarkT>::operator<(
+    const transaction_to_aggregate<nppT, nsnarkT> &right) const
+{
+    return _fee_wei < right._fee_wei;
 }
 
 } // namespace libzecale

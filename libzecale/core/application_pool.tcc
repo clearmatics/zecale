@@ -15,7 +15,7 @@ namespace libzecale
 
 template<typename nppT, typename nsnarkT, size_t NumProofs>
 application_pool<nppT, nsnarkT, NumProofs>::application_pool(
-    std::string name, typename nsnarkT::verification_key vk)
+    const std::string &name, typename nsnarkT::verification_key vk)
     : _name(name), _tx_pool()
 {
     this->_verification_key =

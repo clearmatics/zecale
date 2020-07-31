@@ -18,7 +18,7 @@ find_package(Boost REQUIRED COMPONENTS system filesystem program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
 # Add the binary tree to the search path for include files
-# so that we will find zecaleConfig.h
+# so that we will find zecale_config.h
 include_directories(${PROJECT_BINARY_DIR})
 
 # aggregator_server executable

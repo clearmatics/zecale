@@ -91,7 +91,7 @@ public:
         libzecale::
             aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
                 &aggregator,
-        wsnark::keypair &keypair)
+        const wsnark::keypair &keypair)
         : aggregator(aggregator), keypair(keypair)
     {
         // Nothing
@@ -275,7 +275,7 @@ static void RunServer(
     libzecale::
         aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
             &aggregator,
-    typename wsnark::keypair &keypair)
+    const typename wsnark::keypair &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50052
     // TODO: Move this in a config file
@@ -388,7 +388,7 @@ int main(int argc, char **argv)
 
 #ifdef DEBUG
     // Run only if the flag is set
-    if (jr1cs_file != "") {
+    if (!jr1cs_file.empty()) {
         std::cout << "[DEBUG] Dump R1CS to json file" << std::endl;
         std::ofstream jr1cs_stream(jr1cs_file.c_str());
         libzeth::r1cs_write_json<wpp>(
