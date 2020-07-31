@@ -84,21 +84,21 @@ docker run -ti -p 50052:50052 --name zecale zecale-dev:0.2
 ## Generate the Doxygen documentation
 
 To generate the documentation of Zecale:
-``bash
+```bash
 cd build
 cmake .. -DGEN_DOC=ON && make docs
-``
+```
 
 ## Compile the project using 'sanitizers'
 
 You can select the sanitizer of your choice (one of the sanitizers listed [here](./cmake/sanitizers.cmake)) by passing the flag `-DSANITIZER=<sanitizer>` to `cmake`.
 
 Example:
-``bash
+```bash
 cd build
 cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DSANITIZER=Address -DCMAKE_BUILD_TYPE=Debug ..
 make check
-``
+```
 
 ## Run analysis tools on the code
 
