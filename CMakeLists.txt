@@ -16,7 +16,7 @@ project(zecale CXX)
 
 # Versionning of the project
 set (ZECALE_VERSION_MAJOR 0)
-set (ZECALE_VERSION_MINOR 1)
+set (ZECALE_VERSION_MINOR 2)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
