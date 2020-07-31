@@ -6,21 +6,20 @@ ZETH_CLIENT_DIR:=$(ZETH_DIR)/client
 ZETH_API_DIR:=$(ZETH_DIR)/api
 ZETH_API_FILES:=$(wildcard $(ZETH_API_DIR)/*.proto)
 
-ZECALE_API_DIR:=../api
+ZECALE_API_DIR:=../../zecale/api
 ZECALE_API_FILES:=$(wildcard $(ZECALE_API_DIR)/*.proto)
 
 API_DEST_DIR:=zecale/api
 API_OUTPUT:= $(addprefix $(API_DEST_DIR)/, \
-  aggregator_pb2.py aggregator_pb2_grpc.py \
-  snark_messages_pb2.py snark_messages_pb2_grpc.py)
+  aggregator_pb2.py aggregator_pb2_grpc.py)
 
 # Create rule to build a grpc file from a source file. Params:
 #   1 - .proto file
 define grpc_build
   $(API_DEST_DIR)/$(notdir $(basename $1))_pb2.py \
   $(API_DEST_DIR)/$(notdir $(basename $1))_pb2_grpc.py : $(1)
-	python -m grpc_tools.protoc -I$(ZETH_DIR) -I.. --proto_path .. \
-      --python_out=zecale --grpc_python_out=zecale --mypy_out=zecale \
+	python -m grpc_tools.protoc -I$(ZETH_DIR) -I.. --proto_path ../.. \
+      --python_out=. --grpc_python_out=. --mypy_out=. \
       $(subst $(ZETH_DIR)/,,$1)
 
 endef

@@ -25,18 +25,16 @@ class AggregatorClient:
             verificationkey = stub.GetVerificationKey(empty_pb2.Empty())
             return verificationkey
 
-    def register_application(self, vk: GenericVerificationKey, app_name: str) -> None:
+    def register_application(
+            self, vk: GenericVerificationKey, app_name: str) -> None:
         """
         Register an application. Throw an error with message if this fails for any
         reason.
         """
         registration = aggregator_pb2.ApplicationRegistration()
         registration.application_name = app_name
-        registration.vk.CopyFrom(self.zksnark.verification_key_to_proto(vk))
+        registration.vk.CopyFrom(self.zksnark.verification_key_to_proto(vk)) \
+            # pylint: disable=no-member
         with grpc.insecure_channel(self.endpoint) as channel:
             stub = aggregator_pb2_grpc.AggregatorStub(channel)  # type: ignore
-
-
-
-
-        raise Exception("unimplemented")
+            stub.RegisterApplication(registration)

@@ -2,10 +2,10 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from commands.defaults import \
+from .defaults import \
     AGGREGATOR_SERVER_ENDPOINT_DEFAULT, ZKSNARK_NAME_DEFAULT
+from ..core.aggregator_client import AggregatorClient
 from zeth.zksnark import get_zksnark_provider
-from zecale.core.aggregator_client import AggregatorClient
 from typing import Optional
 
 
@@ -21,12 +21,13 @@ class CommandContext:
             aggregator_server: str = AGGREGATOR_SERVER_ENDPOINT_DEFAULT,
             zksnark_name: str = ZKSNARK_NAME_DEFAULT):
         self.aggregator_server = aggregator_server
-        self.aggregator_client : Optional[AggregatorClient] = None
-        self.zksnark = get_zksnark_provider
+        self.aggregator_client: Optional[AggregatorClient] = None
+        self.zksnark = get_zksnark_provider(zksnark_name)
 
-    def get_aggregaor_client(self) -> AggregatorClient:
+    def get_aggregator_client(self) -> AggregatorClient:
         """
-        Open the aggregator client for the appropriate
+        Return an aggregator client for the appropriate endpoint. Created and
+        cached when this function is first called.
         """
         if not self.aggregator_client:
             self.aggregator_client = AggregatorClient(
