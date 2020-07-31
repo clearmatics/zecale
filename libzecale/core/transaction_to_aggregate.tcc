@@ -35,6 +35,13 @@ std::ostream &transaction_to_aggregate<nppT, nsnarkT>::write_json(
     return os;
 }
 
+template<typename nppT, typename nsnarkT>
+bool transaction_to_aggregate<nppT, nsnarkT>::operator<(
+    const transaction_to_aggregate<nppT, nsnarkT> &right) const
+{
+    return _fee_wei < right._fee_wei;
+}
+
 } // namespace libzecale
 
 #endif // __ZECALE_CORE_TRANSACTION_TO_AGGREGATE_TCC__
