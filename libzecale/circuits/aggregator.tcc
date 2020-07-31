@@ -5,9 +5,6 @@
 #ifndef __ZECALE_CIRCUITS_AGGREGATOR_TCC__
 #define __ZECALE_CIRCUITS_AGGREGATOR_TCC__
 
-// Include the verifier gadgets
-#include "libzecale/circuits/verifier_gagdet_imports.hpp"
-
 // Contains the circuits for the notes
 #include <libzeth/circuits/notes/note.hpp>
 #include <libzeth/core/joinsplit_input.hpp>
@@ -17,23 +14,18 @@
 #include <libff/algebra/fields/field_utils.hpp>
 #include <libzeth/core/extended_proof.hpp>
 #include <libzeth/core/merkle_tree_field.hpp>
-#include <libzeth/snarks/default/default_snark.hpp>
 #include <libzeth/zeth_constants.hpp>
 
 using namespace libzeth;
-
-// TODO: Templatize this file, and use similar apparoach as in
-// Zeth to import the good includes and set the right aliases
-// and use the right gadgets for the verification key gadgets and so on.
 
 namespace libzecale
 {
 
 /// We know that a proof (PGHR13 or GROTH16) is made of group elements (G1 or
-/// G2) where the coordinates of the group elements are elements of E/F_q (for
-/// G1), or elements of E/F_q^n (for G2), where `n` varies depending on the
-/// setting. As such, the coordinates of the elements in the proof are defined
-/// over the field Fq this field is referred to as the "base field".
+/// G2) where the group elements belong to E/F_q (for G1) or E/F_q^n (for G2),
+/// and `n` varies depending on the setting. As such, the coordinates of the
+/// elements in the proof are defined over the field F_q. This field is
+/// referred to as the "base field".
 ///
 /// Primary inputs however are defined over F_r, referred to as the "scalar
 /// field".
@@ -49,12 +41,21 @@ namespace libzecale
 /// ----------------------------------------------------------------
 /// |  Base field  |  Pi_z (over Fq)      |     Pi_a (over Fr)     |
 /// | Scalar field |  PrimIn_z (over Fr)  |   PrimIn_a (over Fq)   |
-
-template<typename nppT, typename wppT, typename nSnarkT, size_t NumProofs>
+template<
+    typename nppT,
+    typename wppT,
+    typename nsnarkT,
+    typename wverifierT,
+    size_t NumProofs>
 class aggregator_gadget : libsnark::gadget<libff::Fr<wppT>>
 {
 private:
-    std::array<std::shared_ptr<VerifierGadgetT<wppT>>, NumProofs> verifiers;
+    using verifier_gadget = typename wverifierT::verifier_gadget;
+    using proof_variable_gadget = typename wverifierT::proof_variable_gadget;
+    using verification_key_variable_gadget =
+        typename wverifierT::verification_key_variable_gadget;
+
+    std::array<std::shared_ptr<verifier_gadget>, NumProofs> verifiers;
 
     libsnark::pb_variable<libff::Fr<wppT>> wZero;
 
@@ -99,8 +100,7 @@ private:
     /// `r1cs_ppzksnark_proof<other_curve<ppT> >` for the witness!
     /// https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp#L55
     ///
-    std::array<std::shared_ptr<ProofVariableGadgetT<wppT>>, NumProofs>
-        nested_proofs;
+    std::array<std::shared_ptr<proof_variable_gadget>, NumProofs> nested_proofs;
 
     /// Likewise, this is not strictly necessary, but we do not need to pass the
     /// VK to the contract everytime as such we move it to the auxiliary inputs
@@ -110,7 +110,7 @@ private:
     /// again, makes sense because elements of `nppT` are defined over
     /// `E/BaseFieldZethT`, and `BaseFieldZethT` is `libff::Fr<wppT>`
     /// which is where we do arithmetic here
-    std::shared_ptr<VerificationKeyVariableGadgetT<wppT>> nested_vk;
+    std::shared_ptr<verification_key_variable_gadget> nested_vk;
 
 public:
     // Make sure that we do not exceed the number of proofs
@@ -119,7 +119,7 @@ public:
 
     // Primary inputs are packed to be added to the extended proof and given to
     // the verifier on-chain
-    aggregator_gadget(
+    explicit aggregator_gadget(
         libsnark::protoboard<libff::Fr<wppT>> &pb,
         const std::string &annotation_prefix = "aggregator_gadget")
         : libsnark::gadget<libff::Fr<wppT>>(pb, annotation_prefix)
@@ -168,11 +168,11 @@ public:
             //
             // TODO:
             //
-            // The number of primary inputs is pretty big here
-            // so we may want to hash the set of primary inputs to follow the
-            // same trick as in [GGPR13] in order to save costs on the Verifier
-            // side. In this way, the verifier only has a single public input
-            // which is the hash of the primary inputs. And for the zk-rollup
+            // The number of primary inputs is pretty big here so we may want
+            // to hash the set of primary inputs to follow the same trick as in
+            // [GGPR13] in order to save costs on the Verifier side. In this
+            // way, the verifier only has a single public input which is the
+            // hash of the primary inputs. And for the zk-rollup
             // implementation, we will only need to send the "zeth public
             // inputs" as normal arguments to the contract. Then the contract
             // would hash them, and pass the hash to the verifier to verify the
@@ -205,14 +205,13 @@ public:
             // determine the size of the zeth VK which is the one we manipulate
             // below.
             const size_t vk_size_in_bits =
-                VerificationKeyVariableGadgetT<wppT>::size_in_bits(
-                    nb_zeth_inputs);
+                verification_key_variable_gadget::size_in_bits(nb_zeth_inputs);
             libsnark::pb_variable_array<libff::Fr<wppT>> nested_vk_bits;
             nested_vk_bits.allocate(
                 pb,
                 vk_size_in_bits,
                 FMT(this->annotation_prefix, " vk_size_in_bits"));
-            nested_vk.reset(new VerificationKeyVariableGadgetT<wppT>(
+            nested_vk.reset(new verification_key_variable_gadget(
                 pb,
                 nested_vk_bits,
                 nb_zeth_inputs,
@@ -221,7 +220,7 @@ public:
             // Initialize the proof variable gadgets. The protoboard allocation
             // is done in the constructor `r1cs_ppzksnark_proof_variable()`
             for (size_t i = 0; i < NumProofs; i++) {
-                nested_proofs[i].reset(new ProofVariableGadgetT<wppT>(
+                nested_proofs[i].reset(new proof_variable_gadget(
                     pb,
                     FMT(this->annotation_prefix, " nested_proofs[%zu]", i)));
             }
@@ -229,7 +228,7 @@ public:
 
         // Initialize the verifier gadgets
         for (size_t i = 0; i < NumProofs; i++) {
-            verifiers[i].reset(new VerifierGadgetT<wppT>(
+            verifiers[i].reset(new verifier_gadget(
                 pb,
                 *nested_vk,
                 nested_primary_inputs[i],
@@ -273,9 +272,10 @@ public:
     // see:
     // https://github.com/scipr-lab/libsnark/blob/master/libsnark/gadgetlib1/gadgets/verifiers/r1cs_ppzksnark_verifier_gadget.hpp#L98
     void generate_r1cs_witness(
-        typename nSnarkT::VerificationKeyT in_nested_vk,
-        std::array<libzeth::extended_proof<nppT, nSnarkT>, NumProofs>
-            in_extended_proofs)
+        const typename nsnarkT::verification_key &in_nested_vk,
+        const std::array<
+            const libzeth::extended_proof<nppT, nsnarkT> *,
+            NumProofs> &in_extended_proofs)
     {
         // Witness `zero`
         this->pb.val(wZero) = libff::Fr<wppT>::zero();
@@ -287,19 +287,19 @@ public:
         for (size_t i = 0; i < NumProofs; i++) {
             // ... the nested_proofs
             nested_proofs[i]->generate_r1cs_witness(
-                in_extended_proofs[i].get_proof());
+                in_extended_proofs[i]->get_proof());
 
             // ... the nested_prinary_inputs
             // Explicit cast of the primary inputs to the other curve
             //
             // The problem is that `nested_primary_inputs` are of type
             // `libff::Fr<wppT>` but the primary inputs of the Zeth proof
-            // (`in_extended_proofs[i].get_primary_input()`) are over
+            // (`in_extended_proofs[i]->get_primary_input()`) are over
             // `ScalarFieldZethT` We need to explicitly and manually convert
             // from `ScalarFieldZethT` to `libff::Fr<wppT>` here
-            libsnark::r1cs_primary_input<libff::Fr<nppT>>
-                other_curve_primary_inputs =
-                    in_extended_proofs[i].get_primary_inputs();
+            const libsnark::r1cs_primary_input<libff::Fr<nppT>>
+                &other_curve_primary_inputs =
+                    in_extended_proofs[i]->get_primary_inputs();
             // Convert
             // WARNING: This should be done in the circuit via the packing
             // gadgets!! This is just a dirty hack

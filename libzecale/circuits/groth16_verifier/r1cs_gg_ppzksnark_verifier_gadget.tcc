@@ -15,10 +15,12 @@ r1cs_gg_ppzksnark_proof_variable<ppT>::r1cs_gg_ppzksnark_proof_variable(
     libsnark::protoboard<FieldT> &pb, const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
+#ifndef NDEBUG
     // g_A, g_C
     const size_t num_G1 = 2;
     // g_B
     const size_t num_G2 = 1;
+#endif
 
     g_A.reset(
         new libsnark::G1_variable<ppT>(pb, FMT(annotation_prefix, " g_A")));
@@ -104,10 +106,12 @@ r1cs_gg_ppzksnark_verification_key_variable<ppT>::
     , all_bits(all_bits)
     , input_size(input_size)
 {
+#ifndef NDEBUG
     // alpha_g1, ABC_g1
     const size_t num_G1 = 1 + (input_size + 1);
     // beta_g2, delta_g2
     const size_t num_G2 = 2;
+#endif
 
     assert(
         all_bits.size() ==
@@ -284,16 +288,16 @@ r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
             FMT(annotation_prefix, " ABC_g1[%zu]", i)));
     }
 
-    vk_alpha_g1_precomp.reset(new libsnark::G1_precomputation<ppT>(
+    vk_alpha_g1_precomp.reset(new G1_precomputation<ppT>(
         pb, r1cs_vk.alpha_g1, FMT(annotation_prefix, " vk_alpha_g1_precomp")));
 
-    vk_generator_g2_precomp.reset(new libsnark::G2_precomputation<ppT>(
+    vk_generator_g2_precomp.reset(new G2_precomputation<ppT>(
         pb,
         libff::G2<other_curve<ppT>>::one(),
         FMT(annotation_prefix, " vk_generator_g2_precomp")));
-    vk_beta_g2_precomp.reset(new libsnark::G2_precomputation<ppT>(
+    vk_beta_g2_precomp.reset(new G2_precomputation<ppT>(
         pb, r1cs_vk.beta_g2, FMT(annotation_prefix, " vk_beta_g2_precomp")));
-    vk_delta_g2_precomp.reset(new libsnark::G2_precomputation<ppT>(
+    vk_delta_g2_precomp.reset(new G2_precomputation<ppT>(
         pb, r1cs_vk.delta_g2, FMT(annotation_prefix, " vk_delta_g2_precomp")));
 }
 
@@ -310,28 +314,28 @@ r1cs_gg_ppzksnark_verifier_process_vk_gadget<ppT>::
     pvk.encoded_ABC_base = vk.encoded_ABC_base;
     pvk.ABC_g1 = vk.ABC_g1;
 
-    pvk.vk_alpha_g1_precomp.reset(new libsnark::G1_precomputation<ppT>());
+    pvk.vk_alpha_g1_precomp.reset(new G1_precomputation<ppT>());
 
-    pvk.vk_generator_g2_precomp.reset(new libsnark::G2_precomputation<ppT>());
-    pvk.vk_beta_g2_precomp.reset(new libsnark::G2_precomputation<ppT>());
-    pvk.vk_delta_g2_precomp.reset(new libsnark::G2_precomputation<ppT>());
+    pvk.vk_generator_g2_precomp.reset(new G2_precomputation<ppT>());
+    pvk.vk_beta_g2_precomp.reset(new G2_precomputation<ppT>());
+    pvk.vk_delta_g2_precomp.reset(new G2_precomputation<ppT>());
 
-    compute_vk_alpha_g1_precomp.reset(new libsnark::precompute_G1_gadget<ppT>(
+    compute_vk_alpha_g1_precomp.reset(new G1_precompute_gadget<ppT>(
         pb,
         *vk.alpha_g1,
         *pvk.vk_alpha_g1_precomp,
         FMT(annotation_prefix, " compute_vk_alpha_g1_precomp")));
 
-    pvk.vk_generator_g2_precomp.reset(new libsnark::G2_precomputation<ppT>(
+    pvk.vk_generator_g2_precomp.reset(new G2_precomputation<ppT>(
         pb,
         libff::G2<other_curve<ppT>>::one(),
         FMT(annotation_prefix, " vk_generator_g2_precomp")));
-    compute_vk_beta_g2_precomp.reset(new libsnark::precompute_G2_gadget<ppT>(
+    compute_vk_beta_g2_precomp.reset(new G2_precompute_gadget<ppT>(
         pb,
         *vk.beta_g2,
         *pvk.vk_beta_g2_precomp,
         FMT(annotation_prefix, " compute_vk_beta_g2_precomp")));
-    compute_vk_delta_g2_precomp.reset(new libsnark::precompute_G2_gadget<ppT>(
+    compute_vk_delta_g2_precomp.reset(new G2_precompute_gadget<ppT>(
         pb,
         *vk.delta_g2,
         *pvk.vk_delta_g2_precomp,
@@ -399,27 +403,27 @@ r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::
     // https://github.com/clearmatics/libsnark/blob/master/libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.tcc#L588-L591
     //
     // 2.1 Allocate the results of theprecomputations
-    proof_g_A_precomp.reset(new libsnark::G1_precomputation<ppT>());
-    proof_g_B_precomp.reset(new libsnark::G2_precomputation<ppT>());
-    proof_g_C_precomp.reset(new libsnark::G1_precomputation<ppT>());
-    acc_precomp.reset(new libsnark::G1_precomputation<ppT>());
+    proof_g_A_precomp.reset(new G1_precomputation<ppT>());
+    proof_g_B_precomp.reset(new G2_precomputation<ppT>());
+    proof_g_C_precomp.reset(new G1_precomputation<ppT>());
+    acc_precomp.reset(new G1_precomputation<ppT>());
     // 2.2 Do the precomputations
-    compute_proof_g_A_precomp.reset(new libsnark::precompute_G1_gadget<ppT>(
+    compute_proof_g_A_precomp.reset(new G1_precompute_gadget<ppT>(
         pb,
         *(proof.g_A),
         *proof_g_A_precomp,
         FMT(annotation_prefix, " compute_proof_g_A_precomp")));
-    compute_proof_g_B_precomp.reset(new libsnark::precompute_G2_gadget<ppT>(
+    compute_proof_g_B_precomp.reset(new G2_precompute_gadget<ppT>(
         pb,
         *(proof.g_B),
         *proof_g_B_precomp,
         FMT(annotation_prefix, " compute_proof_g_B_precomp")));
-    compute_proof_g_C_precomp.reset(new libsnark::precompute_G1_gadget<ppT>(
+    compute_proof_g_C_precomp.reset(new G1_precompute_gadget<ppT>(
         pb,
         *(proof.g_C),
         *proof_g_C_precomp,
         FMT(annotation_prefix, " compute_proof_g_C_precomp")));
-    compute_acc_precomp.reset(new libsnark::precompute_G1_gadget<ppT>(
+    compute_acc_precomp.reset(new G1_precompute_gadget<ppT>(
         pb,
         *acc,
         *acc_precomp,

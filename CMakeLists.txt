@@ -16,18 +16,11 @@ project(zecale CXX)
 
 # Versionning of the project
 set (ZECALE_VERSION_MAJOR 0)
-set (ZECALE_VERSION_MINOR 1)
+set (ZECALE_VERSION_MINOR 2)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-# Configure a header file to pass some of the CMake settings
-# to the source code
-configure_file (
-    "${PROJECT_SOURCE_DIR}/zecale_config.h.in"
-    "${PROJECT_BINARY_DIR}/zecale_config.h"
-)
 
 # Flags and compilation options to chose the type of zksnark
 # TODO: Allow Zeth and Zecale to use different snarks. To do so, introduce
@@ -36,7 +29,7 @@ configure_file (
 # - WSNARK, and NSNARK to match the template names
 # - WCURVE, and NCURVE
 set(
-  ZKSNARK
+  ZECALE_SNARK
   "GROTH16"
   CACHE
   STRING
@@ -55,12 +48,19 @@ option(
 # Note: This configuration determines over which curve the zeth proofs are verifier/aggregated
 # Here the Zeth proofs are assumed to be generated over MNT4 since we will verify them over MNT6
 set(
-  CURVE
+  ZECALE_CURVE
   "MNT6"
   CACHE
   STRING
   "Default curve (Warning: make sure the choosen curve matches the curve used to
   generate the nested proofs): one of MNT6, BW6_761"
+)
+
+# Configure a header file to pass some of the CMake settings
+# to the source code
+configure_file (
+    "${PROJECT_SOURCE_DIR}/zecale_config.h.in"
+    "${PROJECT_BINARY_DIR}/zecale_config.h"
 )
 
 # Dependencies
@@ -119,6 +119,18 @@ option(
   OFF
 )
 
+option(
+  GEN_DOC
+  "Generate project documentation"
+  OFF
+)
+
+option(
+  CODE_COVERAGE
+  "Generate code coverage report"
+  OFF
+)
+
 if(APPLE)
   # These must be disabled to make dependencies build on macos
   set(WITH_PROCPS OFF)
@@ -145,9 +157,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "^(Apple)?Clan
     set(OPT_FLAGS "-ggdb3 -O2 -march=native -mtune=native")
   endif()
 endif()
-
-add_definitions(-DCURVE_${CURVE})
-add_definitions(-DZKSNARK_${ZKSNARK})
 
 enable_testing()
 
@@ -204,8 +213,6 @@ file(
   ${PROJECT_SOURCE_DIR}/api/*.proto
 )
 
-# Add the compiled proto files of zeth into the set of include directories
-include_directories(${PROJECT_SOURCE_DIR}/build/depends/zeth)
 # Set the import path to be able to re-use the Zeth proto files
 set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/depends/zeth/)
 
@@ -217,6 +224,28 @@ set(Protobuf_DEBUG ON)
 
 # By default, compile with all warning flags
 add_compile_options(-Wall -Wextra)
+
+# Add extra configuration files to run additional tooling on the code and to
+# generate documentation and code coverage reports
+#
+# Import configuration to run dev tools on the code
+# Generate the compile database needed for some of the tools we invoke below
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+include(cmake/gcc_dev_tools.cmake)
+include(cmake/clang_dev_tools.cmake)
+
+# Import configuration to compile targets with sanitizers
+include(cmake/sanitizers.cmake)
+
+# Import configuration to generate the code documentation if option is set
+if("${GEN_DOC}")
+    include(cmake/documentation.cmake)
+endif()
+
+# Import configuration to generate the coverage report if option is set
+if("${CODE_COVERAGE}")
+    include(cmake/code_coverage.cmake)
+endif()
 
 # Add all local subdirecetories
 add_subdirectory(libzecale)
