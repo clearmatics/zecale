@@ -388,7 +388,7 @@ int main(int argc, char **argv)
 
 #ifdef DEBUG
     // Run only if the flag is set
-    if (jr1cs_file != "") {
+    if (!jr1cs_file.empty()) {
         std::cout << "[DEBUG] Dump R1CS to json file" << std::endl;
         std::ofstream jr1cs_stream(jr1cs_file.c_str());
         libzeth::r1cs_write_json<wpp>(

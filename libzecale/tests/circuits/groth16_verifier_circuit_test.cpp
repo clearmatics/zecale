@@ -25,8 +25,8 @@ template<typename ppT_A, typename ppT_B>
 void test_verifier(
     const std::string &annotation_A, const std::string &annotation_B)
 {
-    typedef libff::Fr<ppT_A> FieldT_A;
-    typedef libff::Fr<ppT_B> FieldT_B;
+    using FieldT_A = libff::Fr<ppT_A>;
+    using FieldT_B = libff::Fr<ppT_B>;
 
     const size_t num_constraints = 50;
     const size_t primary_input_size = 3;
@@ -117,8 +117,8 @@ template<typename ppT_A, typename ppT_B>
 void test_hardcoded_verifier(
     const std::string &annotation_A, const std::string &annotation_B)
 {
-    typedef libff::Fr<ppT_A> FieldT_A;
-    typedef libff::Fr<ppT_B> FieldT_B;
+    using FieldT_A = libff::Fr<ppT_A>;
+    using FieldT_B = libff::Fr<ppT_B>;
 
     const size_t num_constraints = 50;
     const size_t primary_input_size = 3;

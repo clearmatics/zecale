@@ -282,17 +282,17 @@ template<typename ppT> void test_invalid_pairing_check_e_equals_eee_gadget()
         libff::G2<other_curve<ppT>>::one();
 
     const libff::G1<other_curve<ppT>> rhs_pairing1_P =
-        libff::Fr<other_curve<ppT>>(2l) * G1_base;
+        libff::Fr<other_curve<ppT>>(2L) * G1_base;
     const libff::G2<other_curve<ppT>> rhs_pairing1_Q =
-        libff::Fr<other_curve<ppT>>(3l) * G2_base;
+        libff::Fr<other_curve<ppT>>(3L) * G2_base;
     const libff::G1<other_curve<ppT>> rhs_pairing2_P =
-        libff::Fr<other_curve<ppT>>(4l) * G1_base;
+        libff::Fr<other_curve<ppT>>(4L) * G1_base;
     const libff::G2<other_curve<ppT>> rhs_pairing2_Q =
-        libff::Fr<other_curve<ppT>>(5l) * G2_base;
+        libff::Fr<other_curve<ppT>>(5L) * G2_base;
     const libff::G1<other_curve<ppT>> rhs_pairing3_P =
-        libff::Fr<other_curve<ppT>>(6l) * G1_base;
+        libff::Fr<other_curve<ppT>>(6L) * G1_base;
     const libff::G2<other_curve<ppT>> rhs_pairing3_Q =
-        libff::Fr<other_curve<ppT>>(7l) * G2_base;
+        libff::Fr<other_curve<ppT>>(7L) * G2_base;
 
     // Set the LHS group elements such that the pairing check should not pass
     // On the RHS, we have: e(g1, g2)^(2*3) * e(g1, g2)^(4*5) * e(g1, g2)^(6*7)
@@ -303,9 +303,9 @@ template<typename ppT> void test_invalid_pairing_check_e_equals_eee_gadget()
     // Here we set the LHS to e(g1, g2)^(35*27) where the scalars are choosen
     // arbritarily at the only condition that their product is =/= 68
     const libff::G1<other_curve<ppT>> lhs_pairing_P =
-        libff::Fr<other_curve<ppT>>(35l) * G1_base;
+        libff::Fr<other_curve<ppT>>(35L) * G1_base;
     const libff::G2<other_curve<ppT>> lhs_pairing_Q =
-        libff::Fr<other_curve<ppT>>(27l) * G2_base;
+        libff::Fr<other_curve<ppT>>(27L) * G2_base;
 
     // Compute pairings "outside the circuit" to check the value of the LHS
     // against the value of the RHS, and see if the pairing check

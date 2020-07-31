@@ -71,7 +71,7 @@ template<typename ppT> void test_parse_transaction_to_aggregate_pghr13()
     h->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_H));
     k->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_K));
 
-    libsnark::r1cs_ppzksnark_primary_input<ppT> pub_inputs =
+    const libsnark::r1cs_ppzksnark_primary_input<ppT> &pub_inputs =
         mock_extended_proof.get_primary_inputs();
     std::string inputs_json =
         libzeth::primary_inputs_to_string<ppT>(pub_inputs);
