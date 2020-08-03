@@ -7,6 +7,7 @@
 from zecale.commands.defaults import AGGREGATOR_SERVER_ENDPOINT_DEFAULT
 from zecale.commands.command_context import CommandContext
 from zecale.commands.zecale_register import register
+from zecale.commands.zecale_submit import submit
 from click import command, group, option, pass_context, Context, ClickException
 from click_default_group import DefaultGroup
 
@@ -40,6 +41,7 @@ def zecale(
 
 
 zecale.add_command(register)
+zecale.add_command(submit)
 zecale.add_command(help)
 
 

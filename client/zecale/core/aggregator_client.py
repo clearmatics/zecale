@@ -5,14 +5,15 @@
 from zecale.api import aggregator_pb2_grpc
 from zecale.api import aggregator_pb2
 import grpc
-from zeth.zksnark import IZKSnarkProvider, GenericVerificationKey
+from zeth.zksnark import IZKSnarkProvider, GenericVerificationKey, GenericProof
 from google.protobuf import empty_pb2
 from typing import Dict
 
 
 class AggregatorClient:
     """
-    Interface to Aggregator RPC calls.
+    Interface to Aggregator RPC calls. Interface uses the in-memory version of
+    objects, internally converting to the protobuf versions.
     """
 
     def __init__(self, endpoint: str, zksnark: IZKSnarkProvider):
@@ -38,3 +39,15 @@ class AggregatorClient:
         with grpc.insecure_channel(self.endpoint) as channel:
             stub = aggregator_pb2_grpc.AggregatorStub(channel)  # type: ignore
             stub.RegisterApplication(registration)
+
+    def submit_transaction(self, name: str, transaction: GenericProof) -> None:
+        """
+        Submit a transactions (just an xtended proof for now) to the aggregator.
+        """
+        tx_to_aggregate = aggregator_pb2.TransactionToAggregate()
+        tx_to_aggregate.application_name = name
+        tx_to_aggregate.extended_proof.CopyFrom(  # pylint: disable=no-member
+            self.zksnark.proof_to_proto(transaction))
+        with grpc.insecure_channel(self.endpoint) as channel:
+            stub = aggregator_pb2_grpc.AggregatorStub(channel)  # type: ignore
+            stub.SubmitTransaction(tx_to_aggregate)
