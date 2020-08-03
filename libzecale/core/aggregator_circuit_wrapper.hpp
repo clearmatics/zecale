@@ -5,7 +5,7 @@
 #ifndef __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
 #define __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
 
-#include "libzecale/circuits/aggregator.tcc"
+#include "libzecale/circuits/aggregator_gadget.hpp"
 
 #include <libzeth/core/extended_proof.hpp>
 
