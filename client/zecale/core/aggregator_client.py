@@ -19,6 +19,7 @@ class AggregatorClient:
     def __init__(self, endpoint: str, zksnark: IZKSnarkProvider):
         self.endpoint = endpoint
         self.zksnark = zksnark
+        self.wrapper_zksnark = zksnark
 
     def get_verification_key(self) -> Dict[str, object]:
         with grpc.insecure_channel(self.endpoint) as channel:
@@ -51,3 +52,14 @@ class AggregatorClient:
         with grpc.insecure_channel(self.endpoint) as channel:
             stub = aggregator_pb2_grpc.AggregatorStub(channel)  # type: ignore
             stub.SubmitTransaction(tx_to_aggregate)
+
+    def generate_aggregate_proof(self, name: str) -> GenericProof:
+        """
+        Request a aggregated proof.
+        """
+        agg_proof_request = aggregator_pb2.AggregateProofRequest()
+        agg_proof_request.application_name = name
+        with grpc.insecure_channel(self.endpoint) as channel:
+            stub = aggregator_pb2_grpc.AggregatorStub(channel)  # type: ignore
+            proof_proto = stub.GenerateAggregateProof(agg_proof_request)
+        return self.wrapper_zksnark.proof_from_proto(proof_proto)

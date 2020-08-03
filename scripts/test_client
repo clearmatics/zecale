@@ -33,4 +33,8 @@ zecale submit --name ${APP_NAME} --tx extproof2.json
 zecale submit --name ${APP_NAME} --tx extproof3.json
 zecale submit --name ${APP_NAME} --tx extproof4.json
 
+# Request and aggregate proof
+
+zecale get-batch --name ${APP_NAME} --batch-file batch1.json
+
 popd # _test_client_data
