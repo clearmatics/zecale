@@ -55,6 +55,8 @@ private:
     using verification_key_variable_gadget =
         typename wverifierT::verification_key_variable_gadget;
 
+    const size_t num_inputs_per_nested_proof;
+
     std::array<std::shared_ptr<verifier_gadget>, NumProofs> verifiers;
 
     /// ---- Primary inputs (public) ---- //
@@ -119,8 +121,10 @@ public:
     // the verifier on-chain
     explicit aggregator_gadget(
         libsnark::protoboard<libff::Fr<wppT>> &pb,
+        const size_t inputs_per_nested_proof,
         const std::string &annotation_prefix = "aggregator_gadget")
         : libsnark::gadget<libff::Fr<wppT>>(pb, annotation_prefix)
+        , num_inputs_per_nested_proof(inputs_per_nested_proof)
     {
         // Block dedicated to generate the verifier inputs
         // The verifier inputs, are values asociated to wires in the arithmetic
@@ -135,17 +139,12 @@ public:
         // inputs associated with the Zeth proofs directly as elements of
         // `libff::Fr<wppT>`
         {
-            // == The # of primary inputs for Zeth proofs is 9 ==
-            // since the primary inputs are:
-            // [Root, NullifierS (2), CommitmentS (2), h_sig, h_iS (2), Residual
-            // Field Element]
-            const size_t nb_zeth_inputs = 9;
-            const size_t nb_zeth_inputs_in_bits =
-                nb_zeth_inputs * libff::Fr<nppT>::size_in_bits();
+            const size_t num_input_bits_per_nested_proof =
+                num_inputs_per_nested_proof * libff::Fr<nppT>::size_in_bits();
             for (size_t i = 0; i < NumProofs; i++) {
                 nested_primary_inputs[i].allocate(
                     pb,
-                    nb_zeth_inputs_in_bits,
+                    num_input_bits_per_nested_proof,
                     FMT(this->annotation_prefix,
                         " nested_primary_inputs[%zu]-(in bits)",
                         i));
@@ -183,8 +182,9 @@ public:
             //  - Verify the `N` proofs by invoking the `N` verifiers
             //  - Hash all the primary inputs values to a value H which now
             //  becomes the only primary inputs
-            const size_t primary_input_size = NumProofs * (nb_zeth_inputs + 1);
-            pb.set_input_sizes(primary_input_size);
+            const size_t total_primary_inputs =
+                NumProofs * (num_inputs_per_nested_proof + 1);
+            pb.set_input_sizes(total_primary_inputs);
             // ---------------------------------------------------------------
             //
             // Allocation of the auxiliary input after the primary inputs
@@ -203,7 +203,8 @@ public:
             // determine the size of the zeth VK which is the one we manipulate
             // below.
             const size_t vk_size_in_bits =
-                verification_key_variable_gadget::size_in_bits(nb_zeth_inputs);
+                verification_key_variable_gadget::size_in_bits(
+                    num_inputs_per_nested_proof);
             libsnark::pb_variable_array<libff::Fr<wppT>> nested_vk_bits;
             nested_vk_bits.allocate(
                 pb,
@@ -212,7 +213,7 @@ public:
             nested_vk.reset(new verification_key_variable_gadget(
                 pb,
                 nested_vk_bits,
-                nb_zeth_inputs,
+                num_inputs_per_nested_proof,
                 FMT(this->annotation_prefix, " nested_vk")));
 
             // Initialize the proof variable gadgets. The protoboard allocation

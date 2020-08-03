@@ -36,6 +36,11 @@ static const size_t inputs_number = 2;
 static const size_t outputs_number = 2;
 static const size_t batch_size = 2;
 
+// The # of primary inputs for Zeth proofs is 9, since the primary inputs are:
+// [Root, NullifierS(2), CommitmentS(2), h_sig, h_iS(2), Residual Field,
+// Element]
+static const size_t num_zeth_inputs = 9;
+
 using namespace libzecale;
 
 namespace
@@ -268,7 +273,7 @@ void aggregator_test()
     std::cout << "[DEBUG] Before creation of the Aggregator prover"
               << std::endl;
     aggregator_circuit_wrapper<nppT, wppT, nsnarkT, wverifierT, batch_size>
-        aggregator_prover;
+        aggregator_prover(num_zeth_inputs);
     std::cout << "[DEBUG] Before gen Aggregator setup" << std::endl;
     typename wsnark::keypair aggregator_keypair =
         aggregator_prover.generate_trusted_setup();

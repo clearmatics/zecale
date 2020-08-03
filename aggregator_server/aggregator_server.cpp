@@ -68,7 +68,11 @@ using napi_handler = libzeth::groth16_api_handler<npp>;
 
 using wsnark = typename wverifier::snark;
 
-static const size_t batch_size = 1;
+static const size_t batch_size = 2;
+static const size_t num_inputs_per_nested_proof = 1;
+
+using aggregator_circuit_wrapper = libzecale::
+    aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>;
 
 /// The aggregator_server class inherits from the Aggregator service defined in
 /// the proto files, and provides an implementation of the service.
@@ -78,9 +82,7 @@ private:
     using application_pool =
         libzecale::application_pool<npp, nsnark, batch_size>;
 
-    libzecale::
-        aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
-            aggregator;
+    aggregator_circuit_wrapper aggregator;
 
     // The keypair is the result of the setup for the aggregation circuit
     wsnark::keypair keypair;
@@ -90,13 +92,9 @@ private:
 
 public:
     explicit aggregator_server(
-        libzecale::
-            aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
-                &aggregator,
-        const wsnark::keypair &keypair)
+        aggregator_circuit_wrapper &aggregator, const wsnark::keypair &keypair)
         : aggregator(aggregator), keypair(keypair)
     {
-        // Nothing
     }
 
     grpc::Status GetVerificationKey(
@@ -282,9 +280,11 @@ void display_server_start_message()
 }
 
 static void RunServer(
-    libzecale::
-        aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
-            &aggregator,
+    aggregator_server::aggregator_circuit_wrapper &aggregator,
+    typename wsnark::keypair &keypair)
+    aggregator_server::aggregator_circuit_wrapper &aggregator,
+    const typename wsnark::keypair &keypair)
+    aggregator_circuit_wrapper &aggregator,
     const typename wsnark::keypair &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50052
@@ -377,7 +377,7 @@ int main(int argc, char **argv)
 
     libzecale::
         aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
-            aggregator;
+            aggregator(num_inputs_per_nested_proof);
     wsnark::keypair keypair = [&keypair_file, &aggregator]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16
