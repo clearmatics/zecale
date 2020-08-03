@@ -88,13 +88,22 @@ private:
     wsnark::keypair keypair;
 
     // The nested verification key is the vk used to verify the nested proofs
-    std::map<std::string, application_pool> pools_map;
+    std::map<std::string, application_pool *> application_pools;
 
 public:
     explicit aggregator_server(
         aggregator_circuit_wrapper &aggregator, const wsnark::keypair &keypair)
         : aggregator(aggregator), keypair(keypair)
     {
+    }
+
+    virtual ~aggregator_server()
+    {
+        // Release all application_pool objects.
+        for (const auto &entry : application_pools) {
+            delete entry.second;
+        }
+        application_pools.clear();
     }
 
     grpc::Status GetVerificationKey(
@@ -107,7 +116,7 @@ public:
         std::cout << "[DEBUG] Preparing verification key for response..."
                   << std::endl;
         try {
-            wapi_handler::verification_key_to_proto(this->keypair.vk, response);
+            wapi_handler::verification_key_to_proto(keypair.vk, response);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -132,7 +141,7 @@ public:
         try {
             // Ensure an app of the same name has not already been registered.
             const std::string &name = registration->application_name();
-            if (pools_map.count(name)) {
+            if (application_pools.count(name)) {
                 return grpc::Status(
                     grpc::StatusCode::INVALID_ARGUMENT,
                     grpc::string("application already registered"));
@@ -143,7 +152,7 @@ public:
             const zeth_proto::VerificationKey &vk_proto = registration->vk();
             typename nsnark::verification_key vk =
                 napi_handler::verification_key_from_proto(vk_proto);
-            pools_map[name] = application_pool(name, vk);
+            application_pools[name] = new application_pool(name, vk);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -165,35 +174,39 @@ public:
             << "[ACK] Received the request to generate an aggregation proof"
             << std::endl;
         try {
-            std::cout << "[DEBUG] Pop batch from the pool..." << std::endl;
-            // Select the application pool corresponding to the request
-            application_pool app_pool =
-                this->pools_map[proof_request->application_name()];
-            // Retrieve batch from the pool
+            // Get the application_pool if it exists (otherwise an exception is
+            // thrown, returning an error to the client).
+            application_pool *const app_pool =
+                application_pools.at(proof_request->application_name());
+
+            // Retrieve a batch from the pool.
             std::array<
                 libzecale::transaction_to_aggregate<npp, nsnark>,
                 batch_size>
-                batch = app_pool.get_next_batch();
-
-            std::cout << "[DEBUG] Parse batch and generate witness..."
-                      << std::endl;
-            // Get batch of proofs to aggregate
-            std::array<const libzeth::extended_proof<npp, nsnark> *, batch_size>
-                extended_proofs{nullptr};
-            for (size_t i = 0; i < batch.size(); i++) {
-                extended_proofs[i] = &(batch[i].extended_proof());
+                batch;
+            const size_t num_entries = app_pool->get_next_batch(batch);
+            std::cout << "[DEBUG] Got batch of size"
+                      << std::to_string(num_entries) << " from the pool\n";
+            if (num_entries == 0) {
+                throw std::runtime_error("insufficient entries in pool");
             }
 
-            // Retrieve the application verification key for the proof
-            // aggregation
-            nsnark::verification_key nested_vk = app_pool.verification_key();
+            // Extract the nested proofs
+            std::array<const libzeth::extended_proof<npp, nsnark> *, batch_size>
+                nested_proofs;
+            for (size_t i = 0; i < batch_size; ++i) {
+                nested_proofs[i] = &batch[i].extended_proof();
+            }
+
+            // Retrieve the nested verification key for this application.
+            const nsnark::verification_key &nested_vk =
+                app_pool->verification_key();
 
             std::cout << "[DEBUG] Generating the proof..." << std::endl;
             libzeth::extended_proof<wpp, wsnark> wrapping_proof =
-                this->aggregator.prove(
-                    nested_vk, extended_proofs, this->keypair.pk);
+                aggregator.prove(nested_vk, nested_proofs, keypair.pk);
 
-            std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
+            std::cout << "[DEBUG] Generated extended proof:\n";
             wrapping_proof.write_json(std::cout);
 
             std::cout << "[DEBUG] Preparing response..." << std::endl;
@@ -219,14 +232,18 @@ public:
                   << std::endl;
         std::cout << "[DEBUG] Submitting transaction..." << std::endl;
         try {
-            // Add the application to the list of applications supported by the
-            // server.
-            libzecale::transaction_to_aggregate<npp, nsnark> tx = libzecale::
-                transaction_to_aggregate_from_proto<npp, napi_handler>(
-                    *transaction);
-            application_pool app_pool =
-                this->pools_map[transaction->application_name()];
-            app_pool.add_tx(tx);
+            // Get the application_pool if it exists (otherwise an exception is
+            // thrown, returning an error to the client).
+            application_pool *const app_pool =
+                application_pools.at(transaction->application_name());
+
+            // Add the application to the list of applications supported by
+            // the server.
+            const libzecale::transaction_to_aggregate<npp, nsnark> tx =
+                libzecale::
+                    transaction_to_aggregate_from_proto<npp, napi_handler>(
+                        *transaction);
+            app_pool->add_tx(tx);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -280,10 +297,6 @@ void display_server_start_message()
 }
 
 static void RunServer(
-    aggregator_server::aggregator_circuit_wrapper &aggregator,
-    typename wsnark::keypair &keypair)
-    aggregator_server::aggregator_circuit_wrapper &aggregator,
-    const typename wsnark::keypair &keypair)
     aggregator_circuit_wrapper &aggregator,
     const typename wsnark::keypair &keypair)
 {
