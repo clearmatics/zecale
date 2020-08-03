@@ -49,13 +49,17 @@ template<typename nppT, typename nsnarkT, size_t NumProofs>
 size_t application_pool<nppT, nsnarkT, NumProofs>::get_next_batch(
     std::array<transaction_to_aggregate<nppT, nsnarkT>, NumProofs> &batch)
 {
-    const size_t num_entries = std::min(NumProofs, _tx_pool.size());
-    size_t entry_idx = 0;
-    for (; entry_idx < num_entries; ++entry_idx) {
+    // TODO: For now, only return whole batches (to avoid nasty errors where
+    // elements in the array are not initialized properly). Later, clean up the
+    // data structures to support partial-batches in a safe way.
+    if (_tx_pool.size() < NumProofs) {
+        return 0;
+    }
+    for (size_t entry_idx = 0; entry_idx < NumProofs; ++entry_idx) {
         batch[entry_idx] = _tx_pool.top();
         _tx_pool.pop();
     }
-    return entry_idx;
+    return NumProofs;
 }
 
 } // namespace libzecale
