@@ -57,8 +57,6 @@ private:
 
     std::array<std::shared_ptr<verifier_gadget>, NumProofs> verifiers;
 
-    libsnark::pb_variable<libff::Fr<wppT>> wZero;
-
     /// ---- Primary inputs (public) ---- //
     ///
     /// The primary inputs lie in the scalar field `libff::Fr<wppT>`
@@ -196,7 +194,7 @@ public:
             // known) we will need to add the "hash to the vk" as part of the
             // primary inputs
             // - The Zeth proofs
-            wZero.allocate(pb, FMT(this->annotation_prefix, " wZero"));
+
             // == The nested vk ==
             // Bit size of the nested VK
             // The nested VK is interpreted as an array of bits
@@ -246,15 +244,6 @@ public:
     // - Generate the constraints for the verifiers
     void generate_r1cs_constraints()
     {
-        // Constrain `wZero`
-        // Make sure that the wZero variable is the zero of
-        // the field
-        libsnark::generate_r1cs_equals_const_constraint<libff::Fr<wppT>>(
-            this->pb,
-            wZero,
-            libff::Fr<wppT>::zero(),
-            FMT(this->annotation_prefix, " wZero"));
-
         // Generate constraints for the verification key
         nested_vk->generate_r1cs_constraints(true); // ensure bitness
 
@@ -277,9 +266,6 @@ public:
             const libzeth::extended_proof<nppT, nsnarkT> *,
             NumProofs> &in_extended_proofs)
     {
-        // Witness `zero`
-        this->pb.val(wZero) = libff::Fr<wppT>::zero();
-
         // Witness the VK
         nested_vk->generate_r1cs_witness(in_nested_vk);
 
