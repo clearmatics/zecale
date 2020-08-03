@@ -134,7 +134,7 @@ public:
             typename nsnark::verification_key registered_vk =
                 napi_handler::verification_key_from_proto(registration->vk());
             libzecale::application_pool<npp, nsnark, batch_size> app_pool(
-                registration->name(), registered_vk);
+                registration->application_name(), registered_vk);
             this->pools_map[registration->name()] = app_pool;
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
@@ -150,7 +150,7 @@ public:
 
     grpc::Status GenerateAggregateProof(
         grpc::ServerContext * /*context*/,
-        const zecale_proto::ApplicationName *app_name,
+        const zecale_proto::AggregateProofRequest *app_name,
         zeth_proto::ExtendedProof *proof) override
     {
         std::cout
@@ -160,7 +160,7 @@ public:
             std::cout << "[DEBUG] Pop batch from the pool..." << std::endl;
             // Select the application pool corresponding to the request
             libzecale::application_pool<npp, nsnark, batch_size> app_pool =
-                this->pools_map[app_name->name()];
+                this->pools_map[app_name->application_name()];
             // Retrieve batch from the pool
             std::array<
                 libzecale::transaction_to_aggregate<npp, nsnark>,

@@ -21,8 +21,11 @@ service Aggregator {
     // use-case. For now, this is convenient for testing).
     rpc RegisterApplication(ApplicationRegistration) returns (google.protobuf.Empty) {}
 
-    // Request a proof that verifies a batch of proofs for the given
-    // application name.
+    // Submit a transaction to be aggregated.
+    rpc SubmitTransaction(TransactionToAggregate) returns (google.protobuf.Empty) {}
+
+    // Request a proof that verifies a batch of nested proofs for the
+    // application of the given name.
     //
     // (The only argument of this function is the name of the application for
     // which we want to generate an aggregate proof. The proofs to batch should
@@ -30,18 +33,11 @@ service Aggregator {
     // of CI for the validity of the batch of proofs. This endpoint won't
     // necessarily be useful in practice, but this is useful for some manual
     // triggering for now.)
-    rpc GenerateAggregateProof(ApplicationName) returns (zeth_proto.ExtendedProof) {}
-
-    // Function to submit a transaction to aggregate
-    rpc SubmitTransaction(TransactionToAggregate) returns (google.protobuf.Empty) {}
-}
-
-message ApplicationName {
-    string name = 1;
+    rpc GenerateAggregateProof(AggregateProofRequest) returns (zeth_proto.ExtendedProof) {}
 }
 
 message ApplicationRegistration {
-    string name = 1;
+    string application_name = 1;
     zeth_proto.VerificationKey vk = 2;
 }
 
@@ -52,4 +48,8 @@ message TransactionToAggregate {
     zeth_proto.ExtendedProof extended_proof = 2;
     // Only if an incentive structure is in place and fees are supported
     int32 fee_in_wei = 3;
+}
+
+message AggregateProofRequest {
+    string application_name = 1;
 }
