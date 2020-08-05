@@ -32,6 +32,10 @@ TEST(DummyApplicationTest, DumpKeysAndProofs)
     for (size_t i = 0; i < 6; ++i) {
         libzeth::extended_proof<pp, snark> prf =
             dummy_app.prove(i + 7, keypair.pk);
+
+        ASSERT_EQ(
+            dummy_app._pb.val(dummy_app._a_inv),
+            prf.get_primary_inputs()[0].inverse());
         ASSERT_TRUE(snark::verify(
             prf.get_primary_inputs(), prf.get_proof(), keypair.vk));
 

@@ -38,6 +38,14 @@ public:
 template<typename ppT, typename snarkT> class dummy_app_wrapper
 {
 public:
+    using FieldT = libff::Fr<ppT>;
+
+    libsnark::protoboard<FieldT> _pb;
+    libsnark::pb_variable<FieldT> _a;
+    libsnark::pb_variable<FieldT> _a_inv;
+    check_inverse_gadget<ppT> _check_inverse;
+
+    dummy_app_wrapper();
     typename snarkT::keypair generate_keypair();
     typename libzeth::extended_proof<ppT, snarkT> prove(
         size_t scalar, const typename snarkT::proving_key &vk);

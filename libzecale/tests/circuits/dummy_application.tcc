@@ -37,43 +37,38 @@ void check_inverse_gadget<ppT>::generate_r1cs_witness() const
 }
 
 template<typename ppT, typename snarkT>
+dummy_app_wrapper<ppT, snarkT>::dummy_app_wrapper()
+    : _pb()
+    , _check_inverse(
+          _pb,
+          libsnark::pb_variable<FieldT>(1),
+          libsnark::pb_variable<FieldT>(2),
+          "check_inverse")
+{
+    _a.allocate(_pb, "a");
+    _a_inv.allocate(_pb, "a_inv");
+    assert(_a.index == _check_inverse._a.index);
+    assert(_a_inv.index == _check_inverse._a_inv.index);
+    _check_inverse.generate_r1cs_constraints();
+    _pb.set_input_sizes(1);
+}
+
+template<typename ppT, typename snarkT>
 typename snarkT::keypair dummy_app_wrapper<ppT, snarkT>::generate_keypair()
 {
-    using Field = libff::Fr<ppT>;
-    libsnark::protoboard<Field> pb;
-    libsnark::pb_variable<Field> a;
-    a.allocate(pb, "a");
-    libsnark::pb_variable<Field> a_inv;
-    a_inv.allocate(pb, "a_inv");
-    check_inverse_gadget<ppT> check_inv(pb, a, a_inv, "check_inv");
-    pb.set_input_sizes(1);
-
-    check_inv.generate_r1cs_constraints();
-
-    return snarkT::generate_setup(pb);
+    return snarkT::generate_setup(_pb);
 }
 
 template<typename ppT, typename snarkT>
 typename libzeth::extended_proof<ppT, snarkT> dummy_app_wrapper<ppT, snarkT>::
     prove(size_t scalar, const typename snarkT::proving_key &pk)
 {
-    using Field = libff::Fr<ppT>;
-    libsnark::protoboard<Field> pb;
-    libsnark::pb_variable<Field> a;
-    a.allocate(pb, "a");
-    libsnark::pb_variable<Field> a_inv;
-    a_inv.allocate(pb, "a_inv");
-    check_inverse_gadget<ppT> check_inv(pb, a, a_inv, "check_inv");
-    pb.set_input_sizes(1);
+    FieldT a(scalar);
+    _pb.val(_a) = a;
+    _check_inverse.generate_r1cs_witness();
 
-    check_inv.generate_r1cs_constraints();
-
-    pb.val(a) = Field(scalar);
-    check_inv.generate_r1cs_witness();
-    assert(pb.val(a_inv) == pb.val(a).inverse());
-
-    typename snarkT::proof proof = snarkT::generate_proof(pb, pk);
-    libsnark::r1cs_primary_input<Field> primary_input = pb.primary_input();
+    typename snarkT::proof proof = snarkT::generate_proof(_pb, pk);
+    libsnark::r1cs_primary_input<FieldT> primary_input = _pb.primary_input();
     return libzeth::extended_proof<ppT, snarkT>(
         std::move(proof), std::move(primary_input));
 }
