@@ -26,14 +26,14 @@ private:
     using wsnark = typename wverifierT::snark;
 
     const size_t num_inputs_per_nested_proof;
-    std::shared_ptr<
-        aggregator_gadget<nppT, wppT, nsnarkT, wverifierT, NumProofs>>
-        aggregator_g;
+
+    // TOOD: Cache the circuit to save reconstructing it at every call.
 
 public:
     aggregator_circuit_wrapper(const size_t inputs_per_nested_proof);
 
     typename wsnark::keypair generate_trusted_setup() const;
+
     libsnark::protoboard<libff::Fr<wppT>> get_constraint_system() const;
 
     /// Generate a proof and returns an extended proof
