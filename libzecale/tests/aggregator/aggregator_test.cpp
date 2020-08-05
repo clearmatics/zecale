@@ -58,7 +58,7 @@ libzeth::extended_proof<nppT, snarkT> generate_valid_zeth_proof(
         inputs_number,
         outputs_number,
         tree_depth> &zeth_prover,
-    typename snarkT::keypair zeth_keypair)
+    const typename snarkT::keypair &zeth_keypair)
 {
     using zethScalarField = libff::Fr<nppT>;
 
