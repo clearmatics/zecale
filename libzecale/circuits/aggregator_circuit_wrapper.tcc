@@ -113,8 +113,8 @@ libzeth::extended_proof<wppT, typename wverifierT::snark> aggregator_circuit_wra
     libsnark::r1cs_primary_input<libff::Fr<wppT>> primary_input =
         pb.primary_input();
 
-    // Instantiate an extended_proof from the proof we generated and the
-    // given primary_input
+    // Instantiate an extended_proof from the proof we generated and the given
+    // primary_input
     libzeth::extended_proof<wppT, wsnark> ext_proof =
         extended_proof<wppT, wsnark>(
             std::move(proof), std::move(primary_input));

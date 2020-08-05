@@ -27,10 +27,10 @@ private:
 
     const size_t num_inputs_per_nested_proof;
 
-    // TOOD: Cache the circuit to save reconstructing it at every call.
+    // TODO: Cache the circuit to save reconstructing it at every call.
 
 public:
-    aggregator_circuit_wrapper(const size_t inputs_per_nested_proof);
+    explicit aggregator_circuit_wrapper(const size_t inputs_per_nested_proof);
 
     typename wsnark::keypair generate_trusted_setup() const;
 

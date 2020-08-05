@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzecale/circuits/aggregator_circuit_wrapper.hpp"
 #include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
 #include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
 #include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
-#include "libzecale/core/aggregator_circuit_wrapper.hpp"
 #include "libzecale/tests/circuits/dummy_application.hpp"
 
 #include <gtest/gtest.h>

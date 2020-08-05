@@ -5,7 +5,7 @@
 // Read the zecale config, include the appropriate pairing selector and define
 // the corresponding pairing parameters type.
 
-#include "libzecale/core/aggregator_circuit_wrapper.hpp"
+#include "libzecale/circuits/aggregator_circuit_wrapper.hpp"
 #include "libzecale/core/application_pool.hpp"
 #include "libzecale/serialization/proto_utils.hpp"
 #include "zecale_config.h"
