@@ -36,6 +36,48 @@ void check_inverse_gadget<ppT>::generate_r1cs_witness() const
     this->pb.val(_a_inv) = this->pb.val(_a).inverse();
 }
 
+template<typename ppT, typename snarkT>
+typename snarkT::keypair dummy_app_wrapper<ppT, snarkT>::generate_keypair()
+{
+    using Field = libff::Fr<ppT>;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> a;
+    a.allocate(pb, "a");
+    libsnark::pb_variable<Field> a_inv;
+    a_inv.allocate(pb, "a_inv");
+    check_inverse_gadget<ppT> check_inv(pb, a, a_inv, "check_inv");
+    pb.set_input_sizes(1);
+
+    check_inv.generate_r1cs_constraints();
+
+    return snarkT::generate_setup(pb);
+}
+
+template<typename ppT, typename snarkT>
+typename libzeth::extended_proof<ppT, snarkT> dummy_app_wrapper<ppT, snarkT>::
+    prove(size_t scalar, const typename snarkT::proving_key &pk)
+{
+    using Field = libff::Fr<ppT>;
+    libsnark::protoboard<Field> pb;
+    libsnark::pb_variable<Field> a;
+    a.allocate(pb, "a");
+    libsnark::pb_variable<Field> a_inv;
+    a_inv.allocate(pb, "a_inv");
+    check_inverse_gadget<ppT> check_inv(pb, a, a_inv, "check_inv");
+    pb.set_input_sizes(1);
+
+    check_inv.generate_r1cs_constraints();
+
+    pb.val(a) = Field(scalar);
+    check_inv.generate_r1cs_witness();
+    assert(pb.val(a_inv) == pb.val(a).inverse());
+
+    typename snarkT::proof proof = snarkT::generate_proof(pb, pk);
+    libsnark::r1cs_primary_input<Field> primary_input = pb.primary_input();
+    return libzeth::extended_proof<ppT, snarkT>(
+        std::move(proof), std::move(primary_input));
+}
+
 } // namespace test
 
 } // namespace libzecale

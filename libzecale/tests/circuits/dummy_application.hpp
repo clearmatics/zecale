@@ -7,6 +7,7 @@
 
 #include <libff/algebra/curves/public_params.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
+#include <libzeth/core/extended_proof.hpp>
 
 namespace libzecale
 {
@@ -32,6 +33,14 @@ public:
         const std::string &annotation_index);
     void generate_r1cs_constraints() const;
     void generate_r1cs_witness() const;
+};
+
+template<typename ppT, typename snarkT> class dummy_app_wrapper
+{
+public:
+    typename snarkT::keypair generate_keypair();
+    typename libzeth::extended_proof<ppT, snarkT> prove(
+        size_t scalar, const typename snarkT::proving_key &vk);
 };
 
 } // namespace test
