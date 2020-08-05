@@ -153,6 +153,49 @@ public:
             typename nsnark::verification_key vk =
                 napi_handler::verification_key_from_proto(vk_proto);
             application_pools[name] = new application_pool(name, vk);
+
+            std::cout << "[DEBUG] Registered application '" << name
+                      << " with VK:\n";
+            nsnark::verification_key_write_json(vk, std::cout) << "\n";
+        } catch (const std::exception &e) {
+            std::cout << "[ERROR] " << e.what() << std::endl;
+            return grpc::Status(
+                grpc::StatusCode::INVALID_ARGUMENT, grpc::string(e.what()));
+        } catch (...) {
+            std::cout << "[ERROR] In catch all" << std::endl;
+            return grpc::Status(grpc::StatusCode::UNKNOWN, "");
+        }
+
+        return grpc::Status::OK;
+    }
+
+    grpc::Status SubmitTransaction(
+        grpc::ServerContext * /*context*/,
+        const zecale_proto::TransactionToAggregate *transaction,
+        proto::Empty * /*response*/) override
+    {
+        std::cout << "[ACK] Received the request to submit transaction"
+                  << std::endl;
+        std::cout << "[DEBUG] Submitting transaction..." << std::endl;
+        try {
+            // Get the application_pool if it exists (otherwise an exception is
+            // thrown, returning an error to the client).
+            application_pool *const app_pool =
+                application_pools.at(transaction->application_name());
+
+            // Add the application to the list of applications supported by
+            // the server.
+            const libzecale::transaction_to_aggregate<npp, nsnark> tx =
+                libzecale::
+                    transaction_to_aggregate_from_proto<npp, napi_handler>(
+                        *transaction);
+            app_pool->add_tx(tx);
+
+            std::cout << "[DEBUG] Registered tx with ext proof:\n";
+            tx.extended_proof().write_json(std::cout) << "\n";
+
+            std::cout << "[DEBUG] " << std::to_string(app_pool->tx_pool_size())
+                      << " txs in pool\n";
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -195,6 +238,9 @@ public:
             std::array<const libzeth::extended_proof<npp, nsnark> *, batch_size>
                 nested_proofs;
             for (size_t i = 0; i < batch_size; ++i) {
+                std::cout << "[DEBUG] got tx " << std::to_string(i)
+                          << " with ext proof:\n";
+                batch[i].extended_proof().write_json(std::cout);
                 nested_proofs[i] = &batch[i].extended_proof();
             }
 
@@ -202,48 +248,15 @@ public:
             const nsnark::verification_key &nested_vk =
                 app_pool->verification_key();
 
-            std::cout << "[DEBUG] Generating the proof..." << std::endl;
+            std::cout << "[DEBUG] Generating the batched proof...\n";
             libzeth::extended_proof<wpp, wsnark> wrapping_proof =
                 aggregator.prove(nested_vk, nested_proofs, keypair.pk);
 
             std::cout << "[DEBUG] Generated extended proof:\n";
             wrapping_proof.write_json(std::cout);
 
-            std::cout << "[DEBUG] Preparing response..." << std::endl;
             wapi_handler::extended_proof_to_proto(wrapping_proof, proof);
-        } catch (const std::exception &e) {
-            std::cout << "[ERROR] " << e.what() << std::endl;
-            return grpc::Status(
-                grpc::StatusCode::INVALID_ARGUMENT, grpc::string(e.what()));
-        } catch (...) {
-            std::cout << "[ERROR] In catch all" << std::endl;
-            return grpc::Status(grpc::StatusCode::UNKNOWN, "");
-        }
-
-        return grpc::Status::OK;
-    }
-
-    grpc::Status SubmitTransaction(
-        grpc::ServerContext * /*context*/,
-        const zecale_proto::TransactionToAggregate *transaction,
-        proto::Empty * /*response*/) override
-    {
-        std::cout << "[ACK] Received the request to submit transaction"
-                  << std::endl;
-        std::cout << "[DEBUG] Submitting transaction..." << std::endl;
-        try {
-            // Get the application_pool if it exists (otherwise an exception is
-            // thrown, returning an error to the client).
-            application_pool *const app_pool =
-                application_pools.at(transaction->application_name());
-
-            // Add the application to the list of applications supported by
-            // the server.
-            const libzecale::transaction_to_aggregate<npp, nsnark> tx =
-                libzecale::
-                    transaction_to_aggregate_from_proto<npp, napi_handler>(
-                        *transaction);
-            app_pool->add_tx(tx);
+            std::cout << "[DEBUG] Written to response" << std::endl;
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
