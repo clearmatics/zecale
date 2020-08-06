@@ -9,8 +9,10 @@ from zecale.commands.command_context import CommandContext
 from zecale.commands.zecale_register import register
 from zecale.commands.zecale_submit import submit
 from zecale.commands.zecale_get_batch import get_batch
+from grpc import RpcError
 from click import command, group, option, pass_context, Context, ClickException
 from click_default_group import DefaultGroup
+import sys
 
 
 @command()
@@ -26,7 +28,20 @@ def help(ctx: Context) -> None:
     raise ClickException("no command specified")
 
 
-@group(cls=DefaultGroup, default_if_no_args=True, default="help")
+class HandleRpcExceptions(DefaultGroup):
+    """
+    A click group which handles uncaught RpcExceptions with a sensible message
+    (similar to ClickException).
+    """
+    def __call__(self, *args, **kwargs):
+        try:
+            return DefaultGroup.__call__(self, *args, **kwargs)
+        except RpcError as ex:
+            print(f"error: {ex.details()}")
+            sys.exit(1)
+
+
+@group(cls=HandleRpcExceptions, default_if_no_args=True, default="help")
 @option(
     "--aggregator-server", "-a",
     default=AGGREGATOR_SERVER_ENDPOINT_DEFAULT,
