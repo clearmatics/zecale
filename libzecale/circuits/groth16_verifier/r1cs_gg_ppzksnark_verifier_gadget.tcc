@@ -103,58 +103,42 @@ r1cs_gg_ppzksnark_verification_key_variable<ppT>::
         const size_t input_size,
         const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
+    , alpha_g1(new libsnark::G1_variable<ppT>(
+          pb, FMT(annotation_prefix, " alpha_g1")))
+    , beta_g2(new libsnark::G2_variable<ppT>(
+          pb, FMT(annotation_prefix, " beta_g2")))
+    , delta_g2(new libsnark::G2_variable<ppT>(
+          pb, FMT(annotation_prefix, " delta_g2")))
+    , encoded_ABC_base(new libsnark::G1_variable<ppT>(
+          pb, FMT(annotation_prefix, " encoded_ABC_base")))
     , all_bits(all_bits)
     , input_size(input_size)
 {
-#ifndef NDEBUG
-    // alpha_g1, ABC_g1
-    const size_t num_G1 = 1 + (input_size + 1);
-    // beta_g2, delta_g2
-    const size_t num_G2 = 2;
-#endif
+    assert(all_bits.size() == size_in_bits(input_size));
 
-    assert(
-        all_bits.size() ==
-        (libsnark::G1_variable<ppT>::size_in_bits() * num_G1 +
-         libsnark::G2_variable<ppT>::size_in_bits() * num_G2));
+    // Populate all_vars with all elements.
+    all_vars.insert(
+        all_vars.end(), alpha_g1->all_vars.begin(), alpha_g1->all_vars.end());
+    all_vars.insert(
+        all_vars.end(), beta_g2->all_vars.begin(), beta_g2->all_vars.end());
+    all_vars.insert(
+        all_vars.end(), delta_g2->all_vars.begin(), delta_g2->all_vars.end());
+    all_vars.insert(
+        all_vars.end(),
+        encoded_ABC_base->all_vars.begin(),
+        encoded_ABC_base->all_vars.end());
 
-    this->alpha_g1.reset(new libsnark::G1_variable<ppT>(
-        pb, FMT(annotation_prefix, " alpha_g1")));
-    this->beta_g2.reset(
-        new libsnark::G2_variable<ppT>(pb, FMT(annotation_prefix, " beta_g2")));
-    this->delta_g2.reset(new libsnark::G2_variable<ppT>(
-        pb, FMT(annotation_prefix, " delta_g2")));
-
-    all_G1_vars = {this->alpha_g1};
-    all_G2_vars = {this->beta_g2, this->delta_g2};
-
-    this->ABC_g1.resize(input_size);
-    this->encoded_ABC_base.reset(new libsnark::G1_variable<ppT>(
-        pb, FMT(annotation_prefix, " encoded_ABC_base")));
-    this->all_G1_vars.emplace_back(this->encoded_ABC_base);
-
+    // Allocate variables for ABC_g1 elements (and add to all_vars list)
+    ABC_g1.reserve(input_size);
     for (size_t i = 0; i < input_size; ++i) {
-        this->ABC_g1[i].reset(new libsnark::G1_variable<ppT>(
+        ABC_g1.emplace_back(new libsnark::G1_variable<ppT>(
             pb, FMT(annotation_prefix, " ABC_g1[%zu]", i)));
-        all_G1_vars.emplace_back(this->ABC_g1[i]);
-    }
-
-    for (auto &G1_var : all_G1_vars) {
+        const libsnark::G1_variable<ppT> &ivar = *(ABC_g1.back());
         all_vars.insert(
-            all_vars.end(), G1_var->all_vars.begin(), G1_var->all_vars.end());
+            all_vars.end(), ivar.all_vars.begin(), ivar.all_vars.end());
     }
-
-    for (auto &G2_var : all_G2_vars) {
-        all_vars.insert(
-            all_vars.end(), G2_var->all_vars.begin(), G2_var->all_vars.end());
-    }
-
-    assert(all_G1_vars.size() == num_G1);
-    assert(all_G2_vars.size() == num_G2);
     assert(
-        all_vars.size() ==
-        (num_G1 * libsnark::G1_variable<ppT>::num_variables() +
-         num_G2 * libsnark::G2_variable<ppT>::num_variables()));
+        all_vars.size() == size_in_bits(input_size) / FieldT::size_in_bits());
 
     packer.reset(new libsnark::multipacking_gadget<FieldT>(
         pb,
@@ -175,28 +159,13 @@ template<typename ppT>
 void r1cs_gg_ppzksnark_verification_key_variable<ppT>::generate_r1cs_witness(
     const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>> &vk)
 {
-    std::vector<libff::G1<other_curve<ppT>>> G1_elems;
-    std::vector<libff::G2<other_curve<ppT>>> G2_elems;
-
-    G1_elems = {vk.alpha_g1};
-    G2_elems = {vk.beta_g2, vk.delta_g2};
-
-    assert(vk.ABC_g1.rest.indices.size() == input_size);
-    G1_elems.emplace_back(vk.ABC_g1.first);
+    alpha_g1->generate_r1cs_witness(vk.alpha_g1);
+    beta_g2->generate_r1cs_witness(vk.beta_g2);
+    delta_g2->generate_r1cs_witness(vk.delta_g2);
+    encoded_ABC_base->generate_r1cs_witness(vk.ABC_g1.first);
     for (size_t i = 0; i < input_size; ++i) {
         assert(vk.ABC_g1.rest.indices[i] == i);
-        G1_elems.emplace_back(vk.ABC_g1.rest.values[i]);
-    }
-
-    assert(G1_elems.size() == all_G1_vars.size());
-    assert(G2_elems.size() == all_G2_vars.size());
-
-    for (size_t i = 0; i < G1_elems.size(); ++i) {
-        all_G1_vars[i]->generate_r1cs_witness(G1_elems[i]);
-    }
-
-    for (size_t i = 0; i < G2_elems.size(); ++i) {
-        all_G2_vars[i]->generate_r1cs_witness(G2_elems[i]);
+        ABC_g1[i]->generate_r1cs_witness(vk.ABC_g1.rest.values[i]);
     }
 
     packer->generate_r1cs_witness_from_packed();
@@ -223,18 +192,8 @@ size_t r1cs_gg_ppzksnark_verification_key_variable<ppT>::size_in_bits(
 {
     const size_t num_G1 = 1 + (input_size + 1);
     const size_t num_G2 = 2;
-    const size_t result = libsnark::G1_variable<ppT>::size_in_bits() * num_G1 +
-                          libsnark::G2_variable<ppT>::size_in_bits() * num_G2;
-    printf(
-        "G1_size_in_bits = %zu, G2_size_in_bits = %zu\n",
-        libsnark::G1_variable<ppT>::size_in_bits(),
-        libsnark::G2_variable<ppT>::size_in_bits());
-    printf(
-        "r1cs_gg_ppzksnark_verification_key_variable<ppT>::size_in_bits(%zu) = "
-        "%zu\n",
-        input_size,
-        result);
-    return result;
+    return libsnark::G1_variable<ppT>::size_in_bits() * num_G1 +
+           libsnark::G2_variable<ppT>::size_in_bits() * num_G2;
 }
 
 template<typename ppT>
@@ -245,16 +204,16 @@ libff::bit_vector r1cs_gg_ppzksnark_verification_key_variable<ppT>::
 {
     typedef libff::Fr<ppT> FieldT;
 
-    const size_t input_size_in_elts = r1cs_vk.ABC_g1.rest.indices.size();
+    const size_t num_inputs_in_elts = r1cs_vk.ABC_g1.rest.indices.size();
     const size_t vk_size_in_bits =
         r1cs_gg_ppzksnark_verification_key_variable<ppT>::size_in_bits(
-            input_size_in_elts);
+            num_inputs_in_elts);
 
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable_array<FieldT> vk_bits;
     vk_bits.allocate(pb, vk_size_in_bits, " vk_size_in_bits");
     r1cs_gg_ppzksnark_verification_key_variable<ppT> vk(
-        pb, vk_bits, input_size_in_elts, " translation_step_vk");
+        pb, vk_bits, num_inputs_in_elts, " translation_step_vk");
     vk.generate_r1cs_witness(r1cs_vk);
 
     return vk.get_bits();

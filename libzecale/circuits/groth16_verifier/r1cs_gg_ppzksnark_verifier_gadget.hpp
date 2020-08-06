@@ -61,16 +61,12 @@ public:
     std::shared_ptr<libsnark::G1_variable<ppT>> alpha_g1;
     std::shared_ptr<libsnark::G2_variable<ppT>> beta_g2;
     std::shared_ptr<libsnark::G2_variable<ppT>> delta_g2;
-
     std::shared_ptr<libsnark::G1_variable<ppT>> encoded_ABC_base;
     std::vector<std::shared_ptr<libsnark::G1_variable<ppT>>> ABC_g1;
 
     libsnark::pb_variable_array<FieldT> all_bits;
     libsnark::pb_linear_combination_array<FieldT> all_vars;
     size_t input_size;
-
-    std::vector<std::shared_ptr<libsnark::G1_variable<ppT>>> all_G1_vars;
-    std::vector<std::shared_ptr<libsnark::G2_variable<ppT>>> all_G2_vars;
 
     std::shared_ptr<libsnark::multipacking_gadget<FieldT>> packer;
 
