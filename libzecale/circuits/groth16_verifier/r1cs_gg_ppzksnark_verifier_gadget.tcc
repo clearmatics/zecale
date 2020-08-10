@@ -205,9 +205,7 @@ libff::bit_vector r1cs_gg_ppzksnark_verification_key_variable<ppT>::
     typedef libff::Fr<ppT> FieldT;
 
     const size_t num_inputs_in_elts = r1cs_vk.ABC_g1.rest.indices.size();
-    const size_t vk_size_in_bits =
-        r1cs_gg_ppzksnark_verification_key_variable<ppT>::size_in_bits(
-            num_inputs_in_elts);
+    const size_t vk_size_in_bits = size_in_bits(num_inputs_in_elts);
 
     libsnark::protoboard<FieldT> pb;
     libsnark::pb_variable_array<FieldT> vk_bits;
