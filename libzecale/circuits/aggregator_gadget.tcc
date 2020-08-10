@@ -10,17 +10,11 @@
 namespace libzecale
 {
 
-template<
-    typename nppT,
-    typename wppT,
-    typename nsnarkT,
-    typename wverifierT,
-    size_t NumProofs>
-aggregator_gadget<nppT, wppT, nsnarkT, wverifierT, NumProofs>::
-    aggregator_gadget(
-        libsnark::protoboard<libff::Fr<wppT>> &pb,
-        const size_t inputs_per_nested_proof,
-        const std::string &annotation_prefix)
+template<typename wppT, typename nverifierT, size_t NumProofs>
+aggregator_gadget<wppT, nverifierT, NumProofs>::aggregator_gadget(
+    libsnark::protoboard<libff::Fr<wppT>> &pb,
+    const size_t inputs_per_nested_proof,
+    const std::string &annotation_prefix)
     : libsnark::gadget<libff::Fr<wppT>>(pb, annotation_prefix)
     , num_inputs_per_nested_proof(inputs_per_nested_proof)
 {
@@ -32,7 +26,7 @@ aggregator_gadget<nppT, wppT, nsnarkT, wverifierT, NumProofs>::
     //
     // TODO: if num_bits are equal then also check that `libff::Fr<nppT>::mod`
     // <= `libff::Fr<wppT>::num_bits`.
-    assert(libff::Fr<nppT>::num_bits <= libff::Fr<wppT>::num_bits);
+    assert(libff::Fr<npp>::num_bits <= libff::Fr<wppT>::num_bits);
 
     // TODO: allocations of these "public" variables should happen outside of
     // the gadget.
@@ -57,7 +51,7 @@ aggregator_gadget<nppT, wppT, nsnarkT, wverifierT, NumProofs>::
 
     // Allocate the bit representation of the public inputs and initialize the
     // input packers.
-    const size_t num_bits_per_input = libff::Fr<nppT>::size_in_bits();
+    const size_t num_bits_per_input = libff::Fr<npp>::size_in_bits();
     const size_t num_input_bits_per_nested_proof =
         num_inputs_per_nested_proof * num_bits_per_input;
     for (size_t i = 0; i < NumProofs; i++) {
@@ -109,21 +103,15 @@ aggregator_gadget<nppT, wppT, nsnarkT, wverifierT, NumProofs>::
             pb,
             *nested_vk,
             nested_primary_inputs_bits[i],
-            libff::Fr<nppT>::size_in_bits(),
+            libff::Fr<npp>::size_in_bits(),
             *nested_proofs[i],
             nested_proofs_results[i],
             FMT(this->annotation_prefix, " verifiers[%zu]", i)));
     }
 }
 
-template<
-    typename nppT,
-    typename wppT,
-    typename nsnarkT,
-    typename wverifierT,
-    size_t NumProofs>
-void aggregator_gadget<nppT, wppT, nsnarkT, wverifierT, NumProofs>::
-    generate_r1cs_constraints()
+template<typename wppT, typename nverifierT, size_t NumProofs>
+void aggregator_gadget<wppT, nverifierT, NumProofs>::generate_r1cs_constraints()
 {
     // Generate constraints for the verification key
     nested_vk->generate_r1cs_constraints(true); // ensure bitness
@@ -137,18 +125,11 @@ void aggregator_gadget<nppT, wppT, nsnarkT, wverifierT, NumProofs>::
     }
 }
 
-template<
-    typename nppT,
-    typename wppT,
-    typename nsnarkT,
-    typename wverifierT,
-    size_t NumProofs>
-void aggregator_gadget<nppT, wppT, nsnarkT, wverifierT, NumProofs>::
-    generate_r1cs_witness(
-        const typename nsnarkT::verification_key &in_nested_vk,
-        const std::array<
-            const libzeth::extended_proof<nppT, nsnarkT> *,
-            NumProofs> &in_extended_proofs)
+template<typename wppT, typename nverifierT, size_t NumProofs>
+void aggregator_gadget<wppT, nverifierT, NumProofs>::generate_r1cs_witness(
+    const typename nsnark::verification_key &in_nested_vk,
+    const std::array<const libzeth::extended_proof<npp, nsnark> *, NumProofs>
+        &in_extended_proofs)
 {
     // Witness the VK
     nested_vk->generate_r1cs_witness(in_nested_vk);
@@ -163,11 +144,11 @@ void aggregator_gadget<nppT, wppT, nsnarkT, wverifierT, NumProofs>::
         // populate `nested_primary_inputs_bits`, andn then the
         // `nested_primary_input_packers` are used to convert to variables of
         // the circuit (elements of libff::Fr<wppT>).
-        const libsnark::r1cs_primary_input<libff::Fr<nppT>>
+        const libsnark::r1cs_primary_input<libff::Fr<npp>>
             &other_curve_primary_inputs =
                 in_extended_proofs[i]->get_primary_inputs();
         const libff::bit_vector input_bits =
-            libff::convert_field_element_vector_to_bit_vector<libff::Fr<nppT>>(
+            libff::convert_field_element_vector_to_bit_vector<libff::Fr<npp>>(
                 other_curve_primary_inputs);
         nested_primary_inputs_bits[i].fill_with_bits(this->pb, input_bits);
         nested_primary_input_packers[i]->generate_r1cs_witness_from_bits();

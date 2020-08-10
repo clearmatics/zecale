@@ -5,6 +5,8 @@
 #ifndef __ZECALE_CIRCUITS_AGGREGATOR_GADGET_HPP_
 #define __ZECALE_CIRCUITS_AGGREGATOR_GADGET_HPP_
 
+#include "libzecale/circuits/pairing/pairing_params.hpp"
+
 #include <libff/algebra/fields/field_utils.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
@@ -27,19 +29,16 @@ namespace libzecale
 /// In order to aggregate proofs, we require that the base field of the curve
 /// used in the nested proof (nppT here) be the scalar field for the wrapping
 /// pairing (wppT).
-template<
-    typename nppT,
-    typename wppT,
-    typename nsnarkT,
-    typename wverifierT,
-    size_t NumProofs>
+template<typename wppT, typename nverifierT, size_t NumProofs>
 class aggregator_gadget : libsnark::gadget<libff::Fr<wppT>>
 {
 private:
-    using verifier_gadget = typename wverifierT::verifier_gadget;
-    using proof_variable_gadget = typename wverifierT::proof_variable_gadget;
+    using npp = other_curve<wppT>;
+    using nsnark = typename nverifierT::snark;
+    using verifier_gadget = typename nverifierT::verifier_gadget;
+    using proof_variable_gadget = typename nverifierT::proof_variable_gadget;
     using verification_key_variable_gadget =
-        typename wverifierT::verification_key_variable_gadget;
+        typename nverifierT::verification_key_variable_gadget;
     using input_packing_gadget = libsnark::multipacking_gadget<libff::Fr<wppT>>;
 
     const size_t num_inputs_per_nested_proof;
@@ -94,9 +93,9 @@ public:
     /// Set the wppT scalar variables based on the nested verification key,
     /// proofs and inputs in nppT.
     void generate_r1cs_witness(
-        const typename nsnarkT::verification_key &in_nested_vk,
+        const typename nsnark::verification_key &in_nested_vk,
         const std::array<
-            const libzeth::extended_proof<nppT, nsnarkT> *,
+            const libzeth::extended_proof<npp, nsnark> *,
             NumProofs> &in_extended_proofs);
 };
 
