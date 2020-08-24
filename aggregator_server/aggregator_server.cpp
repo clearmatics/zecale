@@ -67,12 +67,13 @@ using napi_handler = libzeth::groth16_api_handler<npp>;
 #endif
 
 using nsnark = typename nverifier::snark;
+using hash = libzeth::BLAKE2s_256<libff::Fr<wpp>>;
 
 static const size_t batch_size = 2;
 static const size_t num_inputs_per_nested_proof = 1;
 
-using aggregator_circuit_wrapper =
-    libzecale::aggregator_circuit_wrapper<wpp, wsnark, nverifier, batch_size>;
+using aggregator_circuit_wrapper = libzecale::
+    aggregator_circuit_wrapper<wpp, wsnark, nverifier, hash, batch_size>;
 
 /// The aggregator_server class inherits from the Aggregator service defined in
 /// the proto files, and provides an implementation of the service.
@@ -401,8 +402,9 @@ int main(int argc, char **argv)
     npp::init_public_params();
     wpp::init_public_params();
 
-    libzecale::aggregator_circuit_wrapper<wpp, wsnark, nverifier, batch_size>
-        aggregator(num_inputs_per_nested_proof);
+    libzecale::
+        aggregator_circuit_wrapper<wpp, wsnark, nverifier, hash, batch_size>
+            aggregator(num_inputs_per_nested_proof);
     wsnark::keypair keypair = [&keypair_file, &aggregator]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16

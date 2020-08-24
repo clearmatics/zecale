@@ -10,8 +10,11 @@
 #include "libzecale/tests/circuits/dummy_application.hpp"
 
 #include <gtest/gtest.h>
+#include <libzeth/circuits/blake2s/blake2s.hpp>
 
 using namespace libzecale;
+
+template<typename wppT> using hash = libzeth::BLAKE2s_256<libff::Fr<wppT>>;
 
 namespace
 {
@@ -45,14 +48,19 @@ template<
     typename nverifierT,
     size_t batch_size>
 void test_aggregator_with_batch(
+    const size_t num_inputs_per_nested_proof,
     const typename nverifierT::snark::keypair &nkp,
     const proof_batch<
         libzecale::other_curve<wppT>,
         typename nverifierT::snark,
         batch_size> &batch,
     const typename wsnarkT::keypair &wkeypair,
-    aggregator_circuit_wrapper<wppT, wsnarkT, nverifierT, batch_size>
-        &aggregator,
+    aggregator_circuit_wrapper<
+        wppT,
+        wsnarkT,
+        nverifierT,
+        hash<wppT>,
+        batch_size> &aggregator,
     const std::array<libff::Fr<wppT>, batch_size> &expected_results)
 {
     using npp = libzecale::other_curve<wppT>;
@@ -69,6 +77,12 @@ void test_aggregator_with_batch(
     const libsnark::r1cs_primary_input<libff::Fr<wppT>> &winputs =
         wpf.get_primary_inputs();
     size_t winput_idx = 0;
+
+    // Check the nested vk hash
+    libff::Fr<wppT> expect_nested_vk_hash =
+        verification_key_hash_gadget<wppT, nverifierT, hash<wppT>>::
+            compute_hash(nkp.vk, num_inputs_per_nested_proof);
+    ASSERT_EQ(expect_nested_vk_hash, winputs[winput_idx++]);
 
     for (size_t proof_idx = 0; proof_idx < batch_size; ++proof_idx) {
         // Check that each input from the batch appears as expected in the
@@ -111,13 +125,19 @@ void test_aggregate_dummy_application()
     npf2.write_json(std::cout);
 
     // Wrapper keypair
-    aggregator_circuit_wrapper<wppT, wsnarkT, nverifierT, batch_size>
+    aggregator_circuit_wrapper<
+        wppT,
+        wsnarkT,
+        nverifierT,
+        hash<wppT>,
+        batch_size>
         aggregator(public_inputs_per_proof);
     const typename wsnarkT::keypair wkeypair =
         aggregator.generate_trusted_setup();
 
     // Create and check a batched proof.
     test_aggregator_with_batch(
+        public_inputs_per_proof,
         nkp,
         {{&npf1, &npf2}},
         wkeypair,
@@ -159,13 +179,19 @@ void test_aggregate_dummy_application_with_invalid_proof()
     npf2_invalid.write_json(std::cout);
 
     // Wrapper keypair
-    aggregator_circuit_wrapper<wppT, wsnarkT, nverifierT, batch_size>
+    aggregator_circuit_wrapper<
+        wppT,
+        wsnarkT,
+        nverifierT,
+        hash<wppT>,
+        batch_size>
         aggregator(public_inputs_per_proof);
     const typename wsnarkT::keypair wkeypair =
         aggregator.generate_trusted_setup();
 
     // Create and check a batched proof
     test_aggregator_with_batch(
+        public_inputs_per_proof,
         nkp,
         {{&npf1, &npf2_invalid}},
         wkeypair,

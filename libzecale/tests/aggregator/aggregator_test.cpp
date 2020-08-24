@@ -196,8 +196,12 @@ libzeth::extended_proof<nppT, snarkT> generate_valid_zeth_proof(
 /// We use the same SNARK for simplicity.
 template<typename wppT, typename wsnarkT, typename nverifierT>
 bool test_valid_aggregation_batch_proofs(
-    aggregator_circuit_wrapper<wppT, wsnarkT, nverifierT, batch_size>
-        &aggregator_prover,
+    aggregator_circuit_wrapper<
+        wppT,
+        wsnarkT,
+        nverifierT,
+        hash<wppT>,
+        batch_size> &aggregator_prover,
     typename wsnarkT::keypair &aggregator_keypair,
     typename nverifierT::snark::keypair &zeth_keypair,
     const std::array<
@@ -206,9 +210,6 @@ bool test_valid_aggregation_batch_proofs(
             typename nverifierT::snark> *,
         batch_size> &nested_proofs)
 {
-    using npp = libzecale::other_curve<wppT>;
-    using nsnark = typename nverifierT::snark;
-
     libff::enter_block("Generate Aggregate proof", true);
     libzeth::extended_proof<wppT, wsnarkT> ext_proof = aggregator_prover.prove(
         // This should cause a crash because the primary inputs are
@@ -277,7 +278,12 @@ void aggregator_test()
 
     std::cout << "[DEBUG] Before creation of the Aggregator prover"
               << std::endl;
-    aggregator_circuit_wrapper<wppT, wsnarkT, nverifierT, batch_size>
+    aggregator_circuit_wrapper<
+        wppT,
+        wsnarkT,
+        nverifierT,
+        hash<wppT>,
+        batch_size>
         aggregator_prover(num_zeth_inputs);
     std::cout << "[DEBUG] Before gen Aggregator setup" << std::endl;
     typename wsnarkT::keypair aggregator_keypair =
