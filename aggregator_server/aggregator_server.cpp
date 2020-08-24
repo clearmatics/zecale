@@ -83,10 +83,10 @@ private:
     using application_pool =
         libzecale::application_pool<npp, nsnark, batch_size>;
 
-    aggregator_circuit_wrapper aggregator;
+    aggregator_circuit_wrapper &aggregator;
 
     // The keypair is the result of the setup for the aggregation circuit
-    wsnark::keypair keypair;
+    const wsnark::keypair &keypair;
 
     // The nested verification key is the vk used to verify the nested proofs
     std::map<std::string, application_pool *> application_pools;
