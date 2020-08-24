@@ -97,6 +97,11 @@ private:
 public:
     explicit aggregator_circuit_wrapper(const size_t inputs_per_nested_proof);
 
+    aggregator_circuit_wrapper(const aggregator_circuit_wrapper &other) =
+        delete;
+    const aggregator_circuit_wrapper &operator=(
+        const aggregator_circuit_wrapper &other) = delete;
+
     typename wsnarkT::keypair generate_trusted_setup() const;
 
     const libsnark::protoboard<libff::Fr<wppT>> &get_constraint_system() const;
