@@ -239,10 +239,11 @@ public:
             std::array<const libzeth::extended_proof<npp, nsnark> *, batch_size>
                 nested_proofs;
             for (size_t i = 0; i < batch_size; ++i) {
+                nested_proofs[i] = &batch[i].extended_proof();
+
                 std::cout << "[DEBUG] got tx " << std::to_string(i)
                           << " with ext proof:\n";
-                batch[i].extended_proof().write_json(std::cout);
-                nested_proofs[i] = &batch[i].extended_proof();
+                nested_proofs[i]->write_json(std::cout);
             }
 
             // Retrieve the nested verification key for this application.
