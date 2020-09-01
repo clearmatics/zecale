@@ -6,6 +6,7 @@
 // the corresponding pairing parameters type.
 
 #include "libzecale/circuits/aggregator_circuit_wrapper.hpp"
+#include "libzecale/circuits/null_hash_gadget.hpp"
 #include "libzecale/core/application_pool.hpp"
 #include "libzecale/serialization/proto_utils.hpp"
 #include "zecale_config.h"
@@ -19,7 +20,6 @@
 #include <grpcpp/server_context.h>
 #include <iostream>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
-#include <libzeth/circuits/circuit_types.hpp>
 #include <libzeth/core/utils.hpp>
 #include <libzeth/serialization/proto_utils.hpp>
 #include <libzeth/serialization/r1cs_serialization.hpp>
@@ -67,7 +67,7 @@ using napi_handler = libzeth::groth16_api_handler<npp>;
 #endif
 
 using nsnark = typename nverifier::snark;
-using hash = libzeth::BLAKE2s_256<libff::Fr<wpp>>;
+using hash = libzecale::null_hash_gadget<libff::Fr<wpp>>;
 
 static const size_t batch_size = 2;
 static const size_t num_inputs_per_nested_proof = 1;

@@ -4,6 +4,7 @@
 
 #include "libzecale/circuits/aggregator_circuit_wrapper.hpp"
 #include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
+#include "libzecale/circuits/null_hash_gadget.hpp"
 #include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
 #include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
 #include "libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp"
@@ -14,7 +15,9 @@
 
 using namespace libzecale;
 
-template<typename wppT> using hash = libzeth::BLAKE2s_256<libff::Fr<wppT>>;
+template<typename wppT> using full_hash = libzeth::BLAKE2s_256<libff::Fr<wppT>>;
+template<typename wppT>
+using null_hash = libzecale::null_hash_gadget<libff::Fr<wppT>>;
 
 namespace
 {
@@ -46,6 +49,7 @@ template<
     typename wppT,
     typename wsnarkT,
     typename nverifierT,
+    typename hashT,
     size_t batch_size>
 void test_aggregator_with_batch(
     const size_t num_inputs_per_nested_proof,
@@ -55,12 +59,8 @@ void test_aggregator_with_batch(
         typename nverifierT::snark,
         batch_size> &batch,
     const typename wsnarkT::keypair &wkeypair,
-    aggregator_circuit_wrapper<
-        wppT,
-        wsnarkT,
-        nverifierT,
-        hash<wppT>,
-        batch_size> &aggregator,
+    aggregator_circuit_wrapper<wppT, wsnarkT, nverifierT, hashT, batch_size>
+        &aggregator,
     const std::array<libff::Fr<wppT>, batch_size> &expected_results)
 {
     using npp = libzecale::other_curve<wppT>;
@@ -80,9 +80,10 @@ void test_aggregator_with_batch(
 
     // Check the nested vk hash
     libff::Fr<wppT> expect_nested_vk_hash =
-        verification_key_hash_gadget<wppT, nverifierT, hash<wppT>>::
-            compute_hash(nkp.vk, num_inputs_per_nested_proof);
-    ASSERT_EQ(expect_nested_vk_hash, winputs[winput_idx++]);
+        verification_key_hash_gadget<wppT, nverifierT, hashT>::compute_hash(
+            nkp.vk, num_inputs_per_nested_proof);
+    ASSERT_EQ(expect_nested_vk_hash, winputs[winput_idx]);
+    ++winput_idx;
 
     for (size_t proof_idx = 0; proof_idx < batch_size; ++proof_idx) {
         // Check that each input from the batch appears as expected in the
@@ -99,7 +100,7 @@ void test_aggregator_with_batch(
     }
 }
 
-template<typename wppT, typename wsnarkT, typename nverifierT>
+template<typename wppT, typename wsnarkT, typename nverifierT, typename hashT>
 void test_aggregate_dummy_application()
 {
     using npp = other_curve<wppT>;
@@ -125,12 +126,7 @@ void test_aggregate_dummy_application()
     npf2.write_json(std::cout);
 
     // Wrapper keypair
-    aggregator_circuit_wrapper<
-        wppT,
-        wsnarkT,
-        nverifierT,
-        hash<wppT>,
-        batch_size>
+    aggregator_circuit_wrapper<wppT, wsnarkT, nverifierT, hashT, batch_size>
         aggregator(public_inputs_per_proof);
     const typename wsnarkT::keypair wkeypair =
         aggregator.generate_trusted_setup();
@@ -145,7 +141,7 @@ void test_aggregate_dummy_application()
         {libff::Fr<wppT>::one(), libff::Fr<wppT>::one()});
 }
 
-template<typename wppT, typename wsnarkT, typename nverifierT>
+template<typename wppT, typename wsnarkT, typename nverifierT, typename hashT>
 void test_aggregate_dummy_application_with_invalid_proof()
 {
     using npp = other_curve<wppT>;
@@ -179,12 +175,7 @@ void test_aggregate_dummy_application_with_invalid_proof()
     npf2_invalid.write_json(std::cout);
 
     // Wrapper keypair
-    aggregator_circuit_wrapper<
-        wppT,
-        wsnarkT,
-        nverifierT,
-        hash<wppT>,
-        batch_size>
+    aggregator_circuit_wrapper<wppT, wsnarkT, nverifierT, hashT, batch_size>
         aggregator(public_inputs_per_proof);
     const typename wsnarkT::keypair wkeypair =
         aggregator.generate_trusted_setup();
@@ -204,11 +195,12 @@ TEST(AggregatorTest, AggregateDummyApplicationMnt4Groth16Mnt6Groth16)
     using wpp = libff::mnt6_pp;
     using wsnark = libzeth::groth16_snark<wpp>;
     using nverifier = groth16_verifier_parameters<wpp>;
-    test_aggregate_dummy_application<wpp, wsnark, nverifier>();
+    test_aggregate_dummy_application<wpp, wsnark, nverifier, null_hash<wpp>>();
     test_aggregate_dummy_application_with_invalid_proof<
         wpp,
         wsnark,
-        nverifier>();
+        nverifier,
+        null_hash<wpp>>();
 }
 
 TEST(AggregatorTest, AggregateDummyApplicationBls12Groth16Bw6Groth16)
@@ -216,11 +208,12 @@ TEST(AggregatorTest, AggregateDummyApplicationBls12Groth16Bw6Groth16)
     using wpp = libff::bw6_761_pp;
     using wsnark = groth16_snark<wpp>;
     using nverifier = groth16_verifier_parameters<wpp>;
-    test_aggregate_dummy_application<wpp, wsnark, nverifier>();
+    test_aggregate_dummy_application<wpp, wsnark, nverifier, null_hash<wpp>>();
     test_aggregate_dummy_application_with_invalid_proof<
         wpp,
         wsnark,
-        nverifier>();
+        nverifier,
+        null_hash<wpp>>();
 }
 
 TEST(AggregatorTest, AggregateDummyApplicationBls12Groth16Bw6Pghr13)
@@ -228,11 +221,12 @@ TEST(AggregatorTest, AggregateDummyApplicationBls12Groth16Bw6Pghr13)
     using wpp = libff::bw6_761_pp;
     using wsnark = libzeth::pghr13_snark<wpp>;
     using nverifier = groth16_verifier_parameters<wpp>;
-    test_aggregate_dummy_application<wpp, wsnark, nverifier>();
+    test_aggregate_dummy_application<wpp, wsnark, nverifier, null_hash<wpp>>();
     test_aggregate_dummy_application_with_invalid_proof<
         wpp,
         wsnark,
-        nverifier>();
+        nverifier,
+        null_hash<wpp>>();
 }
 
 } // namespace

@@ -4,6 +4,7 @@
 
 #include "libzecale/circuits/aggregator_circuit_wrapper.hpp"
 #include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
+#include "libzecale/circuits/null_hash_gadget.hpp"
 #include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
 #include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
 #include "libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp"
@@ -40,6 +41,8 @@ static const size_t batch_size = 2;
 // [Root, NullifierS(2), CommitmentS(2), h_sig, h_iS(2), Residual Field,
 // Element]
 static const size_t num_zeth_inputs = 9;
+template<typename wppT>
+using nested_key_hash = libzecale::null_hash_gadget<libff::Fr<wppT>>;
 
 using namespace libzecale;
 
@@ -200,7 +203,7 @@ bool test_valid_aggregation_batch_proofs(
         wppT,
         wsnarkT,
         nverifierT,
-        hash<wppT>,
+        nested_key_hash<wppT>,
         batch_size> &aggregator_prover,
     typename wsnarkT::keypair &aggregator_keypair,
     typename nverifierT::snark::keypair &zeth_keypair,
@@ -282,7 +285,7 @@ void aggregator_test()
         wppT,
         wsnarkT,
         nverifierT,
-        hash<wppT>,
+        nested_key_hash<wppT>,
         batch_size>
         aggregator_prover(num_zeth_inputs);
     std::cout << "[DEBUG] Before gen Aggregator setup" << std::endl;
