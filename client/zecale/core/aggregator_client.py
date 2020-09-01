@@ -5,7 +5,8 @@
 from zecale.api import aggregator_pb2_grpc
 from zecale.api import aggregator_pb2
 import grpc
-from zeth.zksnark import IZKSnarkProvider, GenericVerificationKey, GenericProof
+from zeth.core.zksnark import \
+    IZKSnarkProvider, GenericVerificationKey, GenericProof
 from google.protobuf import empty_pb2
 from typing import Dict
 

@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "api/aggregator.pb.h"
-#include "api/ec_group_messages.pb.h"
 #include "libzecale/serialization/proto_utils.hpp"
 
 #include "gtest/gtest.h"
@@ -16,6 +14,8 @@
 #include <libzeth/snarks/groth16/groth16_api_handler.hpp>
 #include <libzeth/snarks/pghr13/pghr13_api_handler.hpp>
 #include <stdio.h>
+#include <zecale/api/aggregator.pb.h>
+#include <zeth/api/ec_group_messages.pb.h>
 
 using namespace libzecale;
 
