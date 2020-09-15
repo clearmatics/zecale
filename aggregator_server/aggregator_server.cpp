@@ -75,6 +75,32 @@ static const size_t num_inputs_per_nested_proof = 1;
 using aggregator_circuit =
     libzecale::aggregator_circuit<wpp, wsnark, nverifier, hash, batch_size>;
 
+static wsnark::keypair load_keypair(const boost::filesystem::path &keypair_file)
+{
+    std::ifstream in(
+        keypair_file.c_str(), std::ios_base::in | std::ios_base::binary);
+    in.exceptions(
+        std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
+    return wsnark::keypair_read_bytes(in);
+}
+
+static void write_keypair(
+    const typename wsnark::keypair &keypair,
+    const boost::filesystem::path &keypair_file)
+{
+    std::ofstream out_s(
+        keypair_file.c_str(), std::ios_base::out | std::ios_base::binary);
+    wsnark::keypair_write_bytes(keypair, out_s);
+}
+
+static void write_constraint_system(
+    const aggregator_circuit &aggregator,
+    const boost::filesystem::path &r1cs_file)
+{
+    std::ofstream r1cs_stream(r1cs_file.c_str());
+    libzeth::r1cs_write_json<wpp>(
+        aggregator.get_constraint_system(), r1cs_stream);
+}
 /// The aggregator_server class inherits from the Aggregator service defined in
 /// the proto files, and provides an implementation of the service.
 class aggregator_server final : public zecale_proto::Aggregator::Service
@@ -344,25 +370,17 @@ static void RunServer(
     server->Wait();
 }
 
-#ifdef ZKSNARK_GROTH16
-static wsnark::KeypairT load_keypair(const std::string &keypair_file)
-{
-    std::ifstream in(keypair_file, std::ios_base::in | std::ios_base::binary);
-    in.exceptions(
-        std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    return wsnark::keypair_read_bytes(in);
-}
-#endif
-
 int main(int argc, char **argv)
 {
     // Options
     po::options_description options("");
     options.add_options()(
-        "keypair,k", po::value<std::string>(), "file to load keypair from");
+        "keypair,k",
+        po::value<boost::filesystem::path>(),
+        "file to load keypair from");
 #ifdef DEBUG
     options.add_options()(
-        "jr1cs,j",
+        "r1cs,r",
         po::value<boost::filesystem::path>(),
         "file in which to export the r1cs in json format");
 #endif
@@ -376,10 +394,8 @@ int main(int argc, char **argv)
         std::cout << std::endl;
     };
 
-    std::string keypair_file;
-#ifdef DEBUG
-    boost::filesystem::path jr1cs_file;
-#endif
+    boost::filesystem::path keypair_file;
+    boost::filesystem::path r1cs_file;
     try {
         po::variables_map vm;
         po::store(
@@ -389,54 +405,58 @@ int main(int argc, char **argv)
             return 0;
         }
         if (vm.count("keypair")) {
-            keypair_file = vm["keypair"].as<std::string>();
+            keypair_file = vm["keypair"].as<boost::filesystem::path>();
         }
-#ifdef DEBUG
-        if (vm.count("jr1cs")) {
-            jr1cs_file = vm["jr1cs"].as<boost::filesystem::path>();
+        if (vm.count("r1cs")) {
+            r1cs_file = vm["r1cs"].as<boost::filesystem::path>();
         }
-#endif
     } catch (po::error &error) {
         std::cerr << " ERROR: " << error.what() << std::endl;
         usage();
         return 1;
     }
 
-    // We inititalize the curve parameters here
+    // Default keypair_file if none given
+    if (keypair_file.empty()) {
+        boost::filesystem::path setup_dir =
+            libzeth::get_path_to_setup_directory();
+        if (!setup_dir.empty()) {
+            boost::filesystem::create_directories(setup_dir);
+        }
+        keypair_file = setup_dir / "zecale_keypair.bin";
+    }
+
+    // Inititalize the curve parameters
     std::cout << "[INFO] Init params of both curves" << std::endl;
     npp::init_public_params();
     wpp::init_public_params();
 
-    libzecale::aggregator_circuit<wpp, wsnark, nverifier, hash, batch_size>
-        aggregator(num_inputs_per_nested_proof);
+    // Set up the aggregator circuit
+    aggregator_circuit aggregator(num_inputs_per_nested_proof);
+
+    // Load or generate the keypair
     wsnark::keypair keypair = [&keypair_file, &aggregator]() {
-        if (!keypair_file.empty()) {
-#ifdef ZKSNARK_GROTH16
-            std::cout << "[INFO] Loading keypair: " << keypair_file
-                      << std::endl;
+        if (boost::filesystem::exists(keypair_file)) {
+            std::cout << "[INFO] Loading keypair: " << keypair_file << "\n";
             return load_keypair(keypair_file);
-#else
-            std::cout << "Keypair loading not supported in this config"
-                      << std::endl;
-            exit(1);
-#endif
         }
 
-        std::cout << "[INFO] Generate new keypair" << std::endl;
-        wsnark::keypair keypair = aggregator.generate_trusted_setup();
+        std::cout << "[INFO] No keypair file " << keypair_file
+                  << ". Generating.\n";
+        const wsnark::keypair keypair = aggregator.generate_trusted_setup();
+        std::cout << "[INFO] Writing new keypair to " << keypair_file << "\n";
+        write_keypair(keypair, keypair_file);
         return keypair;
     }();
 
-#ifdef DEBUG
-    // Run only if the flag is set
-    if (!jr1cs_file.empty()) {
-        std::cout << "[DEBUG] Dump R1CS to json file" << std::endl;
-        std::ofstream jr1cs_stream(jr1cs_file.c_str());
-        libzeth::r1cs_write_json<wpp>(
-            aggregator.get_constraint_system(), jr1cs_stream);
+    // If a file has been given for the JSON representation of the circuit,
+    // write it out.
+    if (!r1cs_file.empty()) {
+        std::cout << "[INFO] Writing R1CS to " << std::endl;
+        write_constraint_system(aggregator, r1cs_file);
     }
-#endif
 
+    // Launch the server
     std::cout << "[INFO] Setup successful, starting the server..." << std::endl;
     RunServer(aggregator, keypair);
     return 0;
