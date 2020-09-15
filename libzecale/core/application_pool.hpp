@@ -7,9 +7,7 @@
 
 #include "transaction_to_aggregate.hpp"
 
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
 #include <queue>
-#include <vector>
 
 namespace libzecale
 {
@@ -25,47 +23,44 @@ class application_pool
 {
 private:
     /// Name/Identifier of the application (E.g. "zeth")
-    std::string _name;
+    const std::string _name;
+
     /// Verification key used to verify the nested proofs
-    std::shared_ptr<typename nsnarkT::verification_key> _verification_key;
+    const typename nsnarkT::verification_key _verification_key;
+
     /// Pool of transactions to aggregate
-    std::priority_queue<
-        transaction_to_aggregate<nppT, nsnarkT>,
-        std::vector<transaction_to_aggregate<nppT, nsnarkT>>>
-        _tx_pool;
+    std::priority_queue<transaction_to_aggregate<nppT, nsnarkT>> _tx_pool;
 
 public:
-    application_pool() = default;
     application_pool(
-        const std::string &name, typename nsnarkT::verification_key vk);
-    virtual ~application_pool(){};
+        const std::string &name, const typename nsnarkT::verification_key &vk);
 
-    inline std::string name() const { return this->_name; };
+    // Prevent some operations which may have unintended consequences and
+    // unnecessary allocation and copying.
+
+    application_pool(const application_pool &other) = delete;
+    application_pool &operator=(const application_pool &other) = delete;
+
+    const std::string &name() const;
 
     /// Function that returns the verification key associated with this
     /// application. This constitutes part of the witness of the aggregator
     /// circuit.
-    inline typename nsnarkT::verification_key verification_key() const
-    {
-        return *(this->_verification_key);
-    };
-
-    /// Function that returns the next batch of proofs to aggregate.
-    /// This constitutes part of the witness of the aggregator circuit.
-    ///
-    /// TODO: Harden this function to pad the batch with dummy inputs if there
-    /// are less proofs in the queue than the batch size.
-    std::array<transaction_to_aggregate<nppT, nsnarkT>, NumProofs> get_next_batch();
-
-    /// Returns the number of transactions in the _tx_pool
-    inline size_t tx_pool_size() { return this->_tx_pool.size(); }
+    const typename nsnarkT::verification_key &verification_key() const;
 
     /// Add transaction to the pool
-    inline void add_tx(transaction_to_aggregate<nppT, nsnarkT> tx)
-    {
-        this->_tx_pool.push(tx);
-        return;
-    }
+    void add_tx(const transaction_to_aggregate<nppT, nsnarkT> &tx);
+
+    /// Returns the number of transactions in the _tx_pool
+    size_t tx_pool_size() const;
+
+    // TODO: Use better types to make it safer to retrieve smaller batches.
+
+    /// Fill the array with transactions popped from the queue. Returns the
+    /// number of transactions placed in the array. Any remaining entries are
+    /// unntouched, and should be ignored by the caller.
+    size_t get_next_batch(
+        std::array<transaction_to_aggregate<nppT, nsnarkT>, NumProofs> &batch);
 };
 
 } // namespace libzecale

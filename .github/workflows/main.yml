@@ -9,7 +9,7 @@ env:
   CI_EVENT_NAME: ${{ github.event_name }}
 
 jobs:
-  build-macos-debug:
+  build-macos:
     runs-on: macos-10.15
     strategy:
       matrix:

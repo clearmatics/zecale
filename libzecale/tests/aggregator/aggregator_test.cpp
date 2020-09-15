@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
+#include "libzecale/circuits/aggregator_circuit_wrapper.hpp"
 #include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
 #include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
 #include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
 #include "libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp"
-#include "libzecale/core/aggregator_circuit_wrapper.hpp"
 
 #include <gtest/gtest.h>
 #include <libff/algebra/fields/field_utils.hpp>
@@ -36,6 +36,11 @@ static const size_t inputs_number = 2;
 static const size_t outputs_number = 2;
 static const size_t batch_size = 2;
 
+// The # of primary inputs for Zeth proofs is 9, since the primary inputs are:
+// [Root, NullifierS(2), CommitmentS(2), h_sig, h_iS(2), Residual Field,
+// Element]
+static const size_t num_zeth_inputs = 9;
+
 using namespace libzecale;
 
 namespace
@@ -53,7 +58,7 @@ libzeth::extended_proof<nppT, snarkT> generate_valid_zeth_proof(
         inputs_number,
         outputs_number,
         tree_depth> &zeth_prover,
-    typename snarkT::keypair zeth_keypair)
+    const typename snarkT::keypair &zeth_keypair)
 {
     using zethScalarField = libff::Fr<nppT>;
 
@@ -268,7 +273,7 @@ void aggregator_test()
     std::cout << "[DEBUG] Before creation of the Aggregator prover"
               << std::endl;
     aggregator_circuit_wrapper<nppT, wppT, nsnarkT, wverifierT, batch_size>
-        aggregator_prover;
+        aggregator_prover(num_zeth_inputs);
     std::cout << "[DEBUG] Before gen Aggregator setup" << std::endl;
     typename wsnark::keypair aggregator_keypair =
         aggregator_prover.generate_trusted_setup();

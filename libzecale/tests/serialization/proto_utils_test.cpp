@@ -71,10 +71,9 @@ template<typename ppT> void test_parse_transaction_to_aggregate_pghr13()
     h->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_H));
     k->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_K));
 
-    const libsnark::r1cs_ppzksnark_primary_input<ppT> &pub_inputs =
-        mock_extended_proof.get_primary_inputs();
-    std::string inputs_json =
-        libzeth::primary_inputs_to_string<ppT>(pub_inputs);
+    std::stringstream inputs_ss;
+    libzeth::primary_inputs_write_json(
+        mock_extended_proof.get_primary_inputs(), inputs_ss);
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
@@ -91,7 +90,7 @@ template<typename ppT> void test_parse_transaction_to_aggregate_pghr13()
     grpc_extended_pghr13_proof_obj->set_allocated_c_p(c_p);
     grpc_extended_pghr13_proof_obj->set_allocated_h(h);
     grpc_extended_pghr13_proof_obj->set_allocated_k(k);
-    grpc_extended_pghr13_proof_obj->set_inputs(inputs_json);
+    grpc_extended_pghr13_proof_obj->set_inputs(inputs_ss.str());
 
     ext_proof->set_allocated_pghr13_extended_proof(
         grpc_extended_pghr13_proof_obj);
@@ -152,10 +151,9 @@ template<typename ppT> void test_parse_transaction_to_aggregate_groth16()
     b->CopyFrom(libzeth::point_g2_affine_to_proto<ppT>(proofObj.g_B)); // in G2
     c->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_C));
 
-    const libsnark::r1cs_gg_ppzksnark_primary_input<ppT> &pub_inputs =
-        mock_extended_proof.get_primary_inputs();
-    std::string inputs_json =
-        libzeth::primary_inputs_to_string<ppT>(pub_inputs);
+    std::stringstream inputs_ss;
+    libzeth::primary_inputs_write_json(
+        mock_extended_proof.get_primary_inputs(), inputs_ss);
 
     // Note on memory safety: set_allocated deleted the allocated objects
     // See:
@@ -167,7 +165,7 @@ template<typename ppT> void test_parse_transaction_to_aggregate_groth16()
     grpc_extended_groth16_proof_obj->set_allocated_a(a);
     grpc_extended_groth16_proof_obj->set_allocated_b(b);
     grpc_extended_groth16_proof_obj->set_allocated_c(c);
-    grpc_extended_groth16_proof_obj->set_inputs(inputs_json);
+    grpc_extended_groth16_proof_obj->set_inputs(inputs_ss.str());
 
     ext_proof->set_allocated_groth16_extended_proof(
         grpc_extended_groth16_proof_obj);

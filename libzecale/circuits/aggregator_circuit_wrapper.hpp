@@ -5,7 +5,7 @@
 #ifndef __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
 #define __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
 
-#include "libzecale/circuits/aggregator.tcc"
+#include "libzecale/circuits/aggregator_gadget.hpp"
 
 #include <libzeth/core/extended_proof.hpp>
 
@@ -25,19 +25,20 @@ class aggregator_circuit_wrapper
 private:
     using wsnark = typename wverifierT::snark;
 
-    std::shared_ptr<
-        aggregator_gadget<nppT, wppT, nsnarkT, wverifierT, NumProofs>>
-        aggregator_g;
+    const size_t num_inputs_per_nested_proof;
+
+    // TODO: Cache the circuit to save reconstructing it at every call.
 
 public:
-    aggregator_circuit_wrapper(){};
+    explicit aggregator_circuit_wrapper(const size_t inputs_per_nested_proof);
 
     typename wsnark::keypair generate_trusted_setup() const;
+
     libsnark::protoboard<libff::Fr<wppT>> get_constraint_system() const;
 
     /// Generate a proof and returns an extended proof
     extended_proof<wppT, wsnark> prove(
-        typename nsnarkT::verification_key nested_vk,
+        const typename nsnarkT::verification_key &nested_vk,
         const std::array<
             const libzeth::extended_proof<nppT, nsnarkT> *,
             NumProofs> &extended_proofs,

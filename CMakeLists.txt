@@ -49,7 +49,7 @@ option(
 # Here the Zeth proofs are assumed to be generated over MNT4 since we will verify them over MNT6
 set(
   ZECALE_CURVE
-  "MNT6"
+  "BW6_761"
   CACHE
   STRING
   "Default curve (Warning: make sure the choosen curve matches the curve used to

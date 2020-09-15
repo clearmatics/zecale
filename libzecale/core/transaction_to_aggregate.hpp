@@ -25,11 +25,11 @@ private:
 
 public:
     transaction_to_aggregate(){};
+
     transaction_to_aggregate(
         const std::string &application_name,
         const libzeth::extended_proof<nppT, nsnarkT> &extended_proof,
         uint32_t fee_wei = 0);
-    virtual ~transaction_to_aggregate(){};
 
     inline const std::string &application_name() const
     {
