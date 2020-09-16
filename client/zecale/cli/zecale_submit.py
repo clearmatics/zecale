@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zecale.commands.utils import load_transaction
+from zecale.cli.utils import load_transaction
 from click import option, command, pass_context, Context
 
 

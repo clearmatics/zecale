@@ -32,6 +32,6 @@ setup(
         "grpcio-tools==1.30",
     ],
     scripts=[
-        "zecale/commands/zecale",
+        "zecale/cli/zecale",
     ]
 )

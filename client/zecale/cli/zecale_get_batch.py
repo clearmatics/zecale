@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zecale.commands.defaults import BATCH_PROOF_FILENAME_DEFAULT
+from zecale.cli.defaults import BATCH_PROOF_FILENAME_DEFAULT
 import json
 from click import option, command, pass_context, Context
 
