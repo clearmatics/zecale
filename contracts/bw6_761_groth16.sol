@@ -30,44 +30,38 @@ pragma solidity ^0.5.0;
 //     0x0a1d86c80b95a59c94c97eb733293fef64f293dbd2c712b88906c170ffa82300,
 //     0x3ea96fcd504affc758aa2d3a3c5a02a591ec0594f9eac689eb70a16728c73b61,
 //   ]
-//  -y = [
-//     0x010b24ef8422976b500dde2f20442c62926e48cfb30f2e6bd0dae7c82c87db2b,
-//     0x665e1f70d9ef437c6f053c47f28ae315219735114032ead7e8d6126b7443dc2e,
-//     0x59f7a6f5061ca930bd62cb74ae96a19254a538d3761539f9092c5e98d738c52a,
-//   ]
-
 
 library bw6_761_groth16
 {
     // Structure of the verification key array:
     // struct VerificationKey
     // {
-    //     uint256[6] alpha;   // offset 0x00
-    //     uint256[6] beta;    // offset 0x06
-    //     uint256[6] delta;   // offset 0x0c
-    //     uint256[] abc;      // offset 0x12
+    //     uint256[6] alpha;   // offset 0x00 words (0x000 bytes)
+    //     uint256[6] beta;    // offset 0x06 words (0x0c0 bytes)
+    //     uint256[6] delta;   // offset 0x0c words (0x180 bytes)
+    //     uint256[] abc;      // offset 0x12 words (0x240 bytes)
+    // }
+
+    // Structure of the proof array:
+    // struct Proof
+    // {
+    //     uint256[6] a;       // offset 0x00 words (0x000 bytes)
+    //     uint256[6] minus_b; // offset 0x06 words (0x0c0 bytes)
+    //     uint256[6] c;       // offset 0x0c words (0x180 bytes)
     // }
 
     function verify(
-        uint256[6] memory alpha,
-        uint256[6] memory beta,
-        uint256[6] memory delta,
-        uint256[] memory abc,
-        uint256[6] memory a,
-        uint256[6] memory minus_b,
-        uint256[6] memory c,
+        uint256[] memory vk_data,
+        uint256[18] memory proof,
         uint256[] memory inputs) internal returns(uint256)
     {
-        uint256 num_inputs = (abc.length / 6) - 1;
+        uint256 num_inputs = ((vk_data.length - 0x12) / 6) - 1;
         require(
             (inputs.length / 2) == num_inputs,
             "Input length differs from expected");
 
         // Memory scratch pad, large enough to accomodate the max used size
-        // (see layout diagrams below).  Note that:
-        //   Fr elements occupy:  2 x uint256 = 64 bytes = 0x40 bytes
-        //   Fq elements occupy:  3 x uint256 = 96 bytes = 0x60 bytes
-        //   G1 elements occupy:  6 x uint256 = 192 bytes = 0xc0 bytes
+        // (see layout diagrams below).
         uint256[24] memory pad;
         bool result = true;
 
@@ -104,12 +98,9 @@ library bw6_761_groth16
 
             // Skip first word of `abc` and `inputs`.  Compute
             // the end of the array (each element is 0x40 bytes).
-            let abc_i := add(abc, 0x20)
+            let abc_i := add(vk_data, 0x260) // 0x240 + 0x20
             let input_i := add(inputs, 0x20)
             let input_end := add(input_i, mul(num_inputs, 0x40))
-
-            // TODO: Check whether it is cheaper to keep local variables
-            // pointing to all the pad memory location.
 
             // Initialize 6 words of (accum_x, accum_y)
             mstore(pad, mload(abc_i))
@@ -179,26 +170,20 @@ library bw6_761_groth16
         //  OFFSET  USAGE
         //   0x600          <END>
         //   0x540~0x600    vk.delta
-        //   0x480~0x540    c
-        //   0x3c0~0x480    b
-        //   0x300~0x3c0    a_neg
+        //   0x480~0x540    proof.c
+        //   0x3c0~0x480    proof.minus_b
+        //   0x300~0x3c0    proof.a
         //   0x240~0x300    vk.beta
         //   0x180~0x240    vk.alpha
         //   0x0c0~0x180    g_2
         //   0x000~0x0c0    accum
 
-        // TODO:
-        //   0x540~0x600    negate(vk.delta)
-        //   0x480~0x540    c
-        //   0x3c0~0x480    b
-        //   0x300~0x3c0    a
-        //   0x240~0x300    negate(vk.beta)
-        //   0x180~0x240    vk.alpha
-        //   0x0c0~0x180    negate(g_2)
-        //   0x000~0x0c0    accum
-
         assembly
         {
+            // TODO: bake this into the offsets below
+            // skip the vk length word
+            let vk := add(vk_data, 0x20)
+
             // accum already in place
 
             // Write g_2
@@ -220,60 +205,51 @@ library bw6_761_groth16
             mstore(
                 add(pad, 0x160),
                 0x3ea96fcd504affc758aa2d3a3c5a02a591ec0594f9eac689eb70a16728c73b61)
-            // mstore(
-            //     add(pad, 0x120),
-            //     0x010b24ef8422976b500dde2f20442c62926e48cfb30f2e6bd0dae7c82c87db2b)
-            // mstore(
-            //     add(pad, 0x140),
-            //     0x665e1f70d9ef437c6f053c47f28ae315219735114032ead7e8d6126b7443dc2e)
-            // mstore(
-            //     add(pad, 0x160),
-            //     0x59f7a6f5061ca930bd62cb74ae96a19254a538d3761539f9092c5e98d738c52a)
 
             // write vk.alpha and vk.beta
-            mstore(add(pad, 0x180), mload(alpha))
-            mstore(add(pad, 0x1a0), mload(add(alpha, 0x20)))
-            mstore(add(pad, 0x1c0), mload(add(alpha, 0x40)))
-            mstore(add(pad, 0x1e0), mload(add(alpha, 0x60)))
-            mstore(add(pad, 0x200), mload(add(alpha, 0x80)))
-            mstore(add(pad, 0x220), mload(add(alpha, 0xa0)))
+            mstore(add(pad, 0x180), mload(vk))
+            mstore(add(pad, 0x1a0), mload(add(vk, 0x020)))
+            mstore(add(pad, 0x1c0), mload(add(vk, 0x040)))
+            mstore(add(pad, 0x1e0), mload(add(vk, 0x060)))
+            mstore(add(pad, 0x200), mload(add(vk, 0x080)))
+            mstore(add(pad, 0x220), mload(add(vk, 0x0a0)))
 
-            mstore(add(pad, 0x240), mload(beta))
-            mstore(add(pad, 0x260), mload(add(beta, 0x20)))
-            mstore(add(pad, 0x280), mload(add(beta, 0x40)))
-            mstore(add(pad, 0x2a0), mload(add(beta, 0x60)))
-            mstore(add(pad, 0x2c0), mload(add(beta, 0x80)))
-            mstore(add(pad, 0x2e0), mload(add(beta, 0xa0)))
+            mstore(add(pad, 0x240), mload(add(vk, 0x0c0)))
+            mstore(add(pad, 0x260), mload(add(vk, 0x0e0)))
+            mstore(add(pad, 0x280), mload(add(vk, 0x100)))
+            mstore(add(pad, 0x2a0), mload(add(vk, 0x120)))
+            mstore(add(pad, 0x2c0), mload(add(vk, 0x140)))
+            mstore(add(pad, 0x2e0), mload(add(vk, 0x160)))
 
-            // write negate(a) and b
-            mstore(add(pad, 0x300), mload(a))
-            mstore(add(pad, 0x320), mload(add(a, 0x020)))
-            mstore(add(pad, 0x340), mload(add(a, 0x040)))
-            mstore(add(pad, 0x360), mload(add(a, 0x060)))
-            mstore(add(pad, 0x380), mload(add(a, 0x080)))
-            mstore(add(pad, 0x3a0), mload(add(a, 0x0a0)))
+            // write proof.a and proof.minus_b
+            mstore(add(pad, 0x300), mload(proof))
+            mstore(add(pad, 0x320), mload(add(proof, 0x020)))
+            mstore(add(pad, 0x340), mload(add(proof, 0x040)))
+            mstore(add(pad, 0x360), mload(add(proof, 0x060)))
+            mstore(add(pad, 0x380), mload(add(proof, 0x080)))
+            mstore(add(pad, 0x3a0), mload(add(proof, 0x0a0)))
 
-            mstore(add(pad, 0x3c0), mload(minus_b))
-            mstore(add(pad, 0x3e0), mload(add(minus_b, 0x020)))
-            mstore(add(pad, 0x400), mload(add(minus_b, 0x040)))
-            mstore(add(pad, 0x420), mload(add(minus_b, 0x060)))
-            mstore(add(pad, 0x440), mload(add(minus_b, 0x080)))
-            mstore(add(pad, 0x460), mload(add(minus_b, 0x0a0)))
+            mstore(add(pad, 0x3c0), mload(add(proof, 0x0c0)))
+            mstore(add(pad, 0x3e0), mload(add(proof, 0x0e0)))
+            mstore(add(pad, 0x400), mload(add(proof, 0x100)))
+            mstore(add(pad, 0x420), mload(add(proof, 0x120)))
+            mstore(add(pad, 0x440), mload(add(proof, 0x140)))
+            mstore(add(pad, 0x460), mload(add(proof, 0x160)))
 
-            // write c, followed by vk.delta
-            mstore(add(pad, 0x480), mload(c))
-            mstore(add(pad, 0x4a0), mload(add(c, 0x020)))
-            mstore(add(pad, 0x4c0), mload(add(c, 0x040)))
-            mstore(add(pad, 0x4e0), mload(add(c, 0x060)))
-            mstore(add(pad, 0x500), mload(add(c, 0x080)))
-            mstore(add(pad, 0x520), mload(add(c, 0x0a0)))
+            // write proof.c, followed by vk.delta
+            mstore(add(pad, 0x480), mload(add(proof, 0x180)))
+            mstore(add(pad, 0x4a0), mload(add(proof, 0x1a0)))
+            mstore(add(pad, 0x4c0), mload(add(proof, 0x1c0)))
+            mstore(add(pad, 0x4e0), mload(add(proof, 0x1e0)))
+            mstore(add(pad, 0x500), mload(add(proof, 0x200)))
+            mstore(add(pad, 0x520), mload(add(proof, 0x220)))
 
-            mstore(add(pad, 0x540), mload(delta))
-            mstore(add(pad, 0x560), mload(add(delta, 0x020)))
-            mstore(add(pad, 0x580), mload(add(delta, 0x040)))
-            mstore(add(pad, 0x5a0), mload(add(delta, 0x060)))
-            mstore(add(pad, 0x5c0), mload(add(delta, 0x080)))
-            mstore(add(pad, 0x5e0), mload(add(delta, 0x0a0)))
+            mstore(add(pad, 0x540), mload(add(vk, 0x180)))
+            mstore(add(pad, 0x560), mload(add(vk, 0x1a0)))
+            mstore(add(pad, 0x580), mload(add(vk, 0x1c0)))
+            mstore(add(pad, 0x5a0), mload(add(vk, 0x1e0)))
+            mstore(add(pad, 0x5c0), mload(add(vk, 0x200)))
+            mstore(add(pad, 0x5e0), mload(add(vk, 0x220)))
 
             // Call ecpairing
             result := call(gas, 0xc3, 0, pad, 0x600, pad, 0x20)

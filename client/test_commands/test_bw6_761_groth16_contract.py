@@ -9,6 +9,7 @@ from zeth.core.utils import hex_list_to_uint256_list
 from zeth.core.contracts import InstanceDescription
 from zeth.cli.utils import get_eth_network, open_web3_from_network
 from os.path import join
+import sys
 from typing import Any
 
 
@@ -27,13 +28,16 @@ def _test_bw6_761_groth16_contract_with_proof(
 
     # Encode the vk, proof and inputs into evm words
     zksnark = Groth16SnarkProvider()
-    vk_evm_parameters = zksnark.verification_key_to_evm_parameters(vk)
-    proof_evm_parameters = zksnark.proof_to_evm_parameters(extproof)
-    inputs_evm_parameters = [hex_list_to_uint256_list(inputs)]
+    vk_evm_parameters = zksnark.verification_key_to_contract_parameters(vk)
+    proof_evm_parameters = zksnark.proof_to_contract_parameters(extproof)
+    inputs_evm_parameters = hex_list_to_uint256_list(inputs)
 
     # Execute the test contract and return the result
-    evm_parameters = \
-        vk_evm_parameters + proof_evm_parameters + inputs_evm_parameters
+    evm_parameters = [
+        vk_evm_parameters,
+        proof_evm_parameters,
+        inputs_evm_parameters
+    ]
     return instance.functions.test_verify(*evm_parameters).call()
 
 
@@ -74,4 +78,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())
