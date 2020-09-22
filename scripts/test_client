@@ -26,7 +26,14 @@ zecale register --key vk.json --name ${APP_NAME} || echo Already registered
 ( zecale register --key vk.json --name ${APP_NAME} ) && \
     (echo Expected duplicate registration to fail; exit 1)
 
-# Send 4 transactions (enough for 2 batches)
+pushd application_deployer
+    [ -e vk.json ] || cp ${TEST_DATA_DIR}/dummy_app/vk.json .
+    [ -e vk_hash ] || zecale nested-verification-key-hash vk.json > vk_hash
+    [ -e zecale-instance ] || cp ../aggregator_deployer/zecale-instance .
+    zecale_dummy_application deploy \
+       `cat vk_hash` \
+        --permitted-dispatcher-instance zecale-instance \
+        --app-output-address app-address
 
 zecale submit --name ${APP_NAME} --tx extproof1.json
 zecale submit --name ${APP_NAME} --tx extproof2.json
