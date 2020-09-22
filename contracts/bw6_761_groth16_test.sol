@@ -8,13 +8,17 @@ import "./bw6_761_groth16.sol";
 
 contract bw6_761_groth16_test
 {
-    // TODO: Pass vk and proof as single arrays
+    uint256[] _vk;
 
     function test_verify(
         uint256[] memory vk,
         uint256[18] memory proof,
         uint256[] memory inputs) public returns(bool)
     {
-        return 0 != bw6_761_groth16.verify(vk, proof, inputs);
+        // Copy vk into storage
+        _vk = vk;
+
+        // Call verify
+        return 0 != bw6_761_groth16.verify(_vk, proof, inputs);
     }
 }

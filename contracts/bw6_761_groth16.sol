@@ -50,12 +50,16 @@ library bw6_761_groth16
     //     uint256[6] c;       // offset 0x0c words (0x180 bytes)
     // }
 
+    /// Verify a proof and inputs (both in memory) against a verification key
+    /// (in storage). Note that the code is highly dependent on these
+    /// locations.
     function verify(
-        uint256[] memory vk_data,
+        uint256[] storage vk,
         uint256[18] memory proof,
         uint256[] memory inputs) internal returns(uint256)
     {
-        uint256 num_inputs = ((vk_data.length - 0x12) / 6) - 1;
+        // Compute expected number of inputs.
+        uint256 num_inputs = ((vk.length - 0x12) / 6) - 1;
         require(
             (inputs.length / 2) == num_inputs,
             "Input length differs from expected");
@@ -64,6 +68,7 @@ library bw6_761_groth16
         // (see layout diagrams below).
         uint256[24] memory pad;
         bool result = true;
+        uint256 vk_slot_num;
 
         // 1. Compute the linear combination
         //   accum = \sum_{i=0}^{l} input[i] * abc[i]  (in G1).
@@ -75,46 +80,50 @@ library bw6_761_groth16
         // results directly into the correct locations.
         //
         //  OFFSET  USAGE
-        //   0x1c0    <END>
-        //   0x1a0    input_i   --
-        //   0x180    input_i    |
-        //   0x160    abc_y      |     --              --
-        //   0x140    abc_y      | IN   |     ecmul     |
-        //   0x120    abc_y      |      |               |
-        //   0x100    abc_x      |      | OUT           |
-        //   0x0e0    abc_x      |      |               | IN     ecadd
-        //   0x0c0    abc_x     --     --               |
-        //   0x0a0    accum_y                           |    --
-        //   0x080    accum_y                           |     |
-        //   0x060    accum_y                           |     | OUT
-        //   0x040    accum_x                           |     |
-        //   0x020    accum_x                           |     |
-        //   0x000    accum_x                          --    --
+        //   0x1c0    <END>          ECMUL               ECADD
+        //   0x1a0    input_i     --
+        //   0x180    input_i      |
+        //   0x160    abc_y        |     --           --
+        //   0x140    abc_y        | IN   |            |
+        //   0x120    abc_y        |      |            |
+        //   0x100    abc_x        |      | OUT        |
+        //   0x0e0    abc_x        |      |            | IN     ecadd
+        //   0x0c0    abc_x       --     --            |
+        //   0x0a0    accum_y                          |    --
+        //   0x080    accum_y                          |     |
+        //   0x060    accum_y                          |     | OUT
+        //   0x040    accum_x                          |     |
+        //   0x020    accum_x                          |     |
+        //   0x000    accum_x                         --    --
 
         assembly {
 
-            // Copied from bn implemenation in zeth
+            // Copied from bn implementation in zeth.
             let g := sub(gas, 2000)
 
-            // Skip first word of `abc` and `inputs`.  Compute
-            // the end of the array (each element is 0x40 bytes).
-            let abc_i := add(vk_data, 0x260) // 0x240 + 0x20
+            // Compute starting slot of the vk data and abc data.
+            mstore(pad, vk_slot)
+            vk_slot_num := keccak256(pad, 0x20)
+            let abc_slot_num := add(vk_slot_num, 0x12)
+
+            // Skip first word of `inputs`. Compute the end of the array (each
+            // element is 0x40 bytes).
             let input_i := add(inputs, 0x20)
             let input_end := add(input_i, mul(num_inputs, 0x40))
 
-            // Initialize 6 words of (accum_x, accum_y)
-            mstore(pad, mload(abc_i))
-            abc_i := add(abc_i, 0x20)
-            mstore(add(pad, 0x20), mload(abc_i))
-            abc_i := add(abc_i, 0x20)
-            mstore(add(pad, 0x40), mload(abc_i))
-            abc_i := add(abc_i, 0x20)
-            mstore(add(pad, 0x60), mload(abc_i))
-            abc_i := add(abc_i, 0x20)
-            mstore(add(pad, 0x80), mload(abc_i))
-            abc_i := add(abc_i, 0x20)
-            mstore(add(pad, 0xa0), mload(abc_i))
-            abc_i := add(abc_i, 0x20)
+            // Initialize 6 words of (accum_x, accum_y), as first element of proof.abc
+            mstore(pad, sload(abc_slot_num))
+            abc_slot_num := add(abc_slot_num, 1)
+            mstore(add(pad, 0x20), sload(abc_slot_num))
+            abc_slot_num := add(abc_slot_num, 1)
+            mstore(add(pad, 0x40), sload(abc_slot_num))
+            abc_slot_num := add(abc_slot_num, 1)
+            mstore(add(pad, 0x60), sload(abc_slot_num))
+            abc_slot_num := add(abc_slot_num, 1)
+            mstore(add(pad, 0x80), sload(abc_slot_num))
+            abc_slot_num := add(abc_slot_num, 1)
+            mstore(add(pad, 0xa0), sload(abc_slot_num))
+            abc_slot_num := add(abc_slot_num, 1)
 
             // Note the location of abc (the area used for scalar multiplication)
             let mul_in := add(pad, 0x0c0)
@@ -125,19 +134,19 @@ library bw6_761_groth16
                 lt(input_i, input_end)
                 {}
             {
-                // Copy abc from storage into the pad
-                mstore(mul_in, mload(abc_i))
-                abc_i := add(abc_i, 0x20)
-                mstore(add(mul_in, 0x20), mload(abc_i))
-                abc_i := add(abc_i, 0x20)
-                mstore(add(mul_in, 0x40), mload(abc_i))
-                abc_i := add(abc_i, 0x20)
-                mstore(add(mul_in, 0x60), mload(abc_i))
-                abc_i := add(abc_i, 0x20)
-                mstore(add(mul_in, 0x80), mload(abc_i))
-                abc_i := add(abc_i, 0x20)
-                mstore(add(mul_in, 0xa0), mload(abc_i))
-                abc_i := add(abc_i, 0x20)
+                // Copy proof.abc from storage into the pad
+                mstore(mul_in, sload(abc_slot_num))
+                abc_slot_num := add(abc_slot_num, 1)
+                mstore(add(mul_in, 0x20), sload(abc_slot_num))
+                abc_slot_num := add(abc_slot_num, 1)
+                mstore(add(mul_in, 0x40), sload(abc_slot_num))
+                abc_slot_num := add(abc_slot_num, 1)
+                mstore(add(mul_in, 0x60), sload(abc_slot_num))
+                abc_slot_num := add(abc_slot_num, 1)
+                mstore(add(mul_in, 0x80), sload(abc_slot_num))
+                abc_slot_num := add(abc_slot_num, 1)
+                mstore(add(mul_in, 0xa0), sload(abc_slot_num))
+                abc_slot_num := add(abc_slot_num, 1)
 
                 // Copy input into the pad
                 mstore(add(mul_in, 0xc0), mload(input_i))
@@ -180,10 +189,6 @@ library bw6_761_groth16
 
         assembly
         {
-            // TODO: bake this into the offsets below
-            // skip the vk length word
-            let vk := add(vk_data, 0x20)
-
             // accum already in place
 
             // Write g_2
@@ -207,19 +212,19 @@ library bw6_761_groth16
                 0x3ea96fcd504affc758aa2d3a3c5a02a591ec0594f9eac689eb70a16728c73b61)
 
             // write vk.alpha and vk.beta
-            mstore(add(pad, 0x180), mload(vk))
-            mstore(add(pad, 0x1a0), mload(add(vk, 0x020)))
-            mstore(add(pad, 0x1c0), mload(add(vk, 0x040)))
-            mstore(add(pad, 0x1e0), mload(add(vk, 0x060)))
-            mstore(add(pad, 0x200), mload(add(vk, 0x080)))
-            mstore(add(pad, 0x220), mload(add(vk, 0x0a0)))
+            mstore(add(pad, 0x180), sload(vk_slot_num))
+            mstore(add(pad, 0x1a0), sload(add(vk_slot_num,  1)))
+            mstore(add(pad, 0x1c0), sload(add(vk_slot_num,  2)))
+            mstore(add(pad, 0x1e0), sload(add(vk_slot_num,  3)))
+            mstore(add(pad, 0x200), sload(add(vk_slot_num,  4)))
+            mstore(add(pad, 0x220), sload(add(vk_slot_num,  5)))
 
-            mstore(add(pad, 0x240), mload(add(vk, 0x0c0)))
-            mstore(add(pad, 0x260), mload(add(vk, 0x0e0)))
-            mstore(add(pad, 0x280), mload(add(vk, 0x100)))
-            mstore(add(pad, 0x2a0), mload(add(vk, 0x120)))
-            mstore(add(pad, 0x2c0), mload(add(vk, 0x140)))
-            mstore(add(pad, 0x2e0), mload(add(vk, 0x160)))
+            mstore(add(pad, 0x240), sload(add(vk_slot_num,  6)))
+            mstore(add(pad, 0x260), sload(add(vk_slot_num,  7)))
+            mstore(add(pad, 0x280), sload(add(vk_slot_num,  8)))
+            mstore(add(pad, 0x2a0), sload(add(vk_slot_num,  9)))
+            mstore(add(pad, 0x2c0), sload(add(vk_slot_num, 10)))
+            mstore(add(pad, 0x2e0), sload(add(vk_slot_num, 11)))
 
             // write proof.a and proof.minus_b
             mstore(add(pad, 0x300), mload(proof))
@@ -244,12 +249,12 @@ library bw6_761_groth16
             mstore(add(pad, 0x500), mload(add(proof, 0x200)))
             mstore(add(pad, 0x520), mload(add(proof, 0x220)))
 
-            mstore(add(pad, 0x540), mload(add(vk, 0x180)))
-            mstore(add(pad, 0x560), mload(add(vk, 0x1a0)))
-            mstore(add(pad, 0x580), mload(add(vk, 0x1c0)))
-            mstore(add(pad, 0x5a0), mload(add(vk, 0x1e0)))
-            mstore(add(pad, 0x5c0), mload(add(vk, 0x200)))
-            mstore(add(pad, 0x5e0), mload(add(vk, 0x220)))
+            mstore(add(pad, 0x540), sload(add(vk_slot_num, 12)))
+            mstore(add(pad, 0x560), sload(add(vk_slot_num, 13)))
+            mstore(add(pad, 0x580), sload(add(vk_slot_num, 14)))
+            mstore(add(pad, 0x5a0), sload(add(vk_slot_num, 15)))
+            mstore(add(pad, 0x5c0), sload(add(vk_slot_num, 16)))
+            mstore(add(pad, 0x5e0), sload(add(vk_slot_num, 17)))
 
             // Call ecpairing
             result := call(gas, 0xc3, 0, pad, 0x600, pad, 0x20)
