@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from .defaults import \
-    AGGREGATOR_SERVER_ENDPOINT_DEFAULT, ZKSNARK_NAME_DEFAULT
+from .defaults import AGGREGATOR_SERVER_ENDPOINT_DEFAULT, INSTANCE_FILE_DEFAULT, \
+    ZKSNARK_NAME_DEFAULT
 from ..core.aggregator_client import AggregatorClient
 from zeth.core.zksnark import get_zksnark_provider
 from typing import Optional
@@ -19,9 +19,11 @@ class CommandContext:
     def __init__(
             self,
             aggregator_server: str = AGGREGATOR_SERVER_ENDPOINT_DEFAULT,
+            instance_file: str = INSTANCE_FILE_DEFAULT,
             zksnark_name: str = ZKSNARK_NAME_DEFAULT):
         self.aggregator_server = aggregator_server
         self.aggregator_client: Optional[AggregatorClient] = None
+        self.instance_file = instance_file
         self.zksnark = get_zksnark_provider(zksnark_name)
 
     def get_aggregator_client(self) -> AggregatorClient:
