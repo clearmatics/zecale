@@ -56,7 +56,7 @@ library bw6_761_groth16
     function verify(
         uint256[] storage vk,
         uint256[18] memory proof,
-        uint256[] memory inputs) internal returns(uint256)
+        uint256[] memory inputs) internal returns(bool)
     {
         // Compute expected number of inputs.
         uint256 num_inputs = ((vk.length - 0x12) / 6) - 1;
@@ -260,6 +260,13 @@ library bw6_761_groth16
             result := call(gas, 0xc3, 0, pad, 0x600, pad, 0x20)
         }
 
-        return pad[0];
+        return 1 == pad[0];
+    }
+
+    /// Given the length of a verification key, encoded as a uint256 array,
+    /// compute the number of inputs per batch.
+    function inputs_per_batch_from_vk_length(uint256 vk_length) internal returns (uint256) {
+        // See the format of vk above
+        return ((vk_length - 0x12) / 6) - 1;
     }
 }
