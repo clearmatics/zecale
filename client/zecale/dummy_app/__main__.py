@@ -5,6 +5,7 @@
 
 from .deploy import deploy
 from zeth.cli.constants import ETH_NETWORK_FILE_DEFAULT
+from zeth.cli.utils import get_eth_network
 from click import group, option, pass_context, Context
 from click_default_group import DefaultGroup  # type: ignore
 from typing import Optional
@@ -24,7 +25,7 @@ def dummy_app(
         eth_addr: Optional[str],
         eth_private_key: Optional[str]) -> None:
     ctx.obj = {
-        "eth_network": eth_network,
+        "eth_network": get_eth_network(eth_network),
         "eth_addr": eth_addr,
         "eth_private_key": eth_private_key,
     }
