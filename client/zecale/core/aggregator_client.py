@@ -8,6 +8,7 @@ import grpc
 from zeth.core.zksnark import \
     IZKSnarkProvider, GenericVerificationKey, GenericProof
 from google.protobuf import empty_pb2
+import json
 from typing import Dict
 
 
@@ -27,6 +28,13 @@ class AggregatorClient:
             stub = aggregator_pb2_grpc.AggregatorStub(channel)  # type: ignore
             vk_proto = stub.GetVerificationKey(empty_pb2.Empty())
             return self.wrapper_zksnark.verification_key_from_proto(vk_proto)
+
+    def get_nested_verification_key_hash(self, vk: GenericVerificationKey) -> str:
+        with grpc.insecure_channel(self.endpoint) as channel:
+            stub = aggregator_pb2_grpc.AggregatorStub(channel)  # type: ignore
+            vk_proto = self.zksnark.verification_key_to_proto(vk)
+            vk_hash_json = stub.GetNestedVerificationKeyHash(vk_proto).hash
+            return json.loads(vk_hash_json)
 
     def register_application(
             self, vk: GenericVerificationKey, app_name: str) -> None:
