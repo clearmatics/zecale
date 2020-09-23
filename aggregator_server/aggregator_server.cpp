@@ -156,10 +156,30 @@ public:
         return grpc::Status::OK;
     }
 
+    grpc::Status GetNestedVerificationKeyHash(
+        grpc::ServerContext * /*context*/,
+        const zeth_proto::VerificationKey *request,
+        zecale_proto::VerificationKeyHash *response) override
+    {
+        typename nsnark::verification_key vk =
+            napi_handler::verification_key_from_proto(*request);
+        const libff::Fr<wpp> vk_hash =
+            libzecale::verification_key_hash_gadget<wpp, nverifier, hash>::
+                compute_hash(vk, num_inputs_per_nested_proof);
+        const std::string vk_hash_str = libzeth::field_element_to_json(vk_hash);
+        response->set_hash(vk_hash_str);
+
+        std::cout << "[DEBUG] GetNestedVerificationKeyHash: "
+                  << "vk:\n";
+        nsnark::verification_key_write_json(vk, std::cout)
+            << "\n VK hash: " << vk_hash_str << "\n";
+        return grpc::Status::OK;
+    }
+
     grpc::Status RegisterApplication(
         grpc::ServerContext * /*context*/,
         const zecale_proto::ApplicationRegistration *registration,
-        proto::Empty * /*response*/) override
+        zecale_proto::VerificationKeyHash *response) override
     {
         std::cout << "[ACK] Received 'register application' request"
                   << std::endl;
@@ -180,10 +200,17 @@ public:
             typename nsnark::verification_key vk =
                 napi_handler::verification_key_from_proto(vk_proto);
             application_pools[name] = new application_pool(name, vk);
+            const libff::Fr<wpp> vk_hash =
+                libzecale::verification_key_hash_gadget<wpp, nverifier, hash>::
+                    compute_hash(vk, num_inputs_per_nested_proof);
+            const std::string vk_hash_str =
+                libzeth::field_element_to_json(vk_hash);
+            response->set_hash(vk_hash_str);
 
             std::cout << "[DEBUG] Registered application '" << name
                       << " with VK:\n";
-            nsnark::verification_key_write_json(vk, std::cout) << "\n";
+            nsnark::verification_key_write_json(vk, std::cout)
+                << "\n VK hash: " << vk_hash_str << "\n";
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(

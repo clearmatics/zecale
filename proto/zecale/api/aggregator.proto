@@ -13,13 +13,16 @@ service Aggregator {
     // key in order to verify batches on-chain.
     rpc GetVerificationKey(google.protobuf.Empty) returns (zeth_proto.VerificationKey) {}
 
+    // Compute the hash of a nested verification key. The server exposes this
+    // since it depends on the encoding of the nested key used in the
+    // aggregator circuit, and therefore may not be trivial for a given client.
+    // Returns the hex-encoded key hash.
+    rpc GetNestedVerificationKeyHash(zeth_proto.VerificationKey) returns (VerificationKeyHash) {}
+
     // Register a new application. That is, an application name and a
     // corresponding verfication key. After registration, transactions for the
-    // app can be submitted.
-    //
-    // (May not need an endpoint for this depending on the configuration /
-    // use-case. For now, this is convenient for testing).
-    rpc RegisterApplication(ApplicationRegistration) returns (google.protobuf.Empty) {}
+    // app can be submitted. Returns the hex-encoded verification key hash.
+    rpc RegisterApplication(ApplicationRegistration) returns (VerificationKeyHash) {}
 
     // Submit a transaction to be aggregated.
     rpc SubmitTransaction(TransactionToAggregate) returns (google.protobuf.Empty) {}
@@ -34,6 +37,10 @@ service Aggregator {
     // necessarily be useful in practice, but this is useful for some manual
     // triggering for now.)
     rpc GenerateAggregateProof(AggregateProofRequest) returns (zeth_proto.ExtendedProof) {}
+}
+
+message VerificationKeyHash {
+    string hash = 1;
 }
 
 message ApplicationRegistration {
