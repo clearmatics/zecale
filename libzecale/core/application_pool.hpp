@@ -5,7 +5,7 @@
 #ifndef __ZECALE_CORE_APPLICATION_POOL_HPP__
 #define __ZECALE_CORE_APPLICATION_POOL_HPP__
 
-#include "transaction_to_aggregate.hpp"
+#include "nested_transaction.hpp"
 
 #include <queue>
 
@@ -29,7 +29,7 @@ private:
     const typename nsnarkT::verification_key _verification_key;
 
     /// Pool of transactions to aggregate
-    std::priority_queue<transaction_to_aggregate<nppT, nsnarkT>> _tx_pool;
+    std::priority_queue<nested_transaction<nppT, nsnarkT>> _tx_pool;
 
 public:
     application_pool(
@@ -49,7 +49,7 @@ public:
     const typename nsnarkT::verification_key &verification_key() const;
 
     /// Add transaction to the pool
-    void add_tx(const transaction_to_aggregate<nppT, nsnarkT> &tx);
+    void add_tx(const nested_transaction<nppT, nsnarkT> &tx);
 
     /// Returns the number of transactions in the _tx_pool
     size_t tx_pool_size() const;
@@ -60,7 +60,7 @@ public:
     /// number of transactions placed in the array. Any remaining entries are
     /// unntouched, and should be ignored by the caller.
     size_t get_next_batch(
-        std::array<transaction_to_aggregate<nppT, nsnarkT>, NumProofs> &batch);
+        std::array<nested_transaction<nppT, nsnarkT>, NumProofs> &batch);
 };
 
 } // namespace libzecale

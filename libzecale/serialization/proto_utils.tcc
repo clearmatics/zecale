@@ -5,7 +5,7 @@
 #ifndef __ZECALE_SERIALIZATION_PROTO_UTILS_TCC__
 #define __ZECALE_SERIALIZATION_PROTO_UTILS_TCC__
 
-#include "libzecale/core/transaction_to_aggregate.hpp"
+#include "libzecale/core/nested_transaction.hpp"
 
 #include <cstring>
 #include <libff/algebra/curves/public_params.hpp>
@@ -15,9 +15,8 @@ namespace libzecale
 {
 
 template<typename ppT, typename apiHandlerT>
-transaction_to_aggregate<ppT, typename apiHandlerT::snark>
-transaction_to_aggregate_from_proto(
-    const zecale_proto::TransactionToAggregate &grpc_transaction_obj)
+nested_transaction<ppT, typename apiHandlerT::snark> nested_transaction_from_proto(
+    const zecale_proto::NestedTransaction &grpc_transaction_obj)
 {
     using snark = typename apiHandlerT::snark;
     std::string app_name = grpc_transaction_obj.application_name();
@@ -25,8 +24,7 @@ transaction_to_aggregate_from_proto(
         apiHandlerT::extended_proof_from_proto(
             grpc_transaction_obj.extended_proof());
     uint32_t fee = uint32_t(grpc_transaction_obj.fee_in_wei());
-
-    return transaction_to_aggregate<ppT, snark>(app_name, ext_proof, fee);
+    return nested_transaction<ppT, snark>(app_name, ext_proof, fee);
 }
 
 } // namespace libzecale

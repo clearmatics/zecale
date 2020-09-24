@@ -178,7 +178,7 @@ public:
 
     grpc::Status RegisterApplication(
         grpc::ServerContext * /*context*/,
-        const zecale_proto::ApplicationRegistration *registration,
+        const zecale_proto::ApplicationDescription *registration,
         zecale_proto::VerificationKeyHash *response) override
     {
         std::cout << "[ACK] Received 'register application' request"
@@ -223,25 +223,23 @@ public:
         return grpc::Status::OK;
     }
 
-    grpc::Status SubmitTransaction(
+    grpc::Status SubmitNestedTransaction(
         grpc::ServerContext * /*context*/,
-        const zecale_proto::TransactionToAggregate *transaction,
+        const zecale_proto::NestedTransaction *transaction,
         proto::Empty * /*response*/) override
     {
-        std::cout << "[ACK] Received the request to submit transaction"
-                  << std::endl;
-        std::cout << "[DEBUG] Submitting transaction..." << std::endl;
         try {
             // Get the application_pool if it exists (otherwise an exception is
             // thrown, returning an error to the client).
-            application_pool *const app_pool =
-                application_pools.at(transaction->application_name());
+            const std::string &app_name = transaction->application_name();
+            std::cout << "[ACK] Received nested transaction, app name: "
+                      << app_name << std::endl;
+            application_pool *const app_pool = application_pools.at(app_name);
 
             // Sanity-check the transaction (number of inputs).
-            const libzecale::transaction_to_aggregate<npp, nsnark> tx =
-                libzecale::
-                    transaction_to_aggregate_from_proto<npp, napi_handler>(
-                        *transaction);
+            const libzecale::nested_transaction<npp, nsnark> tx =
+                libzecale::nested_transaction_from_proto<npp, napi_handler>(
+                    *transaction);
             if (tx.extended_proof().get_primary_inputs().size() !=
                 num_inputs_per_nested_proof) {
                 throw std::invalid_argument("invalid number of inputs");
@@ -267,24 +265,21 @@ public:
         return grpc::Status::OK;
     }
 
-    grpc::Status GenerateAggregateProof(
+    grpc::Status GenerateAggregatedTransaction(
         grpc::ServerContext * /*context*/,
-        const zecale_proto::AggregateProofRequest *proof_request,
-        zeth_proto::ExtendedProof *proof) override
+        const zecale_proto::AggregatedTransactionRequest *request,
+        zecale_proto::AggregatedTransaction *response) override
     {
-        std::cout
-            << "[ACK] Received the request to generate an aggregation proof"
-            << std::endl;
         try {
             // Get the application_pool if it exists (otherwise an exception is
             // thrown, returning an error to the client).
-            application_pool *const app_pool =
-                application_pools.at(proof_request->application_name());
+            const std::string &app_name = request->application_name();
+            std::cout << "[ACK] Aggregation tx request, app name: " << app_name
+                      << std::endl;
+            application_pool *const app_pool = application_pools.at(app_name);
 
             // Retrieve a batch from the pool.
-            std::array<
-                libzecale::transaction_to_aggregate<npp, nsnark>,
-                batch_size>
+            std::array<libzecale::nested_transaction<npp, nsnark>, batch_size>
                 batch;
             const size_t num_entries = app_pool->get_next_batch(batch);
             std::cout << "[DEBUG] Got batch of size"
@@ -315,7 +310,12 @@ public:
             std::cout << "[DEBUG] Generated extended proof:\n";
             wrapping_proof.write_json(std::cout);
 
-            wapi_handler::extended_proof_to_proto(wrapping_proof, proof);
+            zeth_proto::ExtendedProof *wrapping_proof_proto =
+                new zeth_proto::ExtendedProof();
+            wapi_handler::extended_proof_to_proto(
+                wrapping_proof, wrapping_proof_proto);
+            response->set_allocated_extended_proof(wrapping_proof_proto);
+
             std::cout << "[DEBUG] Written to response" << std::endl;
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;

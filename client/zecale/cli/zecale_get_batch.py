@@ -20,6 +20,6 @@ def get_batch(
         batch_file: str) -> None:
     client_ctx = ctx.obj
     aggregator_client = client_ctx.get_aggregator_client()
-    batch_proof = aggregator_client.generate_aggregate_proof(name)
-    with open(batch_file, "w") as batch_proof_f:
-        json.dump(batch_proof, batch_proof_f)
+    aggregated_tx = aggregator_client.get_aggregated_transaction(name)
+    with open(batch_file, "w") as batch_f:
+        json.dump(aggregated_tx, batch_f)

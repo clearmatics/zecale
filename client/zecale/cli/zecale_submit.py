@@ -15,4 +15,4 @@ def submit(ctx: Context, name: str, tx: str) -> None:
     transaction = load_transaction(tx)
 
     aggregator_client = client_ctx.get_aggregator_client()
-    aggregator_client.submit_transaction(name, transaction)
+    aggregator_client.submit_nested_transaction(name, transaction)
