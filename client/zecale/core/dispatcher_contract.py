@@ -11,8 +11,7 @@ from zeth.core.zksnark import IZKSnarkProvider, IVerificationKey
 # from zeth.core.zksnark import IZKSnarkProvider, GenericVerificationKey, \
 #     GenericProof
 from os.path import join
-from typing import Tuple, Optional, Any
-# from typing import List, Tuple, Optional, Any
+from typing import List, Tuple, Optional, Any
 
 
 ZECALE_DIR = get_zecale_dir()
@@ -75,15 +74,25 @@ class DispatcherContract:
         proof_evm = self.zksnark.proof_to_contract_parameters(
             batch.extproof.proof)
         inputs_evm = hex_list_to_uint256_list(batch.extproof.inputs)
-        nested_parameters_evm = [hex_list_to_uint256_list(params)
-                                 for params in batch.nested_parameters]
+
+        # Should be:
+        #   nested_parameters_evm: List[List[int]] =
+        #       [hex_list_to_uint256_list(params)
+        #        for params in batch.nested_parameters]
+        # but we flatten the list in order to work around issues passing 2d
+        # arrays to contracts.
+        nested_parameters_evm: List[int] = sum(
+            [hex_list_to_uint256_list(params)
+             for params in batch.nested_parameters],
+            [])
+
         contract_call = self.instance.functions.process_batch(
             proof_evm,
             inputs_evm,
             nested_parameters_evm,
             application_contract_address)
 
-        # Broadcast
+        # Broadcast the call
         return send_contract_call(
             self.web3,
             contract_call,

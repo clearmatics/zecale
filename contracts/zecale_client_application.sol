@@ -15,7 +15,8 @@ contract ZecaleClientApplication
     /// `nested_inputs` - the inputs to the nested proof.
     ///
     /// `nested_parameters` - other parameters (not included in the nested
-    /// proof inputs) to be passed as part of this invocation.
+    /// proof inputs) to be passed as part of this invocation. The
+    /// interpretation of these is application-defined.
     function dispatch(
         uint256 nested_vk_hash,
         uint256[] memory nested_inputs,
