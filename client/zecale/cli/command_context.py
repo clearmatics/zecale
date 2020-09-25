@@ -5,7 +5,7 @@
 from .defaults import \
     AGGREGATOR_SERVER_ENDPOINT_DEFAULT, ZKSNARK_NAME_DEFAULT
 from ..core.aggregator_client import AggregatorClient
-from zeth.zksnark import get_zksnark_provider
+from zeth.core.zksnark import get_zksnark_provider
 from typing import Optional
 
 

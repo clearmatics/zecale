@@ -5,8 +5,9 @@
 #ifndef __ZECALE_SERIALIZATION_PROTO_UTILS_HPP__
 #define __ZECALE_SERIALIZATION_PROTO_UTILS_HPP__
 
-#include "api/aggregator.pb.h"
 #include "libzecale/core/transaction_to_aggregate.hpp"
+
+#include <zecale/api/aggregator.pb.h>
 
 namespace libzecale
 {

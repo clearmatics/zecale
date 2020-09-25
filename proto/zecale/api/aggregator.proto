@@ -4,7 +4,7 @@ package zecale_proto;
 
 import "google/protobuf/empty.proto";
 
-import "api/snark_messages.proto";
+import "zeth/api/snark_messages.proto";
 
 service Aggregator {
     // Fetch the verification key corresponding to the aggregator statement

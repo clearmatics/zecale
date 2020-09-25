@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zeth.zksnark import GenericVerificationKey, GenericProof
+from zeth.core.zksnark import GenericVerificationKey, GenericProof
 import json
 
 

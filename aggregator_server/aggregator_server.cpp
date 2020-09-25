@@ -10,7 +10,6 @@
 #include "libzecale/serialization/proto_utils.hpp"
 #include "zecale_config.h"
 
-#include <api/aggregator.grpc.pb.h>
 #include <boost/program_options.hpp>
 #include <fstream>
 #include <grpc/grpc.h>
@@ -29,6 +28,7 @@
 #include <memory>
 #include <stdio.h>
 #include <string>
+#include <zecale/api/aggregator.grpc.pb.h>
 
 namespace proto = google::protobuf;
 namespace po = boost::program_options;
