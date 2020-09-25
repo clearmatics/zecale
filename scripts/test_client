@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+set -x
+set -e
+
+APP_NAME="dummy_app"
+
+
+ROOT_DIR=`pwd`
+TEST_DATA_DIR=${ROOT_DIR}/testdata
+
+mkdir -p _test_client_data
+pushd _test_client_data
+
+# Collect data
+
+[ -e vk.json ] || cp ${TEST_DATA_DIR}/dummy_app/vk.json .
+[ -e extproof1.json ] || cp ${TEST_DATA_DIR}/dummy_app/extproof1.json .
+[ -e extproof2.json ] || cp ${TEST_DATA_DIR}/dummy_app/extproof2.json .
+[ -e extproof3.json ] || cp ${TEST_DATA_DIR}/dummy_app/extproof3.json .
+[ -e extproof4.json ] || cp ${TEST_DATA_DIR}/dummy_app/extproof4.json .
+
+# Register the application
+
+zecale register --key vk.json --name ${APP_NAME} || echo Already registered
+( zecale register --key vk.json --name ${APP_NAME} ) && \
+    (echo Expected duplicate registration to fail; exit 1)
+
+# Send 4 transactions (enough for 2 batches)
+
+zecale submit --name ${APP_NAME} --tx extproof1.json
+zecale submit --name ${APP_NAME} --tx extproof2.json
+zecale submit --name ${APP_NAME} --tx extproof3.json
+zecale submit --name ${APP_NAME} --tx extproof4.json
+
+# Request aggregate proofs. Assuming the server was empty at the beginning of
+# the test, the first two request should succeed, and the third should fail.
+
+zecale get-batch --name ${APP_NAME} --batch-file batch1.json
+zecale get-batch --name ${APP_NAME} --batch-file batch2.json
+zecale get-batch --name ${APP_NAME} --batch-file batch3.json && \
+    (echo Expected failure when no batch available; exit 1)
+
+popd # _test_client_data
+
+set +e
+set +x
+
+echo "=================================================="
+echo "==              Client Test Passed              =="
+echo "=================================================="

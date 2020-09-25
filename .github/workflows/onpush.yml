@@ -1,14 +1,23 @@
-name: zecale-ci
+# Actions for every push
+name: zecale-ci-push
 
 on:
   push:
-  pull_request:
 
 env:
   MACOS_BREW_PACKAGES: "pkg-config libomp"
-  CI_EVENT_NAME: ${{ github.event_name }}
 
 jobs:
+
+  check-client:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - name: Execute
+      run: scripts/ci check_client
+
   build-macos:
     runs-on: macos-10.15
     strategy:

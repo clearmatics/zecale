@@ -8,7 +8,7 @@ This project can be used to:
 
 :rotating_light: **WARNING** This project is a Work In Progress (WIP). It is highly inefficient and has not been thoroughly reviewed. Please do not use in production!
 
-## Building and running the project:
+## Building and running the `aggregator_server`:
 
 :computer: **Warning** This project primarily targets x86_64 Linux and macOS platforms.
 
@@ -18,7 +18,7 @@ In order to follow the README below, you will need:
 - [Docker](https://www.docker.com/get-started)
 - [Python3](https://www.python.org/downloads/) (at least version `3.7`)
 
-Additionally, several tools from the GCC and LLVM tools suite are used to improve code quality and generate the documentation of the project. These are required in order to compile the project with all options enabled:
+Additionally, several tools from the GCC and LLVM tools suite are used to improve code quality and generate the documentation of the project. If these are installed they can be executed by passing options to the build:
 - [Doxygen](http://www.doxygen.nl/)
 - [clang-format](https://clang.llvm.org/docs/ClangFormat.html)
 - [clang-tidy](https://clang.llvm.org/extra/clang-tidy/)
@@ -26,29 +26,28 @@ Additionally, several tools from the GCC and LLVM tools suite are used to improv
 - [include-what-you-use](https://include-what-you-use.org/)
 - [llvm-symbolizer](https://llvm.org/docs/CommandGuide/llvm-symbolizer.html)
 
-### Development dependencies (for building outside of the Docker container)
+### Build and run on host machine
 
-Immediate dependencies are provided as submodules and compiled during the Zecale build.
-Ensure submodules are synced (`git submodule update --init --recursive`).
 
-The following libraries are also required to build:
+#### Dependencies
 
+Immediate dependencies are provided as submodules and compiled during the build. The following libraries are also required to build:
 - grpc
 - gmp
 - boost
 
-#### Build the project
+#### Build and run
 
-```bash
+```console
 # Clone this repository:
 git clone git@github.com:clearmatics/zecale.git
 cd zecale
 
-# Configure your environment
-. ./setup_env.sh
-
 # Initialize the submodules
 git submodule update --init --recursive
+
+# Configure your environment
+. ./setup_env.sh
 
 # Compile the aggregator
 mkdir build
@@ -68,9 +67,9 @@ make check
 aggregator_server
 ```
 
-##### Build and run the project in a docker container
+### Build and run in a docker container
 
-```bash
+```console
 # Pull the zeth-base image (this project has the same configuration as Zeth)
 docker pull clearmatics/zeth-base:latest
 
@@ -81,7 +80,7 @@ docker build -f Dockerfile-zecale -t zecale-dev:0.2 .
 docker run -ti -p 50052:50052 --name zecale zecale-dev:0.2
 ```
 
-## Generate the Doxygen documentation
+### Generate the Doxygen documentation
 
 To generate the documentation of Zecale:
 ```bash
@@ -89,7 +88,7 @@ cd build
 cmake .. -DGEN_DOC=ON && make docs
 ```
 
-## Compile the project using 'sanitizers'
+### Compile the project using 'sanitizers'
 
 You can select the sanitizer of your choice (one of the sanitizers listed [here](./cmake/sanitizers.cmake)) by passing the flag `-DSANITIZER=<sanitizer>` to `cmake`.
 
@@ -100,7 +99,7 @@ cmake -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -D
 make check
 ```
 
-## Run analysis tools on the code
+### Run analysis tools on the code
 
 Several tools can be ran on the code. These can be enabled via a set of compilation options.
 
@@ -117,6 +116,10 @@ make cppcheck
 make clang-format
 make clang-tidy
 ```
+
+## Build and run the client
+
+See the [client README](client/README.md) for instructions.
 
 ## License notices:
 
