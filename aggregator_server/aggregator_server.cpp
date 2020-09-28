@@ -184,12 +184,17 @@ public:
             application_pool *const app_pool =
                 application_pools.at(transaction->application_name());
 
-            // Add the application to the list of applications supported by
-            // the server.
+            // Sanity-check the transaction (number of inputs).
             const libzecale::transaction_to_aggregate<npp, nsnark> tx =
                 libzecale::
                     transaction_to_aggregate_from_proto<npp, napi_handler>(
                         *transaction);
+            if (tx.extended_proof().get_primary_inputs().size() !=
+                num_inputs_per_nested_proof) {
+                throw std::invalid_argument("invalid number of inputs");
+            }
+
+            // Add the proof to the pool for the named application.
             app_pool->add_tx(tx);
 
             std::cout << "[DEBUG] Registered tx with ext proof:\n";
