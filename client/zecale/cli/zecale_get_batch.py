@@ -14,7 +14,10 @@ from click import option, command, pass_context, Context
     default=BATCH_PROOF_FILENAME_DEFAULT,
     help="Batch proof output file")
 @pass_context
-def get_batch(ctx: Context, name: str, batch_file: str) -> None:
+def get_batch(
+        ctx: Context,
+        name: str,
+        batch_file: str) -> None:
     client_ctx = ctx.obj
     aggregator_client = client_ctx.get_aggregator_client()
     batch_proof = aggregator_client.generate_aggregate_proof(name)
