@@ -4,6 +4,7 @@
 
 
 from .deploy import deploy
+from .get import get
 from zeth.cli.constants import ETH_NETWORK_FILE_DEFAULT
 from zeth.cli.utils import get_eth_network
 from click import group, option, pass_context, Context
@@ -32,3 +33,4 @@ def dummy_app(
 
 
 dummy_app.add_command(deploy)
+dummy_app.add_command(get)

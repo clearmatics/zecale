@@ -52,4 +52,9 @@ contract DummyApplication is ZecaleClientApplication
         require(!_scalars[inputs[0]], "scalar already seen");
         _scalars[inputs[0]] = true;
     }
+
+    function get(uint256 scalar) public returns (bool)
+    {
+        return _scalars[scalar];
+    }
 }
