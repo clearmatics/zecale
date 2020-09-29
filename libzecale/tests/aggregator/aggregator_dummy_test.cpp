@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzecale/circuits/aggregator_circuit_wrapper.hpp"
+#include "libzecale/circuits/aggregator_circuit.hpp"
 #include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
 #include "libzecale/circuits/null_hash_gadget.hpp"
 #include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
@@ -59,7 +59,7 @@ void test_aggregator_with_batch(
         typename nverifierT::snark,
         batch_size> &batch,
     const typename wsnarkT::keypair &wkeypair,
-    aggregator_circuit_wrapper<wppT, wsnarkT, nverifierT, hashT, batch_size>
+    aggregator_circuit<wppT, wsnarkT, nverifierT, hashT, batch_size>
         &aggregator,
     const std::array<libff::Fr<wppT>, batch_size> &expected_results)
 {
@@ -126,8 +126,8 @@ void test_aggregate_dummy_application()
     npf2.write_json(std::cout);
 
     // Wrapper keypair
-    aggregator_circuit_wrapper<wppT, wsnarkT, nverifierT, hashT, batch_size>
-        aggregator(public_inputs_per_proof);
+    aggregator_circuit<wppT, wsnarkT, nverifierT, hashT, batch_size> aggregator(
+        public_inputs_per_proof);
     const typename wsnarkT::keypair wkeypair =
         aggregator.generate_trusted_setup();
 
@@ -175,8 +175,8 @@ void test_aggregate_dummy_application_with_invalid_proof()
     npf2_invalid.write_json(std::cout);
 
     // Wrapper keypair
-    aggregator_circuit_wrapper<wppT, wsnarkT, nverifierT, hashT, batch_size>
-        aggregator(public_inputs_per_proof);
+    aggregator_circuit<wppT, wsnarkT, nverifierT, hashT, batch_size> aggregator(
+        public_inputs_per_proof);
     const typename wsnarkT::keypair wkeypair =
         aggregator.generate_trusted_setup();
 

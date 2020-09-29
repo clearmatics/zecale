@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
-#define __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
+#ifndef __ZECALE_CORE_AGGREGATOR_CIRCUIT_TCC__
+#define __ZECALE_CORE_AGGREGATOR_CIRCUIT_TCC__
 
-#include "libzecale/circuits/aggregator_circuit_wrapper.hpp"
+#include "libzecale/circuits/aggregator_circuit.hpp"
 
 #include <libzeth/zeth_constants.hpp>
 
@@ -20,8 +20,8 @@ template<
     typename nverifierT,
     typename hashT,
     size_t NumProofs>
-aggregator_circuit_wrapper<wppT, wsnarkT, nverifierT, hashT, NumProofs>::
-    aggregator_circuit_wrapper(const size_t inputs_per_nested_proof)
+aggregator_circuit<wppT, wsnarkT, nverifierT, hashT, NumProofs>::
+    aggregator_circuit(const size_t inputs_per_nested_proof)
     : _num_inputs_per_nested_proof(inputs_per_nested_proof), _pb()
 {
     // The order of allocation here is important as it determines which inputs
@@ -95,7 +95,7 @@ template<
     typename nverifierT,
     typename hashT,
     size_t NumProofs>
-typename wsnarkT::keypair aggregator_circuit_wrapper<
+typename wsnarkT::keypair aggregator_circuit<
     wppT,
     wsnarkT,
     nverifierT,
@@ -113,7 +113,7 @@ template<
     typename hashT,
     size_t NumProofs>
 const libsnark::protoboard<libff::Fr<wppT>>
-    &aggregator_circuit_wrapper<wppT, wsnarkT, nverifierT, hashT, NumProofs>::
+    &aggregator_circuit<wppT, wsnarkT, nverifierT, hashT, NumProofs>::
         get_constraint_system() const
 {
     return _pb;
@@ -125,7 +125,7 @@ template<
     typename nverifierT,
     typename hashT,
     size_t NumProofs>
-libzeth::extended_proof<wppT, wsnarkT> aggregator_circuit_wrapper<
+libzeth::extended_proof<wppT, wsnarkT> aggregator_circuit<
     wppT,
     wsnarkT,
     nverifierT,
@@ -177,4 +177,4 @@ libzeth::extended_proof<wppT, wsnarkT> aggregator_circuit_wrapper<
 
 } // namespace libzecale
 
-#endif // __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_TCC__
+#endif // __ZECALE_CORE_AGGREGATOR_CIRCUIT_TCC__

@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
-#define __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
+#ifndef __ZECALE_CORE_AGGREGATOR_CIRCUIT_HPP__
+#define __ZECALE_CORE_AGGREGATOR_CIRCUIT_HPP__
 
 #include "libzecale/circuits/aggregator_gadget.hpp"
 #include "libzecale/circuits/pairing/pairing_params.hpp"
@@ -43,7 +43,7 @@ template<
     typename nverifierT,
     typename hashT,
     size_t NumProofs>
-class aggregator_circuit_wrapper
+class aggregator_circuit
 {
 private:
     using npp = other_curve<wppT>;
@@ -95,12 +95,11 @@ private:
         _aggregator_gadget;
 
 public:
-    explicit aggregator_circuit_wrapper(const size_t inputs_per_nested_proof);
+    explicit aggregator_circuit(const size_t inputs_per_nested_proof);
 
-    aggregator_circuit_wrapper(const aggregator_circuit_wrapper &other) =
+    aggregator_circuit(const aggregator_circuit &other) = delete;
+    const aggregator_circuit &operator=(const aggregator_circuit &other) =
         delete;
-    const aggregator_circuit_wrapper &operator=(
-        const aggregator_circuit_wrapper &other) = delete;
 
     typename wsnarkT::keypair generate_trusted_setup() const;
 
@@ -117,6 +116,6 @@ public:
 
 } // namespace libzecale
 
-#include "aggregator_circuit_wrapper.tcc"
+#include "aggregator_circuit.tcc"
 
-#endif // __ZECALE_CORE_AGGREGATOR_CIRCUIT_WRAPPER_HPP__
+#endif // __ZECALE_CORE_AGGREGATOR_CIRCUIT_HPP__

@@ -5,7 +5,7 @@
 // Read the zecale config, include the appropriate pairing selector and define
 // the corresponding pairing parameters type.
 
-#include "libzecale/circuits/aggregator_circuit_wrapper.hpp"
+#include "libzecale/circuits/aggregator_circuit.hpp"
 #include "libzecale/circuits/null_hash_gadget.hpp"
 #include "libzecale/core/application_pool.hpp"
 #include "libzecale/serialization/proto_utils.hpp"
@@ -72,8 +72,8 @@ using hash = libzecale::null_hash_gadget<libff::Fr<wpp>>;
 static const size_t batch_size = 2;
 static const size_t num_inputs_per_nested_proof = 1;
 
-using aggregator_circuit_wrapper = libzecale::
-    aggregator_circuit_wrapper<wpp, wsnark, nverifier, hash, batch_size>;
+using aggregator_circuit =
+    libzecale::aggregator_circuit<wpp, wsnark, nverifier, hash, batch_size>;
 
 /// The aggregator_server class inherits from the Aggregator service defined in
 /// the proto files, and provides an implementation of the service.
@@ -83,7 +83,7 @@ private:
     using application_pool =
         libzecale::application_pool<npp, nsnark, batch_size>;
 
-    aggregator_circuit_wrapper &aggregator;
+    aggregator_circuit &aggregator;
 
     // The keypair is the result of the setup for the aggregation circuit
     const wsnark::keypair &keypair;
@@ -93,7 +93,7 @@ private:
 
 public:
     explicit aggregator_server(
-        aggregator_circuit_wrapper &aggregator, const wsnark::keypair &keypair)
+        aggregator_circuit &aggregator, const wsnark::keypair &keypair)
         : aggregator(aggregator), keypair(keypair)
     {
     }
@@ -317,8 +317,7 @@ void display_server_start_message()
 }
 
 static void RunServer(
-    aggregator_circuit_wrapper &aggregator,
-    const typename wsnark::keypair &keypair)
+    aggregator_circuit &aggregator, const typename wsnark::keypair &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50052
     // TODO: Move this in a config file
@@ -408,9 +407,8 @@ int main(int argc, char **argv)
     npp::init_public_params();
     wpp::init_public_params();
 
-    libzecale::
-        aggregator_circuit_wrapper<wpp, wsnark, nverifier, hash, batch_size>
-            aggregator(num_inputs_per_nested_proof);
+    libzecale::aggregator_circuit<wpp, wsnark, nverifier, hash, batch_size>
+        aggregator(num_inputs_per_nested_proof);
     wsnark::keypair keypair = [&keypair_file, &aggregator]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16

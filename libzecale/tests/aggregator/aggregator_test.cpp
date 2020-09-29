@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#include "libzecale/circuits/aggregator_circuit_wrapper.hpp"
+#include "libzecale/circuits/aggregator_circuit.hpp"
 #include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
 #include "libzecale/circuits/null_hash_gadget.hpp"
 #include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
@@ -199,7 +199,7 @@ libzeth::extended_proof<nppT, snarkT> generate_valid_zeth_proof(
 /// We use the same SNARK for simplicity.
 template<typename wppT, typename wsnarkT, typename nverifierT>
 bool test_valid_aggregation_batch_proofs(
-    aggregator_circuit_wrapper<
+    aggregator_circuit<
         wppT,
         wsnarkT,
         nverifierT,
@@ -281,7 +281,7 @@ void aggregator_test()
 
     std::cout << "[DEBUG] Before creation of the Aggregator prover"
               << std::endl;
-    aggregator_circuit_wrapper<
+    aggregator_circuit<
         wppT,
         wsnarkT,
         nverifierT,

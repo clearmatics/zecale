@@ -9,7 +9,7 @@ namespace libzecale
 {
 
 /// A trivial hash gadget that can be used as a parameter to the
-/// aggregator_circuit_wrapper to disable verification key hashing during
+/// aggregator_circuit to disable verification key hashing during
 /// development.
 template<typename FieldT> class null_hash_gadget
 {
