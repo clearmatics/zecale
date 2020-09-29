@@ -43,12 +43,34 @@ zecale submit --name ${APP_NAME} --tx extproof4.json
 # Request aggregate proofs. Assuming the server was empty at the beginning of
 # the test, the first two request should succeed, and the third should fail.
 
-zecale get-batch --name ${APP_NAME} --batch-file batch1.json
-zecale check-batch batch1.json --batch-size 2
-zecale get-batch --name ${APP_NAME} --batch-file batch2.json
-zecale check-batch batch2.json --batch-size 2
-zecale get-batch --name ${APP_NAME} --batch-file batch3.json && \
-    (echo Expected failure when no batch available; exit 1)
+pushd user1
+
+    [ -e zecale-instance ] || cp ../aggregator_deployer/zecale-instance .
+    [ -e app-vk.json ] || cp ${TEST_DATA_DIR}/dummy_app/vk.json app-vk.json
+    [ -e vk-hash ] || cp ../application_deployer/vk-hash .
+    [ -e app-instance ] || cp ../application_deployer/app-instance .
+
+    # Submit transaction data to the aggregation server
+    zecale submit --name ${APP_NAME} --tx  ${TEST_DATA_DIR}/dummy_app/extproof1.json
+    zecale submit --name ${APP_NAME} --tx  ${TEST_DATA_DIR}/dummy_app/extproof2.json
+    zecale submit --name ${APP_NAME} --tx  ${TEST_DATA_DIR}/dummy_app/extproof3.json
+    zecale submit --name ${APP_NAME} --tx  ${TEST_DATA_DIR}/dummy_app/extproof4.json
+
+    # Get a single batch and send to the contract
+    zecale get-batch --name ${APP_NAME} --batch-file batch1.json
+    zecale check-batch batch1.json --batch-size 2
+    zecale submit-batch batch1.json --wait
+
+    # get a second batch and send to the contract
+    zecale get-batch --name ${APP_NAME} --batch-file batch2.json
+    zecale check-batch batch1.json --batch-size 2
+    zecale submit-batch batch2.json --wait
+
+    # A third batch should be available
+    zecale get-batch --name ${APP_NAME} --batch-file batch3.json && \
+        (echo Expected failure when no batch available; exit 1)
+
+popd # user1
 
 popd # _test_client_data
 

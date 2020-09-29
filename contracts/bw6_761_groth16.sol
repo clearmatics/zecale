@@ -264,9 +264,9 @@ library bw6_761_groth16
     }
 
     /// Given the length of a verification key, encoded as a uint256 array,
-    /// compute the number of inputs per batch.
-    function inputs_per_batch_from_vk_length(uint256 vk_length) internal returns (uint256) {
+    /// compute the number of inputs expected in the proof.
+    function num_inputs_from_vk_length(uint256 vk_length) internal returns (uint256) {
         // See the format of vk above
-        return ((vk_length - 0x12) / 6) - 1;
+        return (vk_length - 0x12) / 6;
     }
 }

@@ -54,3 +54,7 @@ def submit_batch(
         print(f"(gasUsed={gas_used}, status={status})")
         if status != 1:
             raise ClickException("transaction failed")
+
+        # This is kept for convenience during contract development. Can be
+        # removed once the contract code is stable.
+        dispatcher_contract.dump_logs(tx_receipt)

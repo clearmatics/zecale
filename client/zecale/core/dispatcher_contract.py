@@ -10,6 +10,8 @@ from zeth.core.contracts import InstanceDescription, send_contract_call
 from zeth.core.zksnark import IZKSnarkProvider, IVerificationKey
 # from zeth.core.zksnark import IZKSnarkProvider, GenericVerificationKey, \
 #     GenericProof
+from web3.utils.contracts import find_matching_event_abi  # type: ignore
+from web3.utils.events import get_event_data  # type: ignore
 from os.path import join
 from typing import List, Tuple, Optional, Any
 
@@ -100,3 +102,13 @@ class DispatcherContract:
             eth_private_key,
             None,               # TODO: value (fee?)
             None)
+
+    def dump_logs(self, tx_receipt: Any) -> None:
+        """
+        Print out debug log information from a dispatcher invocation
+        """
+        event_abi = find_matching_event_abi(self.instance.abi, event_name="log")
+        logs = tx_receipt.logs
+        for log in logs:
+            event_data = get_event_data(event_abi, log)
+            print(f"{event_data.args['a']}: {event_data.args['v']}")

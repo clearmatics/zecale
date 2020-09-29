@@ -2,8 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^ 0.5.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.5.0;
 
 import "./bw6_761_groth16.sol";
 import "./zecale_client_application.sol";
@@ -37,6 +36,10 @@ contract ZecaleDispatcher
     {
         _vk = vk;
     }
+
+    // Event logger to aid contract debugging. Can be removed eventually when
+    // the contract code is stabilized.
+    event log(string a, uint256 v);
 
     // Format of `inputs` matches the proof inputs exactly:
     //   IDX           VALUE
@@ -84,10 +87,13 @@ contract ZecaleDispatcher
         uint256[] memory nested_parameters,
         ZecaleClientApplication target_application) public returns(bool)
     {
-        uint256 inputs_per_batch =
-            bw6_761_groth16.inputs_per_batch_from_vk_length(_vk.length);
+        // Compute expected inputs per batch (TODO: move this to the constructor)
+        uint256 total_inputs =
+            bw6_761_groth16.num_inputs_from_vk_length(_vk.length);
+        uint256 inputs_per_batch = (total_inputs - 1) / batch_size;
 
-        uint256 nested_parameters_per_batch = nested_parameters.length / batch_size;
+        uint256 nested_parameters_per_batch =
+            nested_parameters.length / batch_size;
         require(
             nested_parameters.length == batch_size * nested_parameters_per_batch,
             "invalid nested_parameters length");
@@ -117,18 +123,24 @@ contract ZecaleDispatcher
             // Of the inputs for this batch, the first `inputs_per_batch - 1`
             // are the inputs to the nested proof. The final entry is the
             // `result` for this nested proof.
-            uint256 batch_start_idx = 2 * (1 + (inputs_per_batch * nested_proof_idx));
+            // uint256 batch_start_scalar_idx = 1 + inputs_per_batch * nested_proof_idx;
+            // uint256 result_scalar_idx = batch_start_scalar_idx + (inputs_per_batch - 1);
+            uint256 batch_start_word_idx =
+                2 * (1 + inputs_per_batch * nested_proof_idx);
+            uint256 result_word_idx =
+                batch_start_word_idx + (2 * (inputs_per_batch - 1));
 
             // For some reason, the following Solidity code generates an
             // invalid opcode error. Hence it is replaced with the equivalent
             // assembly.
-            // uint256 result = inputs[batch_start_idx + inputs_per_batch - 1];
+            //   uint256 result = inputs[result_word_idx + 1];
+            //
+            // NOTE: +1 here extracts the LO word. In the code below, we add 2
+            // to skip the first word (length) in the memory representation.
             uint256 result;
             assembly
             {
-                // +1 word for the array length, -1 for last word in the batch
-                let result_word_idx := add(batch_start_idx, inputs_per_batch)
-                let result_byte_idx := mul(result_word_idx, 0x20)
+                let result_byte_idx := mul(add(result_word_idx, 2), 0x20)
                 result := mload(add(inputs, result_byte_idx))
             }
 
@@ -141,7 +153,7 @@ contract ZecaleDispatcher
                 // sizes, copying only the low-order word from wrapped inputs
                 // into the array of nested inputs.
                 for (uint256 i = 0; i < inputs_per_batch - 1; ++i) {
-                    nested_proof_inputs[i] = inputs[batch_start_idx + (2 * i) + 1];
+                    nested_proof_inputs[i] = inputs[batch_start_word_idx + (2 * i) + 1];
                 }
 
                 // Copy nested_parameters
