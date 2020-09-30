@@ -9,39 +9,45 @@ APP_NAME="dummy_app"
 ROOT_DIR=`pwd`
 TEST_DATA_DIR=${ROOT_DIR}/testdata
 
+# 1 - user_name
+function setup_user() {
+    mkdir -p $1
+    pushd $1
+    [ -e eth-network ] || zeth_helper eth-gen-network-config
+    [ -e eth-address ] || \
+        (zeth_helper eth-gen-address && zeth_helper eth-fund)
+    popd
+}
+
 mkdir -p _test_client_data
 pushd _test_client_data
 
-# Collect data
+setup_user aggregator_deployer
+setup_user application_deployer
+setup_user user1
 
-[ -e vk.json ] || cp ${TEST_DATA_DIR}/dummy_app/vk.json .
-[ -e extproof1.json ] || cp ${TEST_DATA_DIR}/dummy_app/extproof1.json .
-[ -e extproof2.json ] || cp ${TEST_DATA_DIR}/dummy_app/extproof2.json .
-[ -e extproof3.json ] || cp ${TEST_DATA_DIR}/dummy_app/extproof3.json .
-[ -e extproof4.json ] || cp ${TEST_DATA_DIR}/dummy_app/extproof4.json .
+# Deploy zecale contract
 
-# Register the application
+pushd aggregator_deployer
+    [ -e aggregator_vk.json ] || zecale get-verification-key
+    [ -e zecale-instance ] || zecale deploy
+popd # aggregator_deployer
 
-zecale register --key vk.json --name ${APP_NAME} || echo Already registered
-( zecale register --key vk.json --name ${APP_NAME} ) && \
-    (echo Expected duplicate registration to fail; exit 1)
+# Deploy and register the application
 
 pushd application_deployer
-    [ -e vk.json ] || cp ${TEST_DATA_DIR}/dummy_app/vk.json .
-    [ -e vk_hash ] || zecale nested-verification-key-hash vk.json > vk_hash
     [ -e zecale-instance ] || cp ../aggregator_deployer/zecale-instance .
-    zecale_dummy_application deploy \
-       `cat vk_hash` \
-        --permitted-dispatcher-instance zecale-instance \
-        --app-output-address app-address
+    [ -e app-vk.json ] || cp ${TEST_DATA_DIR}/dummy_app/vk.json app-vk.json
+    [ -e vk-hash ] || zecale nested-verification-key-hash app-vk.json > vk-hash
+    [ -e app-instance ] || zecale_dummy_app deploy `cat vk-hash`
 
-zecale submit --name ${APP_NAME} --tx extproof1.json
-zecale submit --name ${APP_NAME} --tx extproof2.json
-zecale submit --name ${APP_NAME} --tx extproof3.json
-zecale submit --name ${APP_NAME} --tx extproof4.json
+    zecale register --key app-vk.json --name ${APP_NAME} || echo -n
+    # Re-registration should fail
+    ( zecale register --key app-vk.json --name ${APP_NAME} ) && \
+        (echo Expected duplicate registration to fail; exit 1)
+popd # application_deployer
 
-# Request aggregate proofs. Assuming the server was empty at the beginning of
-# the test, the first two request should succeed, and the third should fail.
+# Submit 4 transactions to the aggregator (enough for 2 batches)
 
 pushd user1
 
@@ -56,15 +62,33 @@ pushd user1
     zecale submit --name ${APP_NAME} --tx  ${TEST_DATA_DIR}/dummy_app/extproof3.json
     zecale submit --name ${APP_NAME} --tx  ${TEST_DATA_DIR}/dummy_app/extproof4.json
 
+    echo Check starting app state
+    zecale_dummy_app get 7 --check 0
+    zecale_dummy_app get 8 --check 0
+    zecale_dummy_app get 9 --check 0
+    zecale_dummy_app get 10 --check 0
+
     # Get a single batch and send to the contract
     zecale get-batch --name ${APP_NAME} --batch-file batch1.json
     zecale check-batch batch1.json --batch-size 2
     zecale submit-batch batch1.json --wait
 
+    echo Check app state after batch 1
+    zecale_dummy_app get 7 --check 1
+    zecale_dummy_app get 8 --check 1
+    zecale_dummy_app get 9 --check 0
+    zecale_dummy_app get 10 --check 0
+
     # get a second batch and send to the contract
     zecale get-batch --name ${APP_NAME} --batch-file batch2.json
     zecale check-batch batch1.json --batch-size 2
     zecale submit-batch batch2.json --wait
+
+    echo Check app state after batch 2
+    zecale_dummy_app get 7 --check 1
+    zecale_dummy_app get 8 --check 1
+    zecale_dummy_app get 9 --check 1
+    zecale_dummy_app get 10 --check 1
 
     # A third batch should be available
     zecale get-batch --name ${APP_NAME} --batch-file batch3.json && \
