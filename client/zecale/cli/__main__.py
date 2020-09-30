@@ -6,6 +6,7 @@ from zecale.cli.defaults import \
     AGGREGATOR_SERVER_ENDPOINT_DEFAULT, INSTANCE_FILE_DEFAULT
 from zecale.cli.command_context import CommandContext
 from zecale.cli.zecale_get_verification_key import get_verification_key
+from zecale.cli.zecale_deploy import deploy
 from zecale.cli.zecale_register import register
 from zecale.cli.zecale_submit import submit
 from zecale.cli.zecale_get_batch import get_batch
@@ -53,6 +54,7 @@ def zecale(
 
 
 zecale.add_command(get_verification_key)
+zecale.add_command(deploy)
 zecale.add_command(register)
 zecale.add_command(submit)
 zecale.add_command(get_batch)
