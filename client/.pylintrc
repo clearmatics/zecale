@@ -1,6 +1,9 @@
 [MASTER]
 ignore=zecale/api
 
+[DESIGN]
+max-attributes=8
+
 [MESSAGES CONTROL]
 disable=
     bad-continuation,

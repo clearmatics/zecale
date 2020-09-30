@@ -10,7 +10,7 @@ def load_verification_key(verification_key: str) -> GenericVerificationKey:
     """
     Load a JSON verification key from a file.
     """
-    with open(verification_key, "rb") as vk_f:
+    with open(verification_key, "r") as vk_f:
         return json.load(vk_f)
 
 
@@ -19,5 +19,5 @@ def load_transaction(tx_file: str) -> GenericProof:
     """
     Load a single transaction for some application.
     """
-    with open(tx_file, "rb") as tx_f:
+    with open(tx_file, "r") as tx_f:
         return json.load(tx_f)

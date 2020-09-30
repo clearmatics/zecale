@@ -13,11 +13,12 @@ from zecale.cli.zecale_register import register
 from zecale.cli.zecale_submit import submit
 from zecale.cli.zecale_get_batch import get_batch
 from zecale.cli.zecale_check_batch import check_batch
+from zeth.cli.constants import ETH_NETWORK_FILE_DEFAULT
 from grpc import RpcError
 from click import group, option, pass_context, Context
 from click_default_group import DefaultGroup  # type: ignore
 import sys
-from typing import Any
+from typing import Optional, Any
 
 
 class HandleRpcExceptions(DefaultGroup):
@@ -43,16 +44,28 @@ class HandleRpcExceptions(DefaultGroup):
     "--instance-file", "-i",
     default=INSTANCE_FILE_DEFAULT,
     help=f"Zecale contract instance file (default={INSTANCE_FILE_DEFAULT})")
+@option(
+    "--eth-network",
+    help="Ethereum RPC endpoint, network or config file "
+    f"(default: '{ETH_NETWORK_FILE_DEFAULT}')")
+@option("--eth-addr", help="Sender's eth address or address filename")
+@option("--eth-private-key", help="Sender's eth private key file")
 @pass_context
 def zecale(
         ctx: Context,
         aggregator_server: str,
-        instance_file: str) -> None:
+        instance_file: str,
+        eth_network: Optional[str],
+        eth_addr: Optional[str],
+        eth_private_key: Optional[str]) -> None:
     if ctx.invoked_subcommand == "help":
         ctx.invoke(help)
     ctx.obj = CommandContext(
         aggregator_server,
-        instance_file)
+        instance_file,
+        eth_network,
+        eth_addr,
+        eth_private_key)
 
 
 zecale.add_command(get_verification_key)
