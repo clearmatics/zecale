@@ -39,6 +39,7 @@ template<typename ppT, typename snarkT> class dummy_app_wrapper
 {
 public:
     using FieldT = libff::Fr<ppT>;
+    static const size_t num_primary_inputs = 1;
 
     libsnark::protoboard<FieldT> _pb;
     libsnark::pb_variable<FieldT> _a;

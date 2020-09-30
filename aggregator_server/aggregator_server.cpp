@@ -5,7 +5,8 @@
 // Read the zecale config, include the appropriate pairing selector and define
 // the corresponding pairing parameters type.
 
-#include "libzecale/circuits/aggregator_circuit_wrapper.hpp"
+#include "libzecale/circuits/aggregator_circuit.hpp"
+#include "libzecale/circuits/null_hash_gadget.hpp"
 #include "libzecale/core/application_pool.hpp"
 #include "libzecale/serialization/proto_utils.hpp"
 #include "zecale_config.h"
@@ -19,7 +20,6 @@
 #include <grpcpp/server_context.h>
 #include <iostream>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
-#include <libzeth/circuits/circuit_types.hpp>
 #include <libzeth/core/utils.hpp>
 #include <libzeth/serialization/proto_utils.hpp>
 #include <libzeth/serialization/r1cs_serialization.hpp>
@@ -51,28 +51,29 @@ using npp = libzecale::other_curve<wpp>;
 #if defined(ZECALE_SNARK_PGHR13)
 #include <libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp>
 #include <libzeth/snarks/pghr13/pghr13_api_handler.hpp>
-using wverifier = libzecale::pghr13_verifier_parameters<wpp>;
+using wsnark = libzeth::pghr13_snark<wpp>;
 using wapi_handler = libzeth::pghr13_api_handler<wpp>;
-using nsnark = libzeth::pghr13_snark<npp>;
+using nverifier = libzecale::pghr13_verifier_parameters<wpp>;
 using napi_handler = libzeth::pghr13_api_handler<npp>;
 #elif defined(ZECALE_SNARK_GROTH16)
 #include <libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp>
 #include <libzeth/snarks/groth16/groth16_api_handler.hpp>
-using wverifier = libzecale::groth16_verifier_parameters<wpp>;
+using wsnark = libzeth::groth16_snark<wpp>;
 using wapi_handler = libzeth::groth16_api_handler<wpp>;
-using nsnark = libzeth::groth16_snark<npp>;
+using nverifier = libzecale::groth16_verifier_parameters<wpp>;
 using napi_handler = libzeth::groth16_api_handler<npp>;
 #else
 #error "ZECALE_SNARK_* variable not set to supported ZK snark"
 #endif
 
-using wsnark = typename wverifier::snark;
+using nsnark = typename nverifier::snark;
+using hash = libzecale::null_hash_gadget<libff::Fr<wpp>>;
 
 static const size_t batch_size = 2;
 static const size_t num_inputs_per_nested_proof = 1;
 
-using aggregator_circuit_wrapper = libzecale::
-    aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>;
+using aggregator_circuit =
+    libzecale::aggregator_circuit<wpp, wsnark, nverifier, hash, batch_size>;
 
 /// The aggregator_server class inherits from the Aggregator service defined in
 /// the proto files, and provides an implementation of the service.
@@ -82,17 +83,17 @@ private:
     using application_pool =
         libzecale::application_pool<npp, nsnark, batch_size>;
 
-    aggregator_circuit_wrapper aggregator;
+    aggregator_circuit &aggregator;
 
     // The keypair is the result of the setup for the aggregation circuit
-    wsnark::keypair keypair;
+    const wsnark::keypair &keypair;
 
     // The nested verification key is the vk used to verify the nested proofs
     std::map<std::string, application_pool *> application_pools;
 
 public:
     explicit aggregator_server(
-        aggregator_circuit_wrapper &aggregator, const wsnark::keypair &keypair)
+        aggregator_circuit &aggregator, const wsnark::keypair &keypair)
         : aggregator(aggregator), keypair(keypair)
     {
     }
@@ -183,12 +184,17 @@ public:
             application_pool *const app_pool =
                 application_pools.at(transaction->application_name());
 
-            // Add the application to the list of applications supported by
-            // the server.
+            // Sanity-check the transaction (number of inputs).
             const libzecale::transaction_to_aggregate<npp, nsnark> tx =
                 libzecale::
                     transaction_to_aggregate_from_proto<npp, napi_handler>(
                         *transaction);
+            if (tx.extended_proof().get_primary_inputs().size() !=
+                num_inputs_per_nested_proof) {
+                throw std::invalid_argument("invalid number of inputs");
+            }
+
+            // Add the proof to the pool for the named application.
             app_pool->add_tx(tx);
 
             std::cout << "[DEBUG] Registered tx with ext proof:\n";
@@ -238,10 +244,11 @@ public:
             std::array<const libzeth::extended_proof<npp, nsnark> *, batch_size>
                 nested_proofs;
             for (size_t i = 0; i < batch_size; ++i) {
+                nested_proofs[i] = &batch[i].extended_proof();
+
                 std::cout << "[DEBUG] got tx " << std::to_string(i)
                           << " with ext proof:\n";
-                batch[i].extended_proof().write_json(std::cout);
-                nested_proofs[i] = &batch[i].extended_proof();
+                nested_proofs[i]->write_json(std::cout);
             }
 
             // Retrieve the nested verification key for this application.
@@ -310,8 +317,7 @@ void display_server_start_message()
 }
 
 static void RunServer(
-    aggregator_circuit_wrapper &aggregator,
-    const typename wsnark::keypair &keypair)
+    aggregator_circuit &aggregator, const typename wsnark::keypair &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50052
     // TODO: Move this in a config file
@@ -401,9 +407,8 @@ int main(int argc, char **argv)
     npp::init_public_params();
     wpp::init_public_params();
 
-    libzecale::
-        aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
-            aggregator(num_inputs_per_nested_proof);
+    libzecale::aggregator_circuit<wpp, wsnark, nverifier, hash, batch_size>
+        aggregator(num_inputs_per_nested_proof);
     wsnark::keypair keypair = [&keypair_file, &aggregator]() {
         if (!keypair_file.empty()) {
 #ifdef ZKSNARK_GROTH16

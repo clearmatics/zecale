@@ -5,6 +5,8 @@
 #ifndef __ZECALE_CIRCUITS_AGGREGATOR_GADGET_HPP_
 #define __ZECALE_CIRCUITS_AGGREGATOR_GADGET_HPP_
 
+#include "libzecale/circuits/pairing/pairing_params.hpp"
+
 #include <libff/algebra/fields/field_utils.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
@@ -27,36 +29,23 @@ namespace libzecale
 /// In order to aggregate proofs, we require that the base field of the curve
 /// used in the nested proof (nppT here) be the scalar field for the wrapping
 /// pairing (wppT).
-template<
-    typename nppT,
-    typename wppT,
-    typename nsnarkT,
-    typename wverifierT,
-    size_t NumProofs>
+template<typename wppT, typename nverifierT, size_t NumProofs>
 class aggregator_gadget : libsnark::gadget<libff::Fr<wppT>>
 {
 private:
-    using verifier_gadget = typename wverifierT::verifier_gadget;
-    using proof_variable_gadget = typename wverifierT::proof_variable_gadget;
+    using npp = other_curve<wppT>;
+    using nsnark = typename nverifierT::snark;
+    using verifier_gadget = typename nverifierT::verifier_gadget;
+    using proof_variable_gadget = typename nverifierT::proof_variable_gadget;
     using verification_key_variable_gadget =
-        typename wverifierT::verification_key_variable_gadget;
+        typename nverifierT::verification_key_variable_gadget;
     using input_packing_gadget = libsnark::multipacking_gadget<libff::Fr<wppT>>;
 
     const size_t num_inputs_per_nested_proof;
 
-    /// The nested primary inputs lie in the scalar field `libff::Fr<nppT>`,
-    /// and must be represented as elements of `libff::Fr<wppT>` for use in the
-    /// wrapper proof. This gadget assumes that libff::Fr<nppT> can be
-    /// represented as a single `libff::Fr<wppT>`, and internally asserts this.
-    /// (Expected to be primary inputs to the wrapping statement).
+    // Required in order to generate the bit strings from witness value.
     std::array<libsnark::pb_variable_array<libff::Fr<wppT>>, NumProofs>
         nested_primary_inputs;
-
-    /// The array of the results of the verifiers. 1 meaning that the nested
-    /// proof is valid, 0 meaning it may not be valid. (Expected to be a
-    /// primary inputs to the wrapping statement).
-    std::array<libsnark::pb_variable<libff::Fr<wppT>>, NumProofs>
-        nested_proofs_results;
 
     /// The binary representation of inputs to the nested Fr<nppT> inputs. Each
     /// entry is the concatenation of all bits of the inputs to the a single
@@ -68,35 +57,29 @@ private:
     std::vector<std::shared_ptr<input_packing_gadget>>
         nested_primary_input_packers;
 
-    /// The nested proofs (defined over `nppT`) to verify. As above, these are
-    /// verified by virtue of the fact that the base field for nppT is the
-    /// scalar field of wppT. These gadgets take a witness in the form of a
-    /// proof with group elements from nppT and represent them as variables in
-    /// the wppT scalar field. (Variables are expected to be auxiliary inputs).
-    std::array<std::shared_ptr<proof_variable_gadget>, NumProofs> nested_proofs;
-
-    /// (Nested) verification key used to verify the nested proofs. Consists of
-    /// group elements of `nppT`, which again, can be represented using
-    /// elements in `libff::Fr<wppT>`.
-    std::shared_ptr<verification_key_variable_gadget> nested_vk;
-
-    /// Gadgets that verify the proofs and inputs against nested_vk.
+    // Gadgets that verify the proofs and inputs against nested_vk.
     std::array<std::shared_ptr<verifier_gadget>, NumProofs> verifiers;
 
 public:
     aggregator_gadget(
         libsnark::protoboard<libff::Fr<wppT>> &pb,
-        const size_t inputs_per_nested_proof,
-        const std::string &annotation_prefix = "aggregator_gadget");
+        const verification_key_variable_gadget &vk,
+        const std::array<
+            libsnark::pb_variable_array<libff::Fr<wppT>>,
+            NumProofs> &inputs,
+        const std::array<std::shared_ptr<proof_variable_gadget>, NumProofs>
+            &proofs,
+        const std::array<libsnark::pb_variable<libff::Fr<wppT>>, NumProofs>
+            &proof_results,
+        const std::string &annotation_prefix);
 
     void generate_r1cs_constraints();
 
     /// Set the wppT scalar variables based on the nested verification key,
     /// proofs and inputs in nppT.
     void generate_r1cs_witness(
-        const typename nsnarkT::verification_key &in_nested_vk,
         const std::array<
-            const libzeth::extended_proof<nppT, nsnarkT> *,
+            const libsnark::r1cs_primary_input<libff::Fr<npp>> *,
             NumProofs> &in_extended_proofs);
 };
 
