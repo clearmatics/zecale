@@ -5,9 +5,11 @@
 from zecale.api import aggregator_pb2_grpc
 from zecale.api import aggregator_pb2
 from zecale.core.aggregated_transaction import AggregatedTransaction
-from zecale.core.proto_utils import aggregated_transaction_from_proto
+from zecale.core.nested_transaction import NestedTransaction
+from zecale.core.proto_utils import nested_transaction_to_proto, \
+    aggregated_transaction_from_proto
 import grpc
-from zeth.core.zksnark import IZKSnarkProvider, IVerificationKey, ExtendedProof
+from zeth.core.zksnark import IZKSnarkProvider, IVerificationKey
 from google.protobuf import empty_pb2
 import json
 
@@ -49,18 +51,14 @@ class AggregatorClient:
             stub = aggregator_pb2_grpc.AggregatorStub(channel)  # type: ignore
             stub.RegisterApplication(app_desc)
 
-    def submit_nested_transaction(
-            self, name: str, transaction: ExtendedProof) -> None:
+    def submit_nested_transaction(self, nested_tx: NestedTransaction) -> None:
         """
-        Submit a transactions (just an xtended proof for now) to the aggregator.
+        Submit a nested transaction to the aggregator.
         """
-        tx_to_aggregate = aggregator_pb2.NestedTransaction()
-        tx_to_aggregate.application_name = name
-        tx_to_aggregate.extended_proof.CopyFrom(  # pylint: disable=no-member
-            self.zksnark.extended_proof_to_proto(transaction))
+        nested_tx_proto = nested_transaction_to_proto(self.zksnark, nested_tx)
         with grpc.insecure_channel(self.endpoint) as channel:
             stub = aggregator_pb2_grpc.AggregatorStub(channel)  # type: ignore
-            stub.SubmitNestedTransaction(tx_to_aggregate)
+            stub.SubmitNestedTransaction(nested_tx_proto)
 
     def get_aggregated_transaction(self, name: str) -> AggregatedTransaction:
         """

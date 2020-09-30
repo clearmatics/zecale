@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from zecale.core.utils import get_zecale_dir
-from zecale.cli.utils import load_verification_key, load_transaction
+from zecale.cli.utils import load_verification_key, load_extended_proof
 from zeth.core.zksnark import IZKSnarkProvider, Groth16, IVerificationKey
 from zeth.core.utils import hex_list_to_uint256_list
 from zeth.core.contracts import InstanceDescription
@@ -24,7 +24,7 @@ def _test_bw6_761_groth16_contract_with_proof(
         vk: IVerificationKey,
         proof_filename: str) -> bool:
     # Load proof and extract inputs
-    extproof = load_transaction(zksnark, join(DUMMY_APP_DIR, proof_filename))
+    extproof = load_extended_proof(zksnark, join(DUMMY_APP_DIR, proof_filename))
     inputs = extproof.inputs
 
     # Encode the vk, proof and inputs into evm words

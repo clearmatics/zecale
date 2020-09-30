@@ -2,7 +2,8 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from .utils import load_transaction
+from .utils import load_extended_proof
+from ..core.nested_transaction import NestedTransaction
 from click import option, command, pass_context, Context
 
 
@@ -17,6 +18,7 @@ def submit(ctx: Context, name: str, tx: str) -> None:
     cmd_ctx = ctx.obj
 
     # Load nested transaction and submit to the aggregation server
-    transaction = load_transaction(cmd_ctx.zksnark, tx)
+    ext_proof = load_extended_proof(cmd_ctx.zksnark, tx)
+    nested_tx = NestedTransaction(name, ext_proof)
     aggregator_client = cmd_ctx.get_aggregator_client()
-    aggregator_client.submit_nested_transaction(name, transaction)
+    aggregator_client.submit_nested_transaction(nested_tx)

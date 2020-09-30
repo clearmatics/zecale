@@ -17,7 +17,7 @@ def load_verification_key(
 
 
 # For now, a "transaction" is just an extended proof.
-def load_transaction(zksnark: IZKSnarkProvider, tx_file: str) -> ExtendedProof:
+def load_extended_proof(zksnark: IZKSnarkProvider, tx_file: str) -> ExtendedProof:
     """
     Load a single transaction for some application.
     """
