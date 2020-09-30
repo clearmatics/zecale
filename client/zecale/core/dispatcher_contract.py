@@ -4,8 +4,10 @@
 
 from __future__ import annotations
 from .utils import get_zecale_dir
-from zeth.core.contracts import InstanceDescription
-from zeth.core.zksnark import IZKSnarkProvider, GenericVerificationKey
+from ..core.aggregated_transaction import AggregatedTransaction
+from zeth.core.utils import hex_list_to_uint256_list
+from zeth.core.contracts import InstanceDescription, send_contract_call
+from zeth.core.zksnark import IZKSnarkProvider, IVerificationKey
 # from zeth.core.zksnark import IZKSnarkProvider, GenericVerificationKey, \
 #     GenericProof
 from os.path import join
@@ -36,7 +38,7 @@ class DispatcherContract:
     @staticmethod
     def deploy(
             web3: Any,
-            vk: GenericVerificationKey,
+            vk: IVerificationKey,
             eth_addr: str,
             eth_private_key: Optional[bytes],
             zksnark: IZKSnarkProvider) \
@@ -45,7 +47,7 @@ class DispatcherContract:
         Deploy the contract, returning an instance of this wrapper, and a
         description (which can be saved to a file to later instantiate).
         """
-        vk_evm = zksnark.verification_key_to_evm_parameters(vk)
+        vk_evm = zksnark.verification_key_to_contract_parameters(vk)
         instance_desc = InstanceDescription.deploy(
             web3,
             DISPATCHER_SOURCE_FILE,
@@ -57,16 +59,35 @@ class DispatcherContract:
             [vk_evm])
         return DispatcherContract(web3, instance_desc, zksnark), instance_desc
 
-    # def process_batch(
-    #         self,
-    #         batch_proof: GenericProof,
-    #         inputs: List[bytes],
-    #         nested_parameters: List[List[bytes]],
-    #         application_contract_address: str,
-    #         eth_addr: str,
-    #         eth_private_key: Optional[bytes]) -> bytes:
-    #     """
-    #     Send a batch to the contracts process_batch entry point. Returns the
-    #     transaction ID.
-    #     """
-    #     raise Exception("not implemented")
+    def process_batch(
+            self,
+            batch: AggregatedTransaction,
+            application_contract_address: str,
+            eth_addr: str,
+            eth_private_key: Optional[bytes]) -> bytes:
+        """
+        Send a batch to the contracts process_batch entry point. Returns the
+        transaction ID.
+        """
+
+        # Encode the parameters of the entry point and create a local call
+        # object.
+        proof_evm = self.zksnark.proof_to_contract_parameters(
+            batch.extproof.proof)
+        inputs_evm = hex_list_to_uint256_list(batch.extproof.inputs)
+        nested_parameters_evm = [hex_list_to_uint256_list(params)
+                                 for params in batch.nested_parameters]
+        contract_call = self.instance.functions.process_batch(
+            proof_evm,
+            inputs_evm,
+            nested_parameters_evm,
+            application_contract_address)
+
+        # Broadcast
+        return send_contract_call(
+            self.web3,
+            contract_call,
+            eth_addr,
+            eth_private_key,
+            None,               # TODO: value (fee?)
+            None)

@@ -21,7 +21,7 @@ def nested_verification_key_hash(
     cmd_ctx: CommandContext = ctx.obj
 
     # Load key and call the GetNestedVerificationKeyHash method
-    vk = load_verification_key(verification_key_file)
+    vk = load_verification_key(cmd_ctx.zksnark, verification_key_file)
     aggregator_client = cmd_ctx.get_aggregator_client()
     vk_hash_hex = aggregator_client.get_nested_verification_key_hash(vk)
 

@@ -17,8 +17,9 @@ from click import command, option, pass_context, Context
     help="Name of the application to register")
 @pass_context
 def register(ctx: Context, key: str, name: str) -> None:
-    client_ctx = ctx.obj
-    vk = load_verification_key(key)
+    cmd_ctx = ctx.obj
 
-    aggregator_client = client_ctx.get_aggregator_client()
+    # Load verification key, and register against the given name.
+    vk = load_verification_key(cmd_ctx.zksnark, key)
+    aggregator_client = cmd_ctx.get_aggregator_client()
     aggregator_client.register_application(vk, name)

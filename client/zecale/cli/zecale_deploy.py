@@ -28,7 +28,7 @@ def deploy(
     (eth_addr, eth_private_key) = cmd_ctx.get_eth_key_and_address()
 
     # Load verification key
-    vk = load_verification_key(verification_key_file)
+    vk = load_verification_key(cmd_ctx.zksnark, verification_key_file)
 
     # Deploy contract, passing the encoded key to the constructor
     web3 = cmd_ctx.get_web3()

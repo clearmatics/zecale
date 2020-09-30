@@ -46,8 +46,6 @@ def deploy(
     with open(dispatcher_instance_file, "r") as dispatcher_instance_f:
         dispatcher_desc = InstanceDescription.from_json_dict(
             json.load(dispatcher_instance_f))
-        # dispatcher_address = load_eth_address(dispatcher_desc.address)
-        dispatcher_address = dispatcher_desc.address
 
     # Assume there is only one evm word
     verification_key_hash_evm = next(
@@ -65,7 +63,7 @@ def deploy(
         eth_private_key_data,
         DUMMY_APP_CONTRACT_DEPLOY_GAS,
         {"allow_paths": CONTRACTS_DIR},
-        [dispatcher_address, verification_key_hash_evm])
+        [dispatcher_desc.address, verification_key_hash_evm])
 
     with open(instance_file, "w") as instance_file_f:
         json.dump(instance_desc.to_json_dict(), instance_file_f)

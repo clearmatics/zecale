@@ -103,21 +103,16 @@ void test_add_and_retrieve_transactions()
         std::move(proof), std::move(dummy_inputs));
 
     // Add transactions in the pool
-    transaction_to_aggregate<ppT, snarkT> tx_a =
-        transaction_to_aggregate<ppT, snarkT>(
-            dummy_app_name, dummy_extended_proof, 1);
-    transaction_to_aggregate<ppT, snarkT> tx_b =
-        transaction_to_aggregate<ppT, snarkT>(
-            dummy_app_name, dummy_extended_proof, 20);
-    transaction_to_aggregate<ppT, snarkT> tx_c =
-        transaction_to_aggregate<ppT, snarkT>(
-            dummy_app_name, dummy_extended_proof, 12);
-    transaction_to_aggregate<ppT, snarkT> tx_d =
-        transaction_to_aggregate<ppT, snarkT>(
-            dummy_app_name, dummy_extended_proof, 3);
-    transaction_to_aggregate<ppT, snarkT> tx_e =
-        transaction_to_aggregate<ppT, snarkT>(
-            dummy_app_name, dummy_extended_proof, 120);
+    nested_transaction<ppT, snarkT> tx_a = nested_transaction<ppT, snarkT>(
+        dummy_app_name, dummy_extended_proof, 1);
+    nested_transaction<ppT, snarkT> tx_b = nested_transaction<ppT, snarkT>(
+        dummy_app_name, dummy_extended_proof, 20);
+    nested_transaction<ppT, snarkT> tx_c = nested_transaction<ppT, snarkT>(
+        dummy_app_name, dummy_extended_proof, 12);
+    nested_transaction<ppT, snarkT> tx_d = nested_transaction<ppT, snarkT>(
+        dummy_app_name, dummy_extended_proof, 3);
+    nested_transaction<ppT, snarkT> tx_e = nested_transaction<ppT, snarkT>(
+        dummy_app_name, dummy_extended_proof, 120);
 
     pool.add_tx(tx_a);
     pool.add_tx(tx_b);
@@ -129,8 +124,7 @@ void test_add_and_retrieve_transactions()
     ASSERT_EQ(pool.tx_pool_size(), (size_t)5);
 
     // 2. Retrieve a batch
-    std::array<libzecale::transaction_to_aggregate<ppT, snarkT>, BATCH_SIZE>
-        batch;
+    std::array<libzecale::nested_transaction<ppT, snarkT>, BATCH_SIZE> batch;
     const size_t batch_size = pool.get_next_batch(batch);
     ASSERT_EQ(batch_size, BATCH_SIZE);
 

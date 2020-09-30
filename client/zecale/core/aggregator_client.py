@@ -4,6 +4,8 @@
 
 from zecale.api import aggregator_pb2_grpc
 from zecale.api import aggregator_pb2
+from zecale.core.aggregated_transaction import AggregatedTransaction
+from zecale.core.proto_utils import aggregated_transaction_from_proto
 import grpc
 from zeth.core.zksnark import IZKSnarkProvider, IVerificationKey, ExtendedProof
 from google.protobuf import empty_pb2
@@ -60,7 +62,7 @@ class AggregatorClient:
             stub = aggregator_pb2_grpc.AggregatorStub(channel)  # type: ignore
             stub.SubmitNestedTransaction(tx_to_aggregate)
 
-    def get_aggregated_transaction(self, name: str) -> ExtendedProof:
+    def get_aggregated_transaction(self, name: str) -> AggregatedTransaction:
         """
         Request an aggregated transaction.
         """
@@ -69,5 +71,5 @@ class AggregatorClient:
         with grpc.insecure_channel(self.endpoint) as channel:
             stub = aggregator_pb2_grpc.AggregatorStub(channel)  # type: ignore
             agg_tx_proto = stub.GenerateAggregatedTransaction(agg_tx_request)
-        return self.wrapper_zksnark.extended_proof_from_proto(
-            agg_tx_proto.extended_proof)
+        return aggregated_transaction_from_proto(
+            self.wrapper_zksnark, agg_tx_proto)

@@ -2,7 +2,7 @@
 ignore=zecale/api
 
 [DESIGN]
-max-attributes=8
+max-attributes=10
 
 [MESSAGES CONTROL]
 disable=
@@ -17,7 +17,8 @@ disable=
     missing-module-docstring,
     broad-except,
     too-many-function-args,
-    duplicate-code
+    duplicate-code,
+    fixme
 
 good-names=i,e,x,y,m,k,h,c,cm,rc,ek,ct,vk,sk,pk,X,Y,r,el,nf,tx
 

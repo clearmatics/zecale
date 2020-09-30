@@ -42,6 +42,7 @@ syntax: $(API_OUTPUT)
 	flake8 `git ls-files '**.py'`
 	mypy -p zecale
 	mypy -p tests
+	mypy -p test_commands
 	pylint zecale tests
 
 

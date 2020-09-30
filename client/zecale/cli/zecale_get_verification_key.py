@@ -26,4 +26,4 @@ def get_verification_key(
     aggregator_client = cmd_ctx.get_aggregator_client()
     aggregator_vk = aggregator_client.get_verification_key()
     with open(verification_key_file, "w") as vk_f:
-        json.dump(aggregator_vk, vk_f)
+        json.dump(aggregator_vk.to_json_dict(), vk_f)

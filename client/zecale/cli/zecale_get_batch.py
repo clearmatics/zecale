@@ -22,4 +22,4 @@ def get_batch(
     aggregator_client = client_ctx.get_aggregator_client()
     aggregated_tx = aggregator_client.get_aggregated_transaction(name)
     with open(batch_file, "w") as batch_f:
-        json.dump(aggregated_tx, batch_f)
+        json.dump(aggregated_tx.to_json_dict(), batch_f)
