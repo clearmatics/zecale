@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 from zeth.core.zksnark import ExtendedProof, IZKSnarkProvider
-from typing import Dict, Any
+from typing import Dict, Any, cast
 
 
 class NestedTransaction:
@@ -14,21 +14,25 @@ class NestedTransaction:
     def __init__(
             self,
             app_name: str,
-            ext_proof: ExtendedProof):
+            ext_proof: ExtendedProof,
+            parameters: bytes):
         self.app_name = app_name
         self.ext_proof = ext_proof
+        self.parameters = parameters
 
     def to_json_dict(self) -> Dict[str, Any]:
         return {
-            "name": self.app_name,
+            "app_name": self.app_name,
             "extended_proof": self.ext_proof.to_json_dict(),
+            "parameters": self.parameters.hex(),
         }
 
     @staticmethod
-    def _from_json_dict(
+    def from_json_dict(
             zksnark: IZKSnarkProvider,
             json_dict: Dict[str, Any]) -> NestedTransaction:
-        return NestedTransaction(
-            app_name=json_dict["name"],
-            ext_proof=ExtendedProof.from_json_dict(
-                zksnark, json_dict["extended_proof"]))
+        app_name = json_dict["app_name"]
+        ext_proof = ExtendedProof.from_json_dict(
+            zksnark, cast(Dict[str, Any], json_dict["extended_proof"]))
+        parameters = bytes.fromhex(json_dict["parameters"])
+        return NestedTransaction(app_name, ext_proof, parameters)

@@ -3,6 +3,7 @@
 set -x
 set -e
 
+# This must match the app_name in the nested transaction files.
 APP_NAME="dummy_app"
 
 
@@ -45,6 +46,12 @@ pushd application_deployer
     # Re-registration should fail
     ( zecale register --key app-vk.json --name ${APP_NAME} ) && \
         (echo Expected duplicate registration to fail; exit 1)
+
+    echo Check starting app state
+    zecale_dummy_app get 7 --check 0
+    zecale_dummy_app get 8 --check 0
+    zecale_dummy_app get 9 --check 0
+    zecale_dummy_app get 10 --check 0
 popd # application_deployer
 
 # Submit 4 transactions to the aggregator (enough for 2 batches)
@@ -57,16 +64,10 @@ pushd user1
     [ -e app-instance ] || cp ../application_deployer/app-instance .
 
     # Submit transaction data to the aggregation server
-    zecale submit --name ${APP_NAME} --tx  ${TEST_DATA_DIR}/dummy_app/extproof1.json
-    zecale submit --name ${APP_NAME} --tx  ${TEST_DATA_DIR}/dummy_app/extproof2.json
-    zecale submit --name ${APP_NAME} --tx  ${TEST_DATA_DIR}/dummy_app/extproof3.json
-    zecale submit --name ${APP_NAME} --tx  ${TEST_DATA_DIR}/dummy_app/extproof4.json
-
-    echo Check starting app state
-    zecale_dummy_app get 7 --check 0
-    zecale_dummy_app get 8 --check 0
-    zecale_dummy_app get 9 --check 0
-    zecale_dummy_app get 10 --check 0
+    zecale submit ${TEST_DATA_DIR}/dummy_app/extproof1.json
+    zecale submit ${TEST_DATA_DIR}/dummy_app/extproof2.json
+    zecale submit ${TEST_DATA_DIR}/dummy_app/extproof3.json
+    zecale submit ${TEST_DATA_DIR}/dummy_app/extproof4.json
 
     # Get a single batch and send to the contract
     zecale get-batch --name ${APP_NAME} --batch-file batch1.json
@@ -74,8 +75,8 @@ pushd user1
     zecale submit-batch batch1.json --wait
 
     echo Check app state after batch 1
-    zecale_dummy_app get 7 --check 1
-    zecale_dummy_app get 8 --check 1
+    zecale_dummy_app get 7 --check 23
+    zecale_dummy_app get 8 --check 24
     zecale_dummy_app get 9 --check 0
     zecale_dummy_app get 10 --check 0
 
@@ -85,10 +86,10 @@ pushd user1
     zecale submit-batch batch2.json --wait
 
     echo Check app state after batch 2
-    zecale_dummy_app get 7 --check 1
-    zecale_dummy_app get 8 --check 1
-    zecale_dummy_app get 9 --check 1
-    zecale_dummy_app get 10 --check 1
+    zecale_dummy_app get 7 --check 23
+    zecale_dummy_app get 8 --check 24
+    zecale_dummy_app get 9 --check 25
+    zecale_dummy_app get 10 --check 26
 
     # A third batch should be available
     zecale get-batch --name ${APP_NAME} --batch-file batch3.json && \

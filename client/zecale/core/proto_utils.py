@@ -6,7 +6,6 @@ from zecale.core.aggregated_transaction import AggregatedTransaction
 from zecale.core.nested_transaction import NestedTransaction
 from zecale.api import aggregator_pb2
 from zeth.core.zksnark import IZKSnarkProvider
-from typing import List
 
 
 def nested_transaction_to_proto(
@@ -16,6 +15,7 @@ def nested_transaction_to_proto(
     tx_proto.application_name = tx.app_name
     tx_proto.extended_proof.CopyFrom(  # pylint: disable=no-member
         zksnark.extended_proof_to_proto(tx.ext_proof))
+    tx_proto.parameters = tx.parameters
     return tx_proto
 
 
@@ -27,10 +27,8 @@ def aggregated_transaction_from_proto(
     Convert a generic protobuf AggregatedTransactionRequest to an in-memory
     AggregatedTransaction
     """
+    app_name = aggregated_transaction_proto.application_name
     extproof = zksnark.extended_proof_from_proto(
         aggregated_transaction_proto.extended_proof)
-    # TODO: add suport for nested parameters
-    # nested_parameters = cast(List[str],
-    #     json.loads(aggregated_transaction_proto.nested_parameters)
-    nested_parameters: List[List[str]] = []
-    return AggregatedTransaction(extproof, nested_parameters)
+    nested_parameters = list(aggregated_transaction_proto.nested_parameters)
+    return AggregatedTransaction(app_name, extproof, nested_parameters)

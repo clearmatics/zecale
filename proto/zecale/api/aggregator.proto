@@ -51,8 +51,9 @@ message ApplicationDescription {
 message NestedTransaction {
     string application_name = 1;
     zeth_proto.ExtendedProof extended_proof = 2;
-    // Only if an incentive structure is in place and fees are supported
-    int32 fee_in_wei = 3;
+    bytes parameters = 3;
+    // TODO: Define aggregator incentive-related data (fees etc)
+    int32 fee_in_wei = 4;
 }
 
 // A request for an aggregated transaction.  Specifies the application name.
@@ -61,9 +62,8 @@ message AggregatedTransactionRequest {
 }
 
 // Server returns this in response for a request for an aggreagted transaction.
-//
-// TODO: For now this includes only a proof, but eventually we may need extra
-// parameter data.
 message AggregatedTransaction {
-    zeth_proto.ExtendedProof extended_proof = 1;
+    string application_name = 1;
+    zeth_proto.ExtendedProof extended_proof = 2;
+    repeated bytes nested_parameters = 3;
 }

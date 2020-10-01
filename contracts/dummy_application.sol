@@ -20,11 +20,9 @@ contract DummyApplication is IZecaleApplication
     uint256 _vk_hash;
 
     // The set of scalars seen by the contract.
-    mapping(uint256 => bool) _scalars;
+    mapping(uint256 => uint256) _scalars;
 
-    constructor(
-        address permitted_dispatcher,
-        uint256 vk_hash) public
+    constructor(address permitted_dispatcher, uint256 vk_hash) public
     {
         _permitted_dispatcher = permitted_dispatcher;
         _vk_hash = vk_hash;
@@ -33,27 +31,26 @@ contract DummyApplication is IZecaleApplication
     // Implementation of ZecaleClientApplication.dispatch. Here, the single
     // input is the scalar for which knowledge of the multiplicative inverse
     // is demonstrated. `parameters` is currently unused.
-    //
-    // TODO: require meaningful data in `parameters` and check its correctness.
     function dispatch(
         uint256 vk_hash,
         uint256[] memory inputs,
-        uint256[] memory parameters)
-        public payable
+        uint256[] memory parameters) public payable
     {
         // Sanity checks
-        require(inputs.length == 1, "unexpeected nested_inputs length");
-        require(parameters.length == 0, "unexpected nested_parameters length");
+        require(inputs.length == 1, "unexpected inputs length");
+        require(parameters.length == 1, "unexpected parameters length");
 
         // Ensure that the caller and vk_hash are as expected
         require(msg.sender == _permitted_dispatcher, "dispatcher not permitted");
         require(vk_hash == _vk_hash, "invalid vk_hash");
+        require(0 == _scalars[inputs[0]], "scalar already seen");
 
-        require(!_scalars[inputs[0]], "scalar already seen");
-        _scalars[inputs[0]] = true;
+        require(0 != parameters[0], "param should not be 0");
+
+        _scalars[inputs[0]] = parameters[0];
     }
 
-    function get(uint256 scalar) public returns (bool)
+    function get(uint256 scalar) public view returns(uint256)
     {
         return _scalars[scalar];
     }
