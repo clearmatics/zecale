@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zecale.cli.defaults import \
-    AGGREGATOR_SERVER_ENDPOINT_DEFAULT, INSTANCE_FILE_DEFAULT
+from zecale.cli.defaults import INSTANCE_FILE_DEFAULT, \
+    AGGREGATOR_SERVER_ENDPOINT_DEFAULT, AGGREGATOR_CONFIG_FILE_DEFAULT
 from zecale.cli.command_context import CommandContext
 from zecale.cli.zecale_get_verification_key import get_verification_key
 from zecale.cli.zecale_deploy import deploy
@@ -42,6 +42,11 @@ class HandleRpcExceptions(DefaultGroup):
     help="Aggregator server endpoint "
     f"(default={AGGREGATOR_SERVER_ENDPOINT_DEFAULT})")
 @option(
+    "--aggregator-config-file", "-a",
+    default=AGGREGATOR_CONFIG_FILE_DEFAULT,
+    help="Aggregator configuration file "
+    f"(default={AGGREGATOR_CONFIG_FILE_DEFAULT})")
+@option(
     "--instance-file", "-i",
     default=INSTANCE_FILE_DEFAULT,
     help=f"Zecale contract instance file (default={INSTANCE_FILE_DEFAULT})")
@@ -55,6 +60,7 @@ class HandleRpcExceptions(DefaultGroup):
 def zecale(
         ctx: Context,
         aggregator_server: str,
+        aggregator_config_file: str,
         instance_file: str,
         eth_network: Optional[str],
         eth_addr: Optional[str],
@@ -63,6 +69,7 @@ def zecale(
         ctx.invoke(help)
     ctx.obj = CommandContext(
         aggregator_server,
+        aggregator_config_file,
         instance_file,
         eth_network,
         eth_addr,

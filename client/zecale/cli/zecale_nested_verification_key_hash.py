@@ -19,11 +19,12 @@ def nested_verification_key_hash(
     key. The verification key does not have to be registered.
     """
     cmd_ctx: CommandContext = ctx.obj
+    snark = cmd_ctx.get_nested_snark()
 
     # Load key and call the GetNestedVerificationKeyHash method
-    vk = load_verification_key(cmd_ctx.zksnark, verification_key_file)
+    vk = load_verification_key(snark, verification_key_file)
     aggregator_client = cmd_ctx.get_aggregator_client()
-    vk_hash_hex = aggregator_client.get_nested_verification_key_hash(vk)
+    vk_hash_hex = aggregator_client.get_nested_verification_key_hash(snark, vk)
 
     # Decode the key into evm words and extract the lowest order one. Assert
     # that the higher order ints are all zero.

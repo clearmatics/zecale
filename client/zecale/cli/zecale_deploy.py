@@ -25,15 +25,18 @@ def deploy(
     """
 
     cmd_ctx: CommandContext = ctx.obj
+    aggregator_config = cmd_ctx.get_aggregator_configuration()
+    snark = aggregator_config.wrapper_snark
+    pp = aggregator_config.wrapper_pairing_parameters
     (eth_addr, eth_private_key) = cmd_ctx.get_eth_key_and_address()
 
     # Load verification key
-    vk = load_verification_key(cmd_ctx.zksnark, verification_key_file)
+    vk = load_verification_key(snark, verification_key_file)
 
     # Deploy contract, passing the encoded key to the constructor
     web3 = cmd_ctx.get_web3()
     _dispatcher, dispatcher_instance = DispatcherContract.deploy(
-        web3, vk, eth_addr, eth_private_key, cmd_ctx.zksnark)
+        web3, snark, pp, vk, eth_addr, eth_private_key)
 
     # Save the contract instance description
     with open(cmd_ctx.instance_file, "w") as instance_f:

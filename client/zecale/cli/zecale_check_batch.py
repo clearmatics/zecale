@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from zecale.cli.utils import load_aggregated_transaction
+from zecale.cli.command_context import CommandContext
 from click import argument, option, command, pass_context, Context, ClickException
 
 
@@ -18,8 +19,9 @@ def check_batch(ctx: Context, batch_file: str, batch_size: int) -> None:
     """
     Exit with error if result is not 1 for any nested proof
     """
-    cmd_ctx = ctx.obj
-    aggregated_tx = load_aggregated_transaction(cmd_ctx.zksnark, batch_file)
+    cmd_ctx: CommandContext = ctx.obj
+    aggregated_tx = load_aggregated_transaction(
+        cmd_ctx.get_wrapper_snark(), batch_file)
     inputs = aggregated_tx.ext_proof.inputs
 
     # Attempt to automatically detect the vk_hash param at position 0
