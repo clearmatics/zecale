@@ -6,6 +6,7 @@ from __future__ import annotations
 from zecale.core.utils import get_zecale_dir
 from zecale.core.aggregated_transaction import AggregatedTransaction
 from zeth.core.utils import hex_list_to_uint256_list
+from zeth.core.pairing import PairingParameters
 from zeth.core.contracts import InstanceDescription, send_contract_call
 from zeth.core.zksnark import IZKSnarkProvider, IVerificationKey
 # from zeth.core.zksnark import IZKSnarkProvider, GenericVerificationKey, \
@@ -20,6 +21,23 @@ ZECALE_DIR = get_zecale_dir()
 CONTRACTS_DIR = join(ZECALE_DIR, "contracts")
 DISPATCHER_SOURCE_FILE = join(CONTRACTS_DIR, "zecale_dispatcher.sol")
 DISPATCHER_DEPLOY_GAS = 5000000
+
+
+# Temporarily hard-code the pairing parameters for BW6-761
+# pylint: disable=line-too-long
+PAIRING_PARAMETERS = PairingParameters.from_json_dict({
+    "r": "0x01ae3a4617c510eac63b05c06ca1493b1a22d9f300f5138f1ef3622fba094800170b5d44300000008508c00000000001",  # noqa
+    "q": "0x0122e824fb83ce0ad187c94004faff3eb926186a81d14688528275ef8087be41707ba638e584e91903cebaff25b423048689c8ed12f9fd9071dcd3dc73ebff2e98a116c25667a8f8160cf8aeeaf0a437e6913e6870000082f49d00000000008b",  # noqa
+    "generator_g1": [
+        "0x01075b020ea190c8b277ce98a477beaee6a0cfb7551b27f0ee05c54b85f56fc779017ffac15520ac11dbfcd294c2e746a17a54ce47729b905bd71fa0c9ea097103758f9a280ca27f6750dd0356133e82055928aca6af603f4088f3af66e5b43d",  # noqa
+        "0x0058b84e0a6fc574e6fd637b45cc2a420f952589884c9ec61a7348d2a2e573a3265909f1af7e0dbac5b8fa1771b5b806cc685d31717a4c55be3fb90b6fc2cdd49f9df141b3053253b2b08119cad0fb93ad1cb2be0b20d2a1bafc8f2db4e95363"  # noqa
+    ],
+    "generator_g2": [
+        "0x0110133241d9b816c852a82e69d660f9d61053aac5a7115f4c06201013890f6d26b41c5dab3da268734ec3f1f09feb58c5bbcae9ac70e7c7963317a300e1b6bace6948cb3cd208d700e96efbc2ad54b06410cf4fe1bf995ba830c194cd025f1c",  # noqa
+        "0x0017c3357761369f8179eb10e4b6d2dc26b7cf9acec2181c81a78e2753ffe3160a1d86c80b95a59c94c97eb733293fef64f293dbd2c712b88906c170ffa823003ea96fcd504affc758aa2d3a3c5a02a591ec0594f9eac689eb70a16728c73b61"  # noqa
+    ],
+})
+# pylint: enable=line-too-long
 
 
 class DispatcherContract:
@@ -48,7 +66,8 @@ class DispatcherContract:
         Deploy the contract, returning an instance of this wrapper, and a
         description (which can be saved to a file to later instantiate).
         """
-        vk_evm = zksnark.verification_key_to_contract_parameters(vk)
+        vk_evm = zksnark.verification_key_to_contract_parameters(
+            vk, PAIRING_PARAMETERS)
         instance_desc = InstanceDescription.deploy(
             web3,
             DISPATCHER_SOURCE_FILE,
@@ -75,7 +94,7 @@ class DispatcherContract:
         # object. The proof and inputs are encoded into contract parameters,
         # and the nested_parameters are passed as raw bytes arrays.
         proof_evm = self.zksnark.proof_to_contract_parameters(
-            batch.ext_proof.proof)
+            batch.ext_proof.proof, PAIRING_PARAMETERS)
         inputs_evm = hex_list_to_uint256_list(batch.ext_proof.inputs)
 
         contract_call = self.instance.functions.process_batch(

@@ -13,11 +13,11 @@ pragma solidity ^0.5.0;
 //   G1:  6 x uint256 = 192 bytes = 0xc0 bytes
 //   G2:  6 x uint256 = 192 bytes = 0xc0 bytes
 //
-// Generator g_2 of G2
+// Negated generator of G2, -g_2
 // -------------------
 //   x = 0x0110133241d9b816c852a82e69d660f9d61053aac5a7115f4c06201013890f6d26b41c5dab3da268734ec3f1f09feb58c5bbcae9ac70e7c7963317a300e1b6bace6948cb3cd208d700e96efbc2ad54b06410cf4fe1bf995ba830c194cd025f1c
-//   y = 0x0017c3357761369f8179eb10e4b6d2dc26b7cf9acec2181c81a78e2753ffe3160a1d86c80b95a59c94c97eb733293fef64f293dbd2c712b88906c170ffa823003ea96fcd504affc758aa2d3a3c5a02a591ec0594f9eac689eb70a16728c73b61
-//
+//   y = 0x010b24ef8422976b500dde2f20442c62926e48cfb30f2e6bd0dae7c82c87db2b665e1f70d9ef437c6f053c47f28ae315219735114032ead7e8d6126b7443dc2e59f7a6f5061ca930bd62cb74ae96a19254a538d3761539f9092c5e98d738c52a
+
 // which, encoded as evm words, is:
 //
 //   x = [
@@ -26,9 +26,9 @@ pragma solidity ^0.5.0;
 //     0xce6948cb3cd208d700e96efbc2ad54b06410cf4fe1bf995ba830c194cd025f1c,
 //   ]
 //   y = [
-//     0x0017c3357761369f8179eb10e4b6d2dc26b7cf9acec2181c81a78e2753ffe316,
-//     0x0a1d86c80b95a59c94c97eb733293fef64f293dbd2c712b88906c170ffa82300,
-//     0x3ea96fcd504affc758aa2d3a3c5a02a591ec0594f9eac689eb70a16728c73b61,
+//     0x010b24ef8422976b500dde2f20442c62926e48cfb30f2e6bd0dae7c82c87db2b
+//     0x665e1f70d9ef437c6f053c47f28ae315219735114032ead7e8d6126b7443dc2e
+//     0x59f7a6f5061ca930bd62cb74ae96a19254a538d3761539f9092c5e98d738c52a
 //   ]
 
 library bw6_761_groth16
@@ -36,18 +36,18 @@ library bw6_761_groth16
     // Structure of the verification key array:
     // struct VerificationKey
     // {
-    //     uint256[6] alpha;   // offset 0x00 words (0x000 bytes)
-    //     uint256[6] beta;    // offset 0x06 words (0x0c0 bytes)
-    //     uint256[6] delta;   // offset 0x0c words (0x180 bytes)
-    //     uint256[] abc;      // offset 0x12 words (0x240 bytes)
+    //     uint256[6] alpha;       // offset 0x00 words (0x000 bytes)
+    //     uint256[6] minus_beta;  // offset 0x06 words (0x0c0 bytes)
+    //     uint256[6] minus_delta; // offset 0x0c words (0x180 bytes)
+    //     uint256[] abc;          // offset 0x12 words (0x240 bytes)
     // }
 
     // Structure of the proof array:
     // struct Proof
     // {
-    //     uint256[6] a;       // offset 0x00 words (0x000 bytes)
-    //     uint256[6] minus_b; // offset 0x06 words (0x0c0 bytes)
-    //     uint256[6] c;       // offset 0x0c words (0x180 bytes)
+    //     uint256[6] a;  // offset 0x00 words (0x000 bytes)
+    //     uint256[6] b;  // offset 0x06 words (0x0c0 bytes)
+    //     uint256[6] c;  // offset 0x0c words (0x180 bytes)
     // }
 
     /// Verify a proof and inputs (both in memory) against a verification key
@@ -178,13 +178,13 @@ library bw6_761_groth16
 
         //  OFFSET  USAGE
         //   0x600          <END>
-        //   0x540~0x600    vk.delta
+        //   0x540~0x600    vk.minus_delta
         //   0x480~0x540    proof.c
-        //   0x3c0~0x480    proof.minus_b
+        //   0x3c0~0x480    proof.b
         //   0x300~0x3c0    proof.a
-        //   0x240~0x300    vk.beta
+        //   0x240~0x300    vk.minus_beta
         //   0x180~0x240    vk.alpha
-        //   0x0c0~0x180    g_2
+        //   0x0c0~0x180    -g_2
         //   0x000~0x0c0    accum
 
         assembly
@@ -203,14 +203,13 @@ library bw6_761_groth16
                 0xce6948cb3cd208d700e96efbc2ad54b06410cf4fe1bf995ba830c194cd025f1c)
             mstore(
                 add(pad, 0x120),
-                0x0017c3357761369f8179eb10e4b6d2dc26b7cf9acec2181c81a78e2753ffe316)
+                0x010b24ef8422976b500dde2f20442c62926e48cfb30f2e6bd0dae7c82c87db2b)
             mstore(
                 add(pad, 0x140),
-                0x0a1d86c80b95a59c94c97eb733293fef64f293dbd2c712b88906c170ffa82300)
+                0x665e1f70d9ef437c6f053c47f28ae315219735114032ead7e8d6126b7443dc2e)
             mstore(
                 add(pad, 0x160),
-                0x3ea96fcd504affc758aa2d3a3c5a02a591ec0594f9eac689eb70a16728c73b61)
-
+                0x59f7a6f5061ca930bd62cb74ae96a19254a538d3761539f9092c5e98d738c52a)
             // write vk.alpha and vk.beta
             mstore(add(pad, 0x180), sload(vk_slot_num))
             mstore(add(pad, 0x1a0), sload(add(vk_slot_num,  1)))
@@ -226,7 +225,7 @@ library bw6_761_groth16
             mstore(add(pad, 0x2c0), sload(add(vk_slot_num, 10)))
             mstore(add(pad, 0x2e0), sload(add(vk_slot_num, 11)))
 
-            // write proof.a and proof.minus_b
+            // write proof.a and proof.b
             mstore(add(pad, 0x300), mload(proof))
             mstore(add(pad, 0x320), mload(add(proof, 0x020)))
             mstore(add(pad, 0x340), mload(add(proof, 0x040)))
