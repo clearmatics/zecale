@@ -22,9 +22,39 @@ using namespace libzecale;
 namespace
 {
 
+template<typename ppT, typename snarkT, typename api_handlerT>
+void test_parse_nested_transaction(
+    const libzeth::extended_proof<ppT, snarkT> &mock_extended_proof)
+{
+    // Manually create the equivalent protobuf nested transaction
+    zeth_proto::ExtendedProof *ext_proof_proto =
+        new zeth_proto::ExtendedProof();
+    api_handlerT::extended_proof_to_proto(mock_extended_proof, ext_proof_proto);
+    zecale_proto::NestedTransaction nested_tx_proto;
+    nested_tx_proto.set_application_name("zeth");
+    nested_tx_proto.set_fee_in_wei(12);
+    nested_tx_proto.set_allocated_extended_proof(ext_proof_proto);
+
+    // Parse the protobuf nested transaction back to a nested_transaction
+    // object, and compare the result to the original.
+    nested_transaction<ppT, snarkT> nested_tx_decoded =
+        nested_transaction_from_proto<ppT, api_handlerT>(nested_tx_proto);
+
+    ASSERT_EQ(
+        nested_tx_decoded.extended_proof().get_primary_inputs(),
+        mock_extended_proof.get_primary_inputs());
+    ASSERT_EQ(
+        nested_tx_decoded.extended_proof().get_proof(),
+        mock_extended_proof.get_proof());
+    ASSERT_EQ(nested_tx_decoded.application_name(), "zeth");
+    ASSERT_EQ(nested_tx_decoded.fee_wei(), 12);
+
+    // ext_proof_proto will be deleted by the zecale_proto::NestedTransaction
+    // destructor.
+}
+
 template<typename ppT> void test_parse_nested_transaction_pghr13()
 {
-    // Format arbitary data that will be parsed afterwards
     libsnark::r1cs_ppzksnark_proof<ppT> proof(
         libsnark::knowledge_commitment<libff::G1<ppT>, libff::G1<ppT>>(
             libff::G1<ppT>::random_element(), libff::G1<ppT>::random_element()),
@@ -43,33 +73,10 @@ template<typename ppT> void test_parse_nested_transaction_pghr13()
     libzeth::extended_proof<ppT, libzeth::pghr13_snark<ppT>>
         mock_extended_proof(std::move(proof), std::move(inputs));
 
-    // Manually create the equivalent protobuf nested transaction
-    zeth_proto::ExtendedProof *ext_proof_proto =
-        new zeth_proto::ExtendedProof();
-    libzeth::pghr13_api_handler<ppT>::extended_proof_to_proto(
-        mock_extended_proof, ext_proof_proto);
-    zecale_proto::NestedTransaction nested_tx_proto;
-    nested_tx_proto.set_application_name("zeth");
-    nested_tx_proto.set_fee_in_wei(12);
-    nested_tx_proto.set_allocated_extended_proof(ext_proof_proto);
-
-    // Parse the protobuf nested transaction back to a nested_transaction
-    // object, and compare the result to the original.
-    nested_transaction<ppT, libzeth::pghr13_snark<ppT>> nested_tx_decoded =
-        nested_transaction_from_proto<ppT, libzeth::pghr13_api_handler<ppT>>(
-            nested_tx_proto);
-
-    ASSERT_EQ(
-        nested_tx_decoded.extended_proof().get_primary_inputs(),
-        mock_extended_proof.get_primary_inputs());
-    ASSERT_EQ(
-        nested_tx_decoded.extended_proof().get_proof(),
-        mock_extended_proof.get_proof());
-    ASSERT_EQ(nested_tx_decoded.application_name(), "zeth");
-    ASSERT_EQ(nested_tx_decoded.fee_wei(), 12);
-
-    // ext_proof_proto will be deleted by the zecale_proto::NestedTransaction
-    // destructor.
+    test_parse_nested_transaction<
+        ppT,
+        libzeth::pghr13_snark<ppT>,
+        libzeth::pghr13_api_handler<ppT>>(mock_extended_proof);
 }
 
 template<typename ppT> void test_parse_nested_transaction_groth16()
@@ -88,32 +95,10 @@ template<typename ppT> void test_parse_nested_transaction_groth16()
     const libzeth::extended_proof<ppT, libzeth::groth16_snark<ppT>>
         mock_extended_proof(std::move(proof), std::move(inputs));
 
-    // Manually create the equivalent protobuf nested transaction
-    zeth_proto::ExtendedProof *ext_proof_proto =
-        new zeth_proto::ExtendedProof();
-    libzeth::groth16_api_handler<ppT>::extended_proof_to_proto(
-        mock_extended_proof, ext_proof_proto);
-    zecale_proto::NestedTransaction nested_tx_proto;
-    nested_tx_proto.set_application_name("zeth");
-    nested_tx_proto.set_fee_in_wei(12);
-    nested_tx_proto.set_allocated_extended_proof(ext_proof_proto);
-
-    // Parse the TransactionToAggregate
-    nested_transaction<ppT, libzeth::groth16_snark<ppT>> retrieved_tx =
-        nested_transaction_from_proto<ppT, libzeth::groth16_api_handler<ppT>>(
-            nested_tx_proto);
-
-    ASSERT_EQ(
-        retrieved_tx.extended_proof().get_primary_inputs(),
-        mock_extended_proof.get_primary_inputs());
-    ASSERT_EQ(
-        retrieved_tx.extended_proof().get_proof(),
-        mock_extended_proof.get_proof());
-    ASSERT_EQ(retrieved_tx.application_name(), "zeth");
-    ASSERT_EQ(retrieved_tx.fee_wei(), 12);
-
-    // ext_proof_proto will be deleted by the zecale_proto::NestedTransaction
-    // destructor.
+    test_parse_nested_transaction<
+        ppT,
+        libzeth::groth16_snark<ppT>,
+        libzeth::groth16_api_handler<ppT>>(mock_extended_proof);
 }
 
 TEST(MainTests, ParseTransactionToAggregatePGHR13Mnt4)
