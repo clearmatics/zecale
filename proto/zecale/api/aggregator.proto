@@ -2,11 +2,14 @@ syntax = "proto3";
 
 package zecale_proto;
 
+import "zeth/api/snark_messages.proto";
+import "zeth/api/ec_group_messages.proto";
 import "google/protobuf/empty.proto";
 
-import "zeth/api/snark_messages.proto";
-
 service Aggregator {
+    // Return the AggregatorConfiguration of the server.
+    rpc GetConfiguration(google.protobuf.Empty) returns (AggregatorConfiguration) {}
+
     // Fetch the verification key corresponding to the aggregator statement
     // (the statement including multiple calls to the SNARK verification
     // routine). The Zecale verifier contract must be instantiated with this
@@ -35,6 +38,13 @@ service Aggregator {
     // have already been deposited in the aggregator tx pool. Returns the proof
     // of CI for the validity of the batch of proofs.)
     rpc GenerateAggregatedTransaction(AggregatedTransactionRequest) returns (AggregatedTransaction) {}
+}
+
+message AggregatorConfiguration {
+    string nested_snark_name = 1;
+    string wrapper_snark_name = 2;
+    zeth_proto.PairingParameters nested_pairing_parameters = 3;
+    zeth_proto.PairingParameters wrapper_pairing_parameters = 4;
 }
 
 message VerificationKeyHash {
