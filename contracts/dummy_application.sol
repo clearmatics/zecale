@@ -4,13 +4,13 @@
 
 pragma solidity ^0.5.0;
 
-import "./zecale_client_application.sol";
+import "./zecale_application.sol";
 
 // Trivial dummy application used to test the Zecale protocol. Transactions
 // demonstrate knowledge of the multiplicative inverse of scalar value. The
 // contract state records the set of scalars seen so far, rejecting
 // transactions for scalars that have already been seen.
-contract DummyApplication is ZecaleClientApplication
+contract DummyApplication is IZecaleApplication
 {
     // The address of the single contract trusted to call dispatch endpoint.
     address _permitted_dispatcher;

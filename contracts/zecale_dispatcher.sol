@@ -5,7 +5,7 @@
 pragma solidity ^0.5.0;
 
 import "./bw6_761_groth16.sol";
-import "./zecale_client_application.sol";
+import "./zecale_application.sol";
 
 // Scalar Conversion
 // -----------------
@@ -85,7 +85,7 @@ contract ZecaleDispatcher
         uint256[18] memory batch_proof,
         uint256[] memory inputs,
         uint256[] memory nested_parameters,
-        ZecaleClientApplication target_application) public returns(bool)
+        IZecaleApplication target_application) public returns(bool)
     {
         // Compute expected inputs per batch (TODO: move this to the constructor)
         uint256 total_inputs =
