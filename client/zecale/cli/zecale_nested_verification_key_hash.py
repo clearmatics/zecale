@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from .command_context import CommandContext
-from .utils import load_verification_key
+from zecale.cli.command_context import CommandContext
+from zecale.cli.utils import load_verification_key
 from zeth.core.utils import hex_to_uint256_list
 from click import command, argument, Context, pass_context
 

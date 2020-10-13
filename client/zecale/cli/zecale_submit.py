@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from .utils import load_extended_proof
-from ..core.nested_transaction import NestedTransaction
+from zecale.cli.utils import load_extended_proof
+from zecale.core.nested_transaction import NestedTransaction
 from click import option, command, pass_context, Context
 
 

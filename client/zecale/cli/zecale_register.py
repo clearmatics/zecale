@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from .utils import load_verification_key
+from zecale.cli.utils import load_verification_key
 from click import command, option, pass_context, Context
 
 

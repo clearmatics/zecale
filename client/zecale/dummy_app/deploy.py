@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from ..core.utils import get_zecale_dir
-from ..cli.defaults import APPLICATION_INSTANCE_FILE_DEFAULT, \
+from zecale.core.utils import get_zecale_dir
+from zecale.cli.defaults import APPLICATION_INSTANCE_FILE_DEFAULT, \
     INSTANCE_FILE_DEFAULT
 from zeth.core.contracts import InstanceDescription
 from zeth.core.utils import hex_to_uint256_list

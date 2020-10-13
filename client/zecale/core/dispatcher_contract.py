@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from __future__ import annotations
-from .utils import get_zecale_dir
-from ..core.aggregated_transaction import AggregatedTransaction
+from zecale.core.utils import get_zecale_dir
+from zecale.core.aggregated_transaction import AggregatedTransaction
 from zeth.core.utils import hex_list_to_uint256_list
 from zeth.core.contracts import InstanceDescription, send_contract_call
 from zeth.core.zksnark import IZKSnarkProvider, IVerificationKey

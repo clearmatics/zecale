@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 
-from .defaults import APPLICATION_INSTANCE_FILE_DEFAULT
-from .command_context import CommandContext
-from .utils import load_aggregated_transaction
+from zecale.cli.defaults import APPLICATION_INSTANCE_FILE_DEFAULT
+from zecale.cli.command_context import CommandContext
+from zecale.cli.utils import load_aggregated_transaction
 from zeth.core.contracts import InstanceDescription
 from click import command, argument, option, Context, pass_context, ClickException
 import json

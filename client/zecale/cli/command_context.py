@@ -2,10 +2,10 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from .defaults import AGGREGATOR_SERVER_ENDPOINT_DEFAULT, INSTANCE_FILE_DEFAULT, \
-    ZKSNARK_NAME_DEFAULT
-from ..core.aggregator_client import AggregatorClient
-from ..core.dispatcher_contract import DispatcherContract
+from zecale.cli.defaults import AGGREGATOR_SERVER_ENDPOINT_DEFAULT, \
+    INSTANCE_FILE_DEFAULT, ZKSNARK_NAME_DEFAULT
+from zecale.core.aggregator_client import AggregatorClient
+from zecale.core.dispatcher_contract import DispatcherContract
 from zeth.core.zksnark import get_zksnark_provider
 from zeth.core.contracts import InstanceDescription
 from zeth.cli.utils import get_eth_network, open_web3_from_network, \

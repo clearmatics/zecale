@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from .defaults import AGGREGATOR_VERIFICATION_KEY_FILE_DEFAULT
+from zecale.cli.defaults import AGGREGATOR_VERIFICATION_KEY_FILE_DEFAULT
 import json
 from click import option, command, pass_context, Context
 

@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from ..cli.defaults import APPLICATION_INSTANCE_FILE_DEFAULT
+from zecale.cli.defaults import APPLICATION_INSTANCE_FILE_DEFAULT
 from zeth.core.contracts import InstanceDescription
 from zeth.cli.utils import open_web3_from_network
 import json

@@ -2,10 +2,10 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from .defaults import AGGREGATOR_VERIFICATION_KEY_FILE_DEFAULT
-from .command_context import CommandContext
-from .utils import load_verification_key
-from ..core.dispatcher_contract import DispatcherContract
+from zecale.cli.defaults import AGGREGATOR_VERIFICATION_KEY_FILE_DEFAULT
+from zecale.cli.command_context import CommandContext
+from zecale.cli.utils import load_verification_key
+from zecale.core.dispatcher_contract import DispatcherContract
 from click import command, option, Context, pass_context
 import json
 

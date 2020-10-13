@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 
-from .deploy import deploy
-from .get import get
+from zecale.dummy_app.deploy import deploy
+from zecale.dummy_app.get import get
 from zeth.cli.constants import ETH_NETWORK_FILE_DEFAULT
 from zeth.cli.utils import get_eth_network
 from click import group, option, pass_context, Context
