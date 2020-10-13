@@ -37,7 +37,9 @@ zecale submit --name ${APP_NAME} --tx extproof4.json
 # the test, the first two request should succeed, and the third should fail.
 
 zecale get-batch --name ${APP_NAME} --batch-file batch1.json
+zecale check-batch batch1.json --batch-size 2
 zecale get-batch --name ${APP_NAME} --batch-file batch2.json
+zecale check-batch batch2.json --batch-size 2
 zecale get-batch --name ${APP_NAME} --batch-file batch3.json && \
     (echo Expected failure when no batch available; exit 1)
 

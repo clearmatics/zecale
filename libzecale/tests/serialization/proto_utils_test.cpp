@@ -135,46 +135,18 @@ template<typename ppT> void test_parse_transaction_to_aggregate_groth16()
     inputs.push_back(libff::Fr<ppT>::random_element());
     inputs.push_back(libff::Fr<ppT>::random_element());
 
-    libzeth::extended_proof<ppT, libzeth::groth16_snark<ppT>>
+    const libzeth::extended_proof<ppT, libzeth::groth16_snark<ppT>>
         mock_extended_proof(std::move(proof), std::move(inputs));
-
-    libsnark::r1cs_gg_ppzksnark_proof<ppT> proofObj =
-        mock_extended_proof.get_proof();
-    zeth_proto::HexPointBaseGroup1Affine *a =
-        new zeth_proto::HexPointBaseGroup1Affine();
-    zeth_proto::HexPointBaseGroup2Affine *b =
-        new zeth_proto::HexPointBaseGroup2Affine();
-    zeth_proto::HexPointBaseGroup1Affine *c =
-        new zeth_proto::HexPointBaseGroup1Affine();
-
-    a->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_A));
-    b->CopyFrom(libzeth::point_g2_affine_to_proto<ppT>(proofObj.g_B)); // in G2
-    c->CopyFrom(libzeth::point_g1_affine_to_proto<ppT>(proofObj.g_C));
-
-    std::stringstream inputs_ss;
-    libzeth::primary_inputs_write_json(
-        mock_extended_proof.get_primary_inputs(), inputs_ss);
-
-    // Note on memory safety: set_allocated deleted the allocated objects
-    // See:
-    // https://stackoverflow.com/questions/33960999/protobuf-will-set-allocated-delete-the-allocated-object
-    zeth_proto::ExtendedProof *ext_proof = new zeth_proto::ExtendedProof();
-    zeth_proto::ExtendedProofGROTH16 *grpc_extended_groth16_proof_obj =
-        new zeth_proto::ExtendedProofGROTH16();
-
-    grpc_extended_groth16_proof_obj->set_allocated_a(a);
-    grpc_extended_groth16_proof_obj->set_allocated_b(b);
-    grpc_extended_groth16_proof_obj->set_allocated_c(c);
-    grpc_extended_groth16_proof_obj->set_inputs(inputs_ss.str());
-
-    ext_proof->set_allocated_groth16_extended_proof(
-        grpc_extended_groth16_proof_obj);
-
+    zeth_proto::ExtendedProof *proto_extended_groth16_proof =
+        new zeth_proto::ExtendedProof();
+    libzeth::groth16_api_handler<ppT>::extended_proof_to_proto(
+        mock_extended_proof, proto_extended_groth16_proof);
     zecale_proto::TransactionToAggregate *grpc_tx_to_aggregate_obj =
         new zecale_proto::TransactionToAggregate();
     grpc_tx_to_aggregate_obj->set_application_name("zeth");
     grpc_tx_to_aggregate_obj->set_fee_in_wei(12);
-    grpc_tx_to_aggregate_obj->set_allocated_extended_proof(ext_proof);
+    grpc_tx_to_aggregate_obj->set_allocated_extended_proof(
+        proto_extended_groth16_proof);
 
     // Parse the TransactionToAggregate
     transaction_to_aggregate<ppT, libzeth::groth16_snark<ppT>> retrieved_tx =

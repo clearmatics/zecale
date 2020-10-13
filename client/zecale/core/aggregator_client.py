@@ -25,8 +25,8 @@ class AggregatorClient:
     def get_verification_key(self) -> Dict[str, object]:
         with grpc.insecure_channel(self.endpoint) as channel:
             stub = aggregator_pb2_grpc.AggregatorStub(channel)  # type: ignore
-            verificationkey = stub.GetVerificationKey(empty_pb2.Empty())
-            return verificationkey
+            vk_proto = stub.GetVerificationKey(empty_pb2.Empty())
+            return self.wrapper_zksnark.verification_key_from_proto(vk_proto)
 
     def register_application(
             self, vk: GenericVerificationKey, app_name: str) -> None:
