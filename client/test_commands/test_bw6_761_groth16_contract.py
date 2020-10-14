@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from zecale.core.utils import get_zecale_dir
-from zecale.cli.utils import load_verification_key, load_transaction
-from zeth.core.zksnark import Groth16SnarkProvider, GenericVerificationKey
+from zecale.cli.utils import load_verification_key, load_extended_proof
+from zeth.core.zksnark import IZKSnarkProvider, Groth16, IVerificationKey
 from zeth.core.utils import hex_list_to_uint256_list
 from zeth.core.contracts import InstanceDescription
 from zeth.cli.utils import get_eth_network, open_web3_from_network
@@ -19,17 +19,17 @@ DUMMY_APP_DIR = join(ZECALE_DIR, "testdata", "dummy_app")
 
 
 def _test_bw6_761_groth16_contract_with_proof(
+        zksnark: IZKSnarkProvider,
         instance: Any,
-        vk: GenericVerificationKey,
+        vk: IVerificationKey,
         proof_filename: str) -> bool:
     # Load proof and extract inputs
-    extproof = load_transaction(join(DUMMY_APP_DIR, proof_filename))
-    inputs = extproof["inputs"]
+    extproof = load_extended_proof(zksnark, join(DUMMY_APP_DIR, proof_filename))
+    inputs = extproof.inputs
 
     # Encode the vk, proof and inputs into evm words
-    zksnark = Groth16SnarkProvider()
     vk_evm_parameters = zksnark.verification_key_to_contract_parameters(vk)
-    proof_evm_parameters = zksnark.proof_to_contract_parameters(extproof)
+    proof_evm_parameters = zksnark.proof_to_contract_parameters(extproof.proof)
     inputs_evm_parameters = hex_list_to_uint256_list(inputs)
 
     # Execute the test contract and return the result
@@ -42,15 +42,19 @@ def _test_bw6_761_groth16_contract_with_proof(
 
 
 def test_bw6_761_groth16_valid(
-        instance: Any, aggregator_vk: GenericVerificationKey) -> None:
+        zksnark: IZKSnarkProvider,
+        instance: Any,
+        aggregator_vk: IVerificationKey) -> None:
     assert _test_bw6_761_groth16_contract_with_proof(
-        instance, aggregator_vk, "batch1.json")
+        zksnark, instance, aggregator_vk, "batch1.json")
 
 
 def test_bw6_761_groth16_invalid(
-        instance: Any, aggregator_vk: GenericVerificationKey) -> None:
+        zksnark: IZKSnarkProvider,
+        instance: Any,
+        aggregator_vk: IVerificationKey) -> None:
     assert not _test_bw6_761_groth16_contract_with_proof(
-        instance, aggregator_vk, "batch1-invalid.json")
+        zksnark, instance, aggregator_vk, "batch1-invalid.json")
 
 
 def main() -> int:
@@ -65,11 +69,12 @@ def main() -> int:
         {"allow_paths": CONTRACTS_DIR})
 
     bw6_761_groth16_instance = bw6_761_groth16_instance_desc.instantiate(web3)
+    zksnark = Groth16()
     aggregator_vk = load_verification_key(
-        join(DUMMY_APP_DIR, "aggregator_vk.json"))
+        zksnark, join(DUMMY_APP_DIR, "aggregator_vk.json"))
 
-    test_bw6_761_groth16_valid(bw6_761_groth16_instance, aggregator_vk)
-    test_bw6_761_groth16_invalid(bw6_761_groth16_instance, aggregator_vk)
+    test_bw6_761_groth16_valid(zksnark, bw6_761_groth16_instance, aggregator_vk)
+    test_bw6_761_groth16_invalid(zksnark, bw6_761_groth16_instance, aggregator_vk)
 
     print("========================================")
     print("==              PASSED                ==")

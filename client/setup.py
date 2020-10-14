@@ -31,7 +31,10 @@ setup(
         "grpcio==1.30",
         "grpcio-tools==1.30",
     ],
-    scripts=[
-        "zecale/cli/zecale",
-    ]
+    entry_points={
+        'console_scripts': [
+            'zecale_dummy_app=zecale.dummy_app.__main__:dummy_app',
+            'zecale=zecale.cli.__main__:zecale',
+        ],
+    }
 )

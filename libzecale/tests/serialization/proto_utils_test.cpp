@@ -22,7 +22,7 @@ using namespace libzecale;
 namespace
 {
 
-template<typename ppT> void test_parse_transaction_to_aggregate_pghr13()
+template<typename ppT> void test_parse_nested_transaction_pghr13()
 {
     // 1. Format arbitary data that will be parsed afterwards
     libsnark::r1cs_ppzksnark_proof<ppT> proof(
@@ -95,17 +95,16 @@ template<typename ppT> void test_parse_transaction_to_aggregate_pghr13()
     ext_proof->set_allocated_pghr13_extended_proof(
         grpc_extended_pghr13_proof_obj);
 
-    zecale_proto::TransactionToAggregate *grpc_tx_to_aggregate_obj =
-        new zecale_proto::TransactionToAggregate();
+    zecale_proto::NestedTransaction *grpc_tx_to_aggregate_obj =
+        new zecale_proto::NestedTransaction();
     grpc_tx_to_aggregate_obj->set_application_name("zeth");
     grpc_tx_to_aggregate_obj->set_fee_in_wei(12);
     grpc_tx_to_aggregate_obj->set_allocated_extended_proof(ext_proof);
 
     // Parse the TransactionToAggregate
-    transaction_to_aggregate<ppT, libzeth::pghr13_snark<ppT>> retrieved_tx =
-        transaction_to_aggregate_from_proto<
-            ppT,
-            libzeth::pghr13_api_handler<ppT>>(*grpc_tx_to_aggregate_obj);
+    nested_transaction<ppT, libzeth::pghr13_snark<ppT>> retrieved_tx =
+        nested_transaction_from_proto<ppT, libzeth::pghr13_api_handler<ppT>>(
+            *grpc_tx_to_aggregate_obj);
 
     ASSERT_EQ(
         retrieved_tx.extended_proof().get_primary_inputs(),
@@ -122,7 +121,7 @@ template<typename ppT> void test_parse_transaction_to_aggregate_pghr13()
     delete grpc_tx_to_aggregate_obj;
 }
 
-template<typename ppT> void test_parse_transaction_to_aggregate_groth16()
+template<typename ppT> void test_parse_nested_transaction_groth16()
 {
     // 1. Format arbitary data that will be parsed afterwards
     libsnark::r1cs_gg_ppzksnark_proof<ppT> proof(
@@ -141,18 +140,16 @@ template<typename ppT> void test_parse_transaction_to_aggregate_groth16()
         new zeth_proto::ExtendedProof();
     libzeth::groth16_api_handler<ppT>::extended_proof_to_proto(
         mock_extended_proof, proto_extended_groth16_proof);
-    zecale_proto::TransactionToAggregate *grpc_tx_to_aggregate_obj =
-        new zecale_proto::TransactionToAggregate();
-    grpc_tx_to_aggregate_obj->set_application_name("zeth");
-    grpc_tx_to_aggregate_obj->set_fee_in_wei(12);
-    grpc_tx_to_aggregate_obj->set_allocated_extended_proof(
-        proto_extended_groth16_proof);
+    zecale_proto::NestedTransaction *grpc_nested_tx =
+        new zecale_proto::NestedTransaction();
+    grpc_nested_tx->set_application_name("zeth");
+    grpc_nested_tx->set_fee_in_wei(12);
+    grpc_nested_tx->set_allocated_extended_proof(proto_extended_groth16_proof);
 
     // Parse the TransactionToAggregate
-    transaction_to_aggregate<ppT, libzeth::groth16_snark<ppT>> retrieved_tx =
-        transaction_to_aggregate_from_proto<
-            ppT,
-            libzeth::groth16_api_handler<ppT>>(*grpc_tx_to_aggregate_obj);
+    nested_transaction<ppT, libzeth::groth16_snark<ppT>> retrieved_tx =
+        nested_transaction_from_proto<ppT, libzeth::groth16_api_handler<ppT>>(
+            *grpc_nested_tx);
 
     ASSERT_EQ(
         retrieved_tx.extended_proof().get_primary_inputs(),
@@ -166,17 +163,17 @@ template<typename ppT> void test_parse_transaction_to_aggregate_groth16()
     // The destructor of `zecale_proto::TransactionToAggregate` should be
     // invoked which whould free the memory allocated for the fields of this
     // message
-    delete grpc_tx_to_aggregate_obj;
+    delete grpc_nested_tx;
 }
 
 TEST(MainTests, ParseTransactionToAggregatePGHR13Mnt4)
 {
-    test_parse_transaction_to_aggregate_pghr13<libff::mnt4_pp>();
+    test_parse_nested_transaction_pghr13<libff::mnt4_pp>();
 }
 
 TEST(MainTests, ParseTransactionToAggregateGROTH16Mnt4)
 {
-    test_parse_transaction_to_aggregate_groth16<libff::mnt4_pp>();
+    test_parse_nested_transaction_groth16<libff::mnt4_pp>();
 }
 
 } // namespace

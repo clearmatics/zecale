@@ -19,6 +19,6 @@ contract bw6_761_groth16_test
         _vk = vk;
 
         // Call verify
-        return 0 != bw6_761_groth16.verify(_vk, proof, inputs);
+        return bw6_761_groth16.verify(_vk, proof, inputs);
     }
 }

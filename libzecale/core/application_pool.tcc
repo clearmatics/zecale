@@ -34,7 +34,7 @@ const typename nsnarkT::verification_key &application_pool<
 
 template<typename nppT, typename nsnarkT, size_t NumProofs>
 void application_pool<nppT, nsnarkT, NumProofs>::add_tx(
-    const transaction_to_aggregate<nppT, nsnarkT> &tx)
+    const nested_transaction<nppT, nsnarkT> &tx)
 {
     _tx_pool.push(tx);
 }
@@ -47,7 +47,7 @@ size_t application_pool<nppT, nsnarkT, NumProofs>::tx_pool_size() const
 
 template<typename nppT, typename nsnarkT, size_t NumProofs>
 size_t application_pool<nppT, nsnarkT, NumProofs>::get_next_batch(
-    std::array<transaction_to_aggregate<nppT, nsnarkT>, NumProofs> &batch)
+    std::array<nested_transaction<nppT, nsnarkT>, NumProofs> &batch)
 {
     // TODO: For now, only return whole batches (to avoid nasty errors where
     // elements in the array are not initialized properly). Later, clean up the
