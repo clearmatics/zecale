@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-import json
+from zecale.cli.utils import load_aggregated_transaction
 from click import argument, option, command, pass_context, Context, ClickException
 
 
@@ -18,11 +18,11 @@ def check_batch(ctx: Context, batch_file: str, batch_size: int) -> None:
     """
     Exit with error if result is not 1 for any nested proof
     """
-    with open(batch_file, "r") as batch_proof_f:
-        batch_proof = json.load(batch_proof_f)
+    cmd_ctx = ctx.obj
+    aggregated_tx = load_aggregated_transaction(cmd_ctx.zksnark, batch_file)
+    inputs = aggregated_tx.ext_proof.inputs
 
     # Attempt to automatically detect the vk_hash param at position 0
-    inputs = batch_proof["inputs"]
     batch_offset = len(inputs) % batch_size
     inputs_per_batch = int((len(inputs) - batch_offset) / batch_size)
     print(f"inputs=\n{inputs}")

@@ -13,7 +13,7 @@ from zeth.core.zksnark import IZKSnarkProvider, IVerificationKey
 from web3.utils.contracts import find_matching_event_abi  # type: ignore
 from web3.utils.events import get_event_data  # type: ignore
 from os.path import join
-from typing import List, Tuple, Optional, Any
+from typing import Tuple, Optional, Any
 
 
 ZECALE_DIR = get_zecale_dir()
@@ -72,26 +72,16 @@ class DispatcherContract:
         """
 
         # Encode the parameters of the entry point and create a local call
-        # object.
+        # object. The proof and inputs are encoded into contract parameters,
+        # and the nested_parameters are passed as raw bytes arrays.
         proof_evm = self.zksnark.proof_to_contract_parameters(
-            batch.extproof.proof)
-        inputs_evm = hex_list_to_uint256_list(batch.extproof.inputs)
-
-        # Should be:
-        #   nested_parameters_evm: List[List[int]] =
-        #       [hex_list_to_uint256_list(params)
-        #        for params in batch.nested_parameters]
-        # but we flatten the list in order to work around issues passing 2d
-        # arrays to contracts.
-        nested_parameters_evm: List[int] = sum(
-            [hex_list_to_uint256_list(params)
-             for params in batch.nested_parameters],
-            [])
+            batch.ext_proof.proof)
+        inputs_evm = hex_list_to_uint256_list(batch.ext_proof.inputs)
 
         contract_call = self.instance.functions.process_batch(
             proof_evm,
             inputs_evm,
-            nested_parameters_evm,
+            hex_list_to_uint256_list([p.hex() for p in batch.nested_parameters]),
             application_contract_address)
 
         # Broadcast the call

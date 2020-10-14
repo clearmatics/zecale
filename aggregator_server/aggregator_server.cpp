@@ -310,12 +310,19 @@ public:
             std::cout << "[DEBUG] Generated extended proof:\n";
             wrapping_proof.write_json(std::cout);
 
+            // Populate the response with name, extended_proof and
+            // nested_parameters.
+            response->set_application_name(app_name);
             zeth_proto::ExtendedProof *wrapping_proof_proto =
                 new zeth_proto::ExtendedProof();
             wapi_handler::extended_proof_to_proto(
                 wrapping_proof, wrapping_proof_proto);
             response->set_allocated_extended_proof(wrapping_proof_proto);
-
+            for (size_t i = 0; i < batch_size; ++i) {
+                const std::vector<uint8_t> &parameters = batch[i].parameters();
+                response->add_nested_parameters(
+                    (const char *)parameters.data(), parameters.size());
+            }
             std::cout << "[DEBUG] Written to response" << std::endl;
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;

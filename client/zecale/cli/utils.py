@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from zecale.core.aggregated_transaction import AggregatedTransaction
-from zeth.core.zksnark import IVerificationKey, ExtendedProof, IZKSnarkProvider
+from zecale.core.nested_transaction import NestedTransaction
+from zeth.core.zksnark import IVerificationKey, IZKSnarkProvider
 import json
 
 
@@ -16,13 +17,13 @@ def load_verification_key(
         return zksnark.verification_key_from_json_dict(json.load(vk_f))
 
 
-# For now, a "transaction" is just an extended proof.
-def load_extended_proof(zksnark: IZKSnarkProvider, tx_file: str) -> ExtendedProof:
+def load_nested_transaction(
+        zksnark: IZKSnarkProvider, tx_file: str) -> NestedTransaction:
     """
     Load a single transaction for some application.
     """
     with open(tx_file, "r") as tx_f:
-        return ExtendedProof.from_json_dict(zksnark, json.load(tx_f))
+        return NestedTransaction.from_json_dict(zksnark, json.load(tx_f))
 
 
 def load_aggregated_transaction(

@@ -17,7 +17,7 @@ from typing import Optional
     default=APPLICATION_INSTANCE_FILE_DEFAULT,
     help="File to write instance information to")
 @option(
-    "--check", type=int, help="Check the result against the given value (0|1)")
+    "--check", type=int, help="Check the result against the given value")
 @pass_context
 def get(
         ctx: Context,
@@ -25,11 +25,12 @@ def get(
         instance_file: str,
         check: Optional[int]) -> None:
     """
-    Deploy the contract for a dummy application.
+    Query the deployed contract to find the value stored for a given scalar.
+    (These values are the parameters submitted along side the proof for the
+    given scalar.)
     """
 
     eth_network = ctx.obj["eth_network"]
-    check_value: Optional[bool] = None if check is None else check != 0
 
     # Load the contract instance
     with open(instance_file, "r") as instance_f:
@@ -38,8 +39,8 @@ def get(
     # Instantiate
     web3 = open_web3_from_network(eth_network)
     app_contract = instance_desc.instantiate(web3)
-    result = app_contract.functions.get(scalar).call()
+    result: int = app_contract.functions.get(scalar).call()
     print(f"{scalar}: {result}")
 
-    if (check_value is not None) and (result != check_value):
+    if (check is not None) and (result != check):
         raise ClickException("state check failed")

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 pragma solidity ^0.5.0;
+pragma experimental ABIEncoderV2;
 
 import "./bw6_761_groth16.sol";
 import "./zecale_application.sol";

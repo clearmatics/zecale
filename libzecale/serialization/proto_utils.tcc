@@ -23,8 +23,13 @@ nested_transaction<ppT, typename apiHandlerT::snark> nested_transaction_from_pro
     libzeth::extended_proof<ppT, snark> ext_proof =
         apiHandlerT::extended_proof_from_proto(
             grpc_transaction_obj.extended_proof());
-    uint32_t fee = uint32_t(grpc_transaction_obj.fee_in_wei());
-    return nested_transaction<ppT, snark>(app_name, ext_proof, fee);
+    const std::string &parameters_str(grpc_transaction_obj.parameters());
+    std::vector<uint8_t> parameters(
+        (const uint8_t *)(parameters_str.data()),
+        (const uint8_t *)(parameters_str.data() + parameters_str.size()));
+
+    const uint32_t fee = uint32_t(grpc_transaction_obj.fee_in_wei());
+    return nested_transaction<ppT, snark>(app_name, ext_proof, parameters, fee);
 }
 
 } // namespace libzecale

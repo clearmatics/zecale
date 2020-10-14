@@ -104,15 +104,15 @@ void test_add_and_retrieve_transactions()
 
     // Add transactions in the pool
     nested_transaction<ppT, snarkT> tx_a = nested_transaction<ppT, snarkT>(
-        dummy_app_name, dummy_extended_proof, 1);
+        dummy_app_name, dummy_extended_proof, {}, 1);
     nested_transaction<ppT, snarkT> tx_b = nested_transaction<ppT, snarkT>(
-        dummy_app_name, dummy_extended_proof, 20);
+        dummy_app_name, dummy_extended_proof, {1, 2}, 20);
     nested_transaction<ppT, snarkT> tx_c = nested_transaction<ppT, snarkT>(
-        dummy_app_name, dummy_extended_proof, 12);
+        dummy_app_name, dummy_extended_proof, {}, 12);
     nested_transaction<ppT, snarkT> tx_d = nested_transaction<ppT, snarkT>(
-        dummy_app_name, dummy_extended_proof, 3);
+        dummy_app_name, dummy_extended_proof, {3, 4, 5}, 3);
     nested_transaction<ppT, snarkT> tx_e = nested_transaction<ppT, snarkT>(
-        dummy_app_name, dummy_extended_proof, 120);
+        dummy_app_name, dummy_extended_proof, {}, 120);
 
     pool.add_tx(tx_a);
     pool.add_tx(tx_b);

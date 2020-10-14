@@ -2,23 +2,20 @@
 #
 # SPDX-License-Identifier: LGPL-3.0+
 
-from zecale.cli.utils import load_extended_proof
-from zecale.core.nested_transaction import NestedTransaction
-from click import option, command, pass_context, Context
+from zecale.cli.utils import load_nested_transaction
+from click import command, argument, pass_context, Context
 
 
 @command()
-@option("--name", required=True, help="Target application name")
-@option("--tx", required=True, help="Transaction to submit")
+@argument("tx_file")
 @pass_context
-def submit(ctx: Context, name: str, tx: str) -> None:
+def submit(ctx: Context, tx_file: str) -> None:
     """
     Submit a nested transaction to the aggregation server
     """
     cmd_ctx = ctx.obj
 
     # Load nested transaction and submit to the aggregation server
-    ext_proof = load_extended_proof(cmd_ctx.zksnark, tx)
-    nested_tx = NestedTransaction(name, ext_proof)
+    nested_tx = load_nested_transaction(cmd_ctx.zksnark, tx_file)
     aggregator_client = cmd_ctx.get_aggregator_client()
     aggregator_client.submit_nested_transaction(nested_tx)
