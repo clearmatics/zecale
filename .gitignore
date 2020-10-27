@@ -1,11 +1,11 @@
 # Ignore the build directory
-/build/
+build
 
 # Ignore the content of the debug folder
 debug/*json
 
 # Ignore node_modules
-/zecale_contracts/node_modules/*
+contracts/node_modules/*
 
 # Ignore client env and build files
 /client/env
