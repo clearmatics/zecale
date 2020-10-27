@@ -6,6 +6,7 @@ from __future__ import annotations
 from zecale.core.utils import get_zecale_dir
 from zecale.core.aggregated_transaction import AggregatedTransaction
 from zeth.core.utils import hex_list_to_uint256_list
+from zeth.core.pairing import PairingParameters
 from zeth.core.contracts import InstanceDescription, send_contract_call
 from zeth.core.zksnark import IZKSnarkProvider, IVerificationKey
 # from zeth.core.zksnark import IZKSnarkProvider, GenericVerificationKey, \
@@ -39,16 +40,17 @@ class DispatcherContract:
     @staticmethod
     def deploy(
             web3: Any,
+            zksnark: IZKSnarkProvider,
+            pp: PairingParameters,
             vk: IVerificationKey,
             eth_addr: str,
-            eth_private_key: Optional[bytes],
-            zksnark: IZKSnarkProvider) \
-            -> Tuple[DispatcherContract, InstanceDescription]:
+            eth_private_key: Optional[bytes]
+    ) -> Tuple[DispatcherContract, InstanceDescription]:
         """
         Deploy the contract, returning an instance of this wrapper, and a
         description (which can be saved to a file to later instantiate).
         """
-        vk_evm = zksnark.verification_key_to_contract_parameters(vk)
+        vk_evm = zksnark.verification_key_to_contract_parameters(vk, pp)
         instance_desc = InstanceDescription.deploy(
             web3,
             DISPATCHER_SOURCE_FILE,
@@ -62,6 +64,7 @@ class DispatcherContract:
 
     def process_batch(
             self,
+            pp: PairingParameters,
             batch: AggregatedTransaction,
             application_contract_address: str,
             eth_addr: str,
@@ -75,7 +78,7 @@ class DispatcherContract:
         # object. The proof and inputs are encoded into contract parameters,
         # and the nested_parameters are passed as raw bytes arrays.
         proof_evm = self.zksnark.proof_to_contract_parameters(
-            batch.ext_proof.proof)
+            batch.ext_proof.proof, pp)
         inputs_evm = hex_list_to_uint256_list(batch.ext_proof.inputs)
 
         contract_call = self.instance.functions.process_batch(

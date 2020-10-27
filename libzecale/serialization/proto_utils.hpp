@@ -12,6 +12,10 @@
 namespace libzecale
 {
 
+template<typename nppT, typename wppT, typename nsnarkT, typename wsnarkT>
+void aggregator_configuration_to_proto(
+    zecale_proto::AggregatorConfiguration &config);
+
 template<typename ppT, typename apiHandlerT>
 nested_transaction<ppT, typename apiHandlerT::snark> nested_transaction_from_proto(
     const zecale_proto::NestedTransaction &transaction);

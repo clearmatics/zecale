@@ -3,14 +3,29 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from zecale.core.aggregated_transaction import AggregatedTransaction
+from zecale.core.aggregator_config import AggregatorConfiguration
 from zecale.core.nested_transaction import NestedTransaction
 from zecale.api import aggregator_pb2
 from zeth.core.zksnark import IZKSnarkProvider
+from zeth.core.pairing import pairing_parameters_from_proto
+
+
+def aggregator_configuration_from_proto(
+        aggregator_config_proto: aggregator_pb2.AggregatorConfiguration
+) -> AggregatorConfiguration:
+    return AggregatorConfiguration(
+        nested_snark_name=aggregator_config_proto.nested_snark_name,
+        wrapper_snark_name=aggregator_config_proto.wrapper_snark_name,
+        nested_pairing_parameters=pairing_parameters_from_proto(
+            aggregator_config_proto.nested_pairing_parameters),
+        wrapper_pairing_parameters=pairing_parameters_from_proto(
+            aggregator_config_proto.wrapper_pairing_parameters))
 
 
 def nested_transaction_to_proto(
         zksnark: IZKSnarkProvider,
         tx: NestedTransaction) -> aggregator_pb2.NestedTransaction:
+    assert isinstance(tx, NestedTransaction)
     tx_proto = aggregator_pb2.NestedTransaction()
     tx_proto.application_name = tx.app_name
     tx_proto.extended_proof.CopyFrom(  # pylint: disable=no-member

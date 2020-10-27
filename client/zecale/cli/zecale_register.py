@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: LGPL-3.0+
 
 from zecale.cli.utils import load_verification_key
+from zecale.cli.command_context import CommandContext
 from click import command, option, pass_context, Context
 
 
@@ -17,9 +18,13 @@ from click import command, option, pass_context, Context
     help="Name of the application to register")
 @pass_context
 def register(ctx: Context, key: str, name: str) -> None:
-    cmd_ctx = ctx.obj
+    """
+    Register an application using name and verification key
+    """
+    cmd_ctx: CommandContext = ctx.obj
 
     # Load verification key, and register against the given name.
-    vk = load_verification_key(cmd_ctx.zksnark, key)
+    nested_snark = cmd_ctx.get_nested_snark()
+    vk = load_verification_key(nested_snark, key)
     aggregator_client = cmd_ctx.get_aggregator_client()
-    aggregator_client.register_application(vk, name)
+    aggregator_client.register_application(nested_snark, vk, name)

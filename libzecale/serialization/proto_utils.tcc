@@ -5,14 +5,27 @@
 #ifndef __ZECALE_SERIALIZATION_PROTO_UTILS_TCC__
 #define __ZECALE_SERIALIZATION_PROTO_UTILS_TCC__
 
-#include "libzecale/core/nested_transaction.hpp"
+#include "libzecale/serialization/proto_utils.hpp"
 
 #include <cstring>
 #include <libff/algebra/curves/public_params.hpp>
 #include <libzeth/core/extended_proof.hpp>
+#include <libzeth/serialization/proto_utils.hpp>
 
 namespace libzecale
 {
+
+template<typename nppT, typename wppT, typename nsnarkT, typename wsnarkT>
+void aggregator_configuration_to_proto(
+    zecale_proto::AggregatorConfiguration &config)
+{
+    config.set_nested_snark_name(nsnarkT::name);
+    config.set_wrapper_snark_name(wsnarkT::name);
+    libzeth::pairing_parameters_to_proto<nppT>(
+        *config.mutable_nested_pairing_parameters());
+    libzeth::pairing_parameters_to_proto<wppT>(
+        *config.mutable_wrapper_pairing_parameters());
+}
 
 template<typename ppT, typename apiHandlerT>
 nested_transaction<ppT, typename apiHandlerT::snark> nested_transaction_from_proto(

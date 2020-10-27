@@ -30,9 +30,12 @@ def submit_batch(
     """
 
     cmd_ctx: CommandContext = ctx.obj
+    aggregator_config = cmd_ctx.get_aggregator_configuration()
+    wrapper_snark = aggregator_config.wrapper_snark
+    pp = aggregator_config.wrapper_pairing_parameters
 
     # Load the batch
-    aggregated_tx = load_aggregated_transaction(cmd_ctx.zksnark, batch_file)
+    aggregated_tx = load_aggregated_transaction(wrapper_snark, batch_file)
 
     # Load the application instance address
     with open(application_instance_file, "r") as app_instance_f:
@@ -43,7 +46,7 @@ def submit_batch(
     eth_addr, eth_private_key = cmd_ctx.get_eth_key_and_address()
     dispatcher_contract = cmd_ctx.get_dispatcher_contract()
     tx_id = dispatcher_contract.process_batch(
-        aggregated_tx, app_instance.address, eth_addr, eth_private_key)
+        pp, aggregated_tx, app_instance.address, eth_addr, eth_private_key)
     print(tx_id.hex())
 
     if wait:

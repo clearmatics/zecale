@@ -133,6 +133,17 @@ public:
         application_pools.clear();
     }
 
+    grpc::Status GetConfiguration(
+        grpc::ServerContext * /*context*/,
+        const proto::Empty * /*request*/,
+        zecale_proto::AggregatorConfiguration *response) override
+    {
+        std::cout << "[INFO] Request for configuration\n";
+        libzecale::aggregator_configuration_to_proto<npp, wpp, nsnark, wsnark>(
+            *response);
+        return grpc::Status::OK;
+    }
+
     grpc::Status GetVerificationKey(
         grpc::ServerContext * /*context*/,
         const proto::Empty * /*request*/,
