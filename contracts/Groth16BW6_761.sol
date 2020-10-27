@@ -31,7 +31,7 @@ pragma solidity ^0.5.0;
 //     0x59f7a6f5061ca930bd62cb74ae96a19254a538d3761539f9092c5e98d738c52a
 //   ]
 
-library bw6_761_groth16
+library Groth16BW6_761
 {
     // Structure of the verification key array:
     // struct VerificationKey

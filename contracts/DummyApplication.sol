@@ -4,7 +4,7 @@
 
 pragma solidity ^0.5.0;
 
-import "./zecale_application.sol";
+import "./IZecaleApplication.sol";
 
 // Trivial dummy application used to test the Zecale protocol. Transactions
 // demonstrate knowledge of the multiplicative inverse of scalar value. The

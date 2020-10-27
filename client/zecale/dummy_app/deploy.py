@@ -16,7 +16,7 @@ import json
 
 ZECALE_DIR = get_zecale_dir()
 CONTRACTS_DIR = join(ZECALE_DIR, "contracts")
-DUMMY_APP_CONTRACT_FILE = join(CONTRACTS_DIR, "dummy_application.sol")
+DUMMY_APP_CONTRACT_FILE = join(CONTRACTS_DIR, "DummyApplication.sol")
 DUMMY_APP_CONTRACT_DEPLOY_GAS = 500000
 
 

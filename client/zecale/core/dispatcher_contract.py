@@ -19,7 +19,7 @@ from typing import Tuple, Optional, Any
 
 ZECALE_DIR = get_zecale_dir()
 CONTRACTS_DIR = join(ZECALE_DIR, "contracts")
-DISPATCHER_SOURCE_FILE = join(CONTRACTS_DIR, "zecale_dispatcher.sol")
+DISPATCHER_SOURCE_FILE = join(CONTRACTS_DIR, "ZecaleDispatcher.sol")
 DISPATCHER_DEPLOY_GAS = 5000000
 
 

@@ -5,8 +5,8 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
-import "./bw6_761_groth16.sol";
-import "./zecale_application.sol";
+import "./Groth16BW6_761.sol";
+import "./IZecaleApplication.sol";
 
 // Scalar Conversion
 // -----------------
@@ -32,7 +32,7 @@ contract ZecaleDispatcher
 
     // Constructor for Zecale contract. Initializes the batch verification key.
     // `vk` is passed as the verification key encoded as uint256 array, in the
-    // format described bw6_761_groth16.sol.
+    // format described Groth16BW6_761.sol.
     constructor(uint256[] memory vk) public
     {
         _vk = vk;
@@ -90,7 +90,7 @@ contract ZecaleDispatcher
     {
         // Compute expected inputs per batch (TODO: move this to the constructor)
         uint256 total_inputs =
-            bw6_761_groth16.num_inputs_from_vk_length(_vk.length);
+            Groth16BW6_761.num_inputs_from_vk_length(_vk.length);
         uint256 inputs_per_batch = (total_inputs - 1) / batch_size;
 
         uint256 nested_parameters_per_batch =
@@ -101,7 +101,7 @@ contract ZecaleDispatcher
 
         // Verify the wrapped proof.
         require(
-            bw6_761_groth16.verify(_vk, batch_proof, inputs),
+            Groth16BW6_761.verify(_vk, batch_proof, inputs),
             "invalid wrapper proof");
 
         // NOTE: Here we assume that the VK hash occupies only the lower-order

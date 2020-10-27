@@ -4,9 +4,9 @@
 
 pragma solidity ^0.5.0;
 
-import "./bw6_761_groth16.sol";
+import "./Groth16BW6_761.sol";
 
-contract bw6_761_groth16_test
+contract Groth16BW6_761_test
 {
     uint256[] _vk;
 
@@ -19,6 +19,6 @@ contract bw6_761_groth16_test
         _vk = vk;
 
         // Call verify
-        return bw6_761_groth16.verify(_vk, proof, inputs);
+        return Groth16BW6_761.verify(_vk, proof, inputs);
     }
 }
