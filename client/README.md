@@ -30,8 +30,18 @@ Ensure that the following are installed:
 - [venv](https://docs.python.org/3/library/venv.html#module-venv) module.
 - gcc
 
-Execute the following inside the `client` directory.
+First, make sure to setup the Zeth dependency in order to generate the
+API files and be able to use the Zeth CLIs
 ```console
+$ cd $ZECALE/depends/zeth/client
+$ python -m venv env
+$ source env/bin/activate
+(env)$ make setup
+```
+
+Then, Execute the following inside the `client` directory.
+```console
+$ cd $ZECALE/client
 $ python -m venv env
 $ source env/bin/activate
 (env)$ make setup
