@@ -101,6 +101,7 @@ static void write_constraint_system(
     libzeth::r1cs_write_json<wpp>(
         aggregator.get_constraint_system(), r1cs_stream);
 }
+
 /// The aggregator_server class inherits from the Aggregator service defined in
 /// the proto files, and provides an implementation of the service.
 class aggregator_server final : public zecale_proto::Aggregator::Service
@@ -352,7 +353,7 @@ std::string get_server_version()
 {
     char buffer[100];
     int n;
-    // Defined in the zethConfig file
+    // Defined in the zecale_config file
     n = snprintf(
         buffer,
         100,
