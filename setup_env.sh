@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export ZECALE=`pwd`
 export ZECALE_DEBUG_DIR=$ZECALE/debug
