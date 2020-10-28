@@ -4,7 +4,7 @@
 
 pragma solidity ^0.5.0;
 
-interface IZecaleApplication {
+contract IZecaleApplication {
     function dispatch(
         uint256 vk_hash,
         uint256[] memory inputs,
