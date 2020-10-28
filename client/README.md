@@ -62,10 +62,25 @@ $ source env/bin/activate
 (env)$ make check
 ```
 
+## Launch a local Ethereum testnet
+
+In order for Zecale to work, it is necessary for the blockchain to support
+BW6-761 arithmetic. As such, we assume below that the smart contracts are
+deployed on an Ethereum testnet that supports BW6-761 precompiled contracts.
+
+To do so, please follow the instructions below to run a modified version
+of ganache-cli in a new terminal:
+```console
+cd ../depends/zeth/zeth_contracts
+npm install # make sure that node and npm have the right versions
+npm run testrpc
+```
+
 ## Execute testing scripts
 
-These are scripts that allow to test various aspects of the client (as well as
-its interactions with other components). You can run them by doing:
+Once the `aggregator_server` and a custom `ganache-cli` instance are
+running, several scripts can be executed to test the CLIs as well as
+various aspects of the client. You can run such tests by doing:
 
 ```console
 (env)$ python test_commands/<script-name> <script-arguments>
@@ -74,6 +89,13 @@ its interactions with other components). You can run them by doing:
 for instance:
 ```console
 (env)$ python test_commands/test_bw6_761_groth16_contract.py
+```
+
+Moreover, the CLIs are tested using the following script:
+
+```console
+(env)$ cd ..
+(env)$ ./scripts/test_client
 ```
 
 ## Note on solc compiler installation
