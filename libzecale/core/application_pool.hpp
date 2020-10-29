@@ -13,7 +13,7 @@ namespace libzecale
 {
 
 /// An `application_pool` represents the pool of proofs to be aggregated that
-/// are for the same predicate.
+/// are for the same relation.
 ///
 /// For example, we can have an `application_pool` to aggregate `Zeth` proofs
 /// and an other `aggregation_pool` to aggregate proofs for other type

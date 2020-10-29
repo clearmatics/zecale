@@ -4,7 +4,7 @@
 
 pragma solidity ^0.5.0;
 
-import "./zecale_application.sol";
+import "./IZecaleApplication.sol";
 
 // Trivial dummy application used to test the Zecale protocol. Transactions
 // demonstrate knowledge of the multiplicative inverse of scalar value. The
@@ -28,7 +28,7 @@ contract DummyApplication is IZecaleApplication
         _vk_hash = vk_hash;
     }
 
-    // Implementation of ZecaleClientApplication.dispatch. Here, the single
+    // Implementation of IZecaleApplication. Here, the single
     // input is the scalar for which knowledge of the multiplicative inverse
     // is demonstrated. `parameters` is currently unused.
     function dispatch(

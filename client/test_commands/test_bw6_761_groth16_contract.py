@@ -58,6 +58,7 @@ def _test_bw6_761_groth16_contract_with_proof(
         proof_evm_parameters,
         inputs_evm_parameters
     ]
+
     return instance.functions.test_verify(*evm_parameters).call()
 
 
@@ -81,8 +82,8 @@ def main() -> int:
     web3: Any = open_web3_from_network(get_eth_network(None))
     bw6_761_groth16_instance_desc = InstanceDescription.deploy(
         web3,
-        join(CONTRACTS_DIR, "bw6_761_groth16_test.sol"),
-        "bw6_761_groth16_test",
+        join(CONTRACTS_DIR, "Groth16BW6_761_test.sol"),
+        "Groth16BW6_761_test",
         web3.eth.accounts[0],  # pylint: disable=no-member
         None,
         500000,

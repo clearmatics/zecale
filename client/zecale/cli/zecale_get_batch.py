@@ -19,6 +19,10 @@ def get_batch(
         ctx: Context,
         name: str,
         batch_file: str) -> None:
+    """
+    Request an aggregated transaction for the given application name.
+    """
+
     cmd_ctx: CommandContext = ctx.obj
     wrapper_snark = cmd_ctx.get_wrapper_snark()
     aggregator_client = cmd_ctx.get_aggregator_client()

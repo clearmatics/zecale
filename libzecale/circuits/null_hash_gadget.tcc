@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZECALE_CIRCUIT_NULL_GADGET_HPP__
-#define __ZECALE_CIRCUIT_NULL_GADGET_HPP__
+#ifndef __ZECALE_CIRCUIT_NULL_HASH_GADGET_TCC__
+#define __ZECALE_CIRCUIT_NULL_HASH_GADGET_TCC__
 
 namespace libzecale
 {
@@ -34,4 +34,4 @@ template<typename FieldT> size_t null_hash_gadget<FieldT>::get_digest_len()
 
 } // namespace libzecale
 
-#endif // __ZECALE_CIRCUIT_NULL_GADGET_HPP__
+#endif // __ZECALE_CIRCUIT_NULL_HASH_GADGET_TCC__

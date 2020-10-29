@@ -1,13 +1,12 @@
-# We use the same base image as zeth since we need
-# the same dependencies
+# We use the same base image as zeth since we need the same dependencies
 FROM clearmatics/zeth-base
 
 # Copy the project in the docker container
 COPY . /home/zecale
-
-# Install the submodules
-RUN cd /home/zecale && git submodule update --init --recursive
-
 WORKDIR /home/zecale
 
+# Install the submodules
+RUN git submodule update --init --recursive
+
 CMD ["/bin/bash"]
+

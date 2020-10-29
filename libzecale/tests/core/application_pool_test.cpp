@@ -23,7 +23,7 @@ public:
         size_t input_size);
 };
 
-// PGHR13 implementation of dummy_provider
+/// PGHR13 implementation of dummy_provider
 template<typename ppT> class dummy_provider<libzeth::pghr13_snark<ppT>>
 {
 public:
@@ -53,7 +53,7 @@ public:
     }
 };
 
-// GROTH16 implementation of dummy_provider
+/// GROTH16 implementation of dummy_provider
 template<typename ppT> class dummy_provider<libzeth::groth16_snark<ppT>>
 {
 public:

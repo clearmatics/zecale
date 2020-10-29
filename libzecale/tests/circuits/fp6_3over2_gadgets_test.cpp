@@ -10,8 +10,8 @@
 #include <libff/algebra/curves/bw6_761/bw6_761_pp.hpp>
 #include <libzeth/snarks/groth16/groth16_snark.hpp>
 
-using ppp = libff::bw6_761_pp;
-using snark = libzeth::groth16_snark<ppp>;
+using pp = libff::bw6_761_pp;
+using snark = libzeth::groth16_snark<pp>;
 
 namespace
 {
@@ -148,9 +148,9 @@ TEST(Fp6_3over2_Test, MulGadgetTest)
 
     // Generate and check the proof
     const typename snark::keypair keypair = snark::generate_setup(pb);
-    libsnark::r1cs_primary_input<libff::Fr<ppp>> primary_input =
+    libsnark::r1cs_primary_input<libff::Fr<pp>> primary_input =
         pb.primary_input();
-    libsnark::r1cs_auxiliary_input<libff::Fr<ppp>> auxiliary_input =
+    libsnark::r1cs_auxiliary_input<libff::Fr<pp>> auxiliary_input =
         pb.auxiliary_input();
     typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));

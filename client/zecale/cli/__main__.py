@@ -42,7 +42,7 @@ class HandleRpcExceptions(DefaultGroup):
     help="Aggregator server endpoint "
     f"(default={AGGREGATOR_SERVER_ENDPOINT_DEFAULT})")
 @option(
-    "--aggregator-config-file", "-a",
+    "--aggregator-config-file", "-c",
     default=AGGREGATOR_CONFIG_FILE_DEFAULT,
     help="Aggregator configuration file "
     f"(default={AGGREGATOR_CONFIG_FILE_DEFAULT})")

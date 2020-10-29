@@ -359,7 +359,7 @@ r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::
     // See:
     // https://github.com/clearmatics/libsnark/blob/master/libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.tcc#L588-L591
     //
-    // 2.1 Allocate the results of theprecomputations
+    // 2.1 Allocate the results of the precomputations
     proof_g_A_precomp.reset(new G1_precomputation<ppT>());
     proof_g_B_precomp.reset(new G2_precomputation<ppT>());
     proof_g_C_precomp.reset(new G1_precomputation<ppT>());

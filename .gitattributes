@@ -1,1 +1,3 @@
 *.tcc gitlab-language=cpp
+*.sol linguist-language=Solidity
+
