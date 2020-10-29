@@ -32,7 +32,7 @@ contract ZecaleDispatcher
 
     // Constructor for Zecale contract. Initializes the batch verification key.
     // `vk` is passed as the verification key encoded as uint256 array, in the
-    // format described Groth16BW6_761.sol.
+    // format described in Groth16BW6_761.sol.
     constructor(uint256[] memory vk) public
     {
         _vk = vk;

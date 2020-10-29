@@ -8,7 +8,7 @@ debug/*json
 /zecale_setup/
 
 # Ignore node_modules
-contracts/node_modules/*
+/contracts/node_modules/*
 
 # Ignore client env and build files
 /client/env

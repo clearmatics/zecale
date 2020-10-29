@@ -12,7 +12,7 @@ zecale
  |_ dummy_app
 ```
 
-This directory contains the API code for the Zecale client (`api`), its backend implementation (`core`), the code for the client CLI (`cli`), and the code of an helper CLI for a "dummy application" (`dummy_app`).
+This directory contains the API code for the Zecale client (`api`), its backend implementation (`core`), the code for the client CLI (`cli`), and the code of a helper CLI for a "dummy application" (`dummy_app`).
 
 ### `test_commands`
 

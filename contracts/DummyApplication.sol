@@ -28,7 +28,7 @@ contract DummyApplication is IZecaleApplication
         _vk_hash = vk_hash;
     }
 
-    // Implementation of IZecaleApplication.dispatch. Here, the single
+    // Implementation of IZecaleApplication. Here, the single
     // input is the scalar for which knowledge of the multiplicative inverse
     // is demonstrated. `parameters` is currently unused.
     function dispatch(

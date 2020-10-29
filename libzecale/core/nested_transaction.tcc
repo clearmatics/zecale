@@ -79,7 +79,7 @@ template<typename nppT, typename nsnarkT>
 bool nested_transaction<nppT, nsnarkT>::operator<(
     const nested_transaction<nppT, nsnarkT> &right) const
 {
-    return this->fee_wei() < right.fee_wei();
+    return fee_wei() < right.fee_wei();
 }
 
 } // namespace libzecale
