@@ -82,7 +82,7 @@ pushd user1
 
     # get a second batch and send to the contract
     zecale get-batch --name ${APP_NAME} --batch-file batch2.json
-    zecale check-batch batch1.json --batch-size 2
+    zecale check-batch batch2.json --batch-size 2
     zecale submit-batch batch2.json --wait
 
     echo Check app state after batch 2
