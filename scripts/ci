@@ -57,9 +57,7 @@ function check_client() {
 
 function build() {
     # Enable warnings-as-errors
-    # TODO: Uncomment, and support compilation with -Werror set
-    #cxx_flags="-Werror"
-    cxx_flags=""
+    cxx_flags="-Werror"
 
     if [ "${platform}" == "Darwin" ] ; then
         openssl_path=$(brew --prefix openssl)
