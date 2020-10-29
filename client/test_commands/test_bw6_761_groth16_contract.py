@@ -58,6 +58,7 @@ def _test_bw6_761_groth16_contract_with_proof(
         proof_evm_parameters,
         inputs_evm_parameters
     ]
+
     return instance.functions.test_verify(*evm_parameters).call()
 
 
