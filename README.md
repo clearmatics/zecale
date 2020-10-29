@@ -73,10 +73,10 @@ aggregator_server
 docker pull clearmatics/zeth-base:latest
 
 # Build the Zecale dev image
-docker build -f Dockerfile-zecale -t clearmatics/zecale-dev:0.2 .
+docker build -f Dockerfile-zecale -t clearmatics/zecale-dev:0.3 .
 
 # Start the container
-docker run -ti -p 50052:50052 --name zecale clearmatics/zecale-dev:0.2
+docker run -ti -p 50052:50052 --name zecale clearmatics/zecale-dev:0.3
 ```
 
 ### Generate the Doxygen documentation
