@@ -50,6 +50,13 @@ $ source env/bin/activate
 (It may also be necessary to install solc manually if the `py-solc-x` package
 fails to find it. See the instructions below.)
 
+## Note on solc compiler installation
+
+Note that `make setup` will automatically install the solidity compiler in `$HOME/.solc`
+(if required) and not in the python virtual environment.
+
+-----------------
+
 We assume all further commands described here are executed from within the
 Python virtualenv.  To enter the virtualenv from a new terminal, re-run
 ```console
@@ -80,7 +87,8 @@ npm run testrpc
 
 Once the `aggregator_server` and a custom `ganache-cli` instance are
 running, several scripts can be executed to test the CLIs as well as
-various aspects of the client. You can run such tests by doing:
+various aspects of the client and the contracts. You can run such tests
+by doing:
 
 ```console
 (env)$ python test_commands/<script-name> <script-arguments>
@@ -97,11 +105,6 @@ Moreover, the CLIs are tested using the following script:
 (env)$ cd ..
 (env)$ ./scripts/test_client
 ```
-
-## Note on solc compiler installation
-
-Note that `make setup` will automatically install the solidity compiler in `$HOME/.solc`
-(if required) and not in the python virtual environment.
 
 # The `zecale` command line interface
 
