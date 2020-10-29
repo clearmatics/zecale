@@ -31,7 +31,7 @@ Ensure that the following are installed:
 - gcc
 
 First, make sure to setup the Zeth dependency in order to generate the
-API files and be able to use the Zeth CLIs
+API files and be able to use the Zeth CLIs:
 ```console
 $ cd $ZECALE/depends/zeth/client
 $ python -m venv env
@@ -39,23 +39,13 @@ $ source env/bin/activate
 (env)$ make setup
 ```
 
-Then, Execute the following inside the `client` directory.
+Then, Execute the following inside the `client` directory:
 ```console
 $ cd $ZECALE/client
 $ python -m venv env
 $ source env/bin/activate
 (env)$ make setup
 ```
-
-(It may also be necessary to install solc manually if the `py-solc-x` package
-fails to find it. See the instructions below.)
-
-## Note on solc compiler installation
-
-Note that `make setup` will automatically install the solidity compiler in `$HOME/.solc`
-(if required) and not in the python virtual environment.
-
------------------
 
 We assume all further commands described here are executed from within the
 Python virtualenv.  To enter the virtualenv from a new terminal, re-run
@@ -76,7 +66,7 @@ BW6-761 arithmetic. As such, we assume below that the smart contracts are
 deployed on an Ethereum testnet that supports BW6-761 precompiled contracts.
 
 To do so, please follow the instructions below to run a modified version
-of ganache-cli in a new terminal:
+of ganache-cli in a new terminal (see [Zeth](https://github.com/clearmatics/zeth/) for more information):
 ```console
 cd ../depends/zeth/zeth_contracts
 npm install # make sure that node and npm have the right versions

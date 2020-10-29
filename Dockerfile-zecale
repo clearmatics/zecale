@@ -9,3 +9,4 @@ WORKDIR /home/zecale
 RUN git submodule update --init --recursive
 
 CMD ["/bin/bash"]
+
