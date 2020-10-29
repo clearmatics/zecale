@@ -31,6 +31,7 @@ def nested_transaction_to_proto(
     tx_proto.extended_proof.CopyFrom(  # pylint: disable=no-member
         zksnark.extended_proof_to_proto(tx.ext_proof))
     tx_proto.parameters = tx.parameters
+    tx_proto.fee_in_wei = tx.fee_in_wei
     return tx_proto
 
 

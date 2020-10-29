@@ -15,16 +15,19 @@ class NestedTransaction:
             self,
             app_name: str,
             ext_proof: ExtendedProof,
-            parameters: bytes):
+            parameters: bytes,
+            fee_in_wei: int):
         self.app_name = app_name
         self.ext_proof = ext_proof
         self.parameters = parameters
+        self.fee_in_wei = fee_in_wei
 
     def to_json_dict(self) -> Dict[str, Any]:
         return {
             "app_name": self.app_name,
             "extended_proof": self.ext_proof.to_json_dict(),
             "parameters": self.parameters.hex(),
+            "fee_in_wei": self.fee_in_wei
         }
 
     @staticmethod
@@ -35,4 +38,6 @@ class NestedTransaction:
         ext_proof = ExtendedProof.from_json_dict(
             zksnark, cast(Dict[str, Any], json_dict["extended_proof"]))
         parameters = bytes.fromhex(json_dict["parameters"])
-        return NestedTransaction(app_name, ext_proof, parameters)
+        fee_in_wei = json_dict["fee_in_wei"]
+
+        return NestedTransaction(app_name, ext_proof, parameters, fee_in_wei)
