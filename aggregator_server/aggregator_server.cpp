@@ -5,12 +5,12 @@
 // Read the zecale config, include the appropriate pairing selector and define
 // the corresponding pairing parameters type.
 
-#include "libzecale/core/aggregator_circuit_wrapper.hpp"
+#include "libzecale/circuits/aggregator_circuit.hpp"
+#include "libzecale/circuits/null_hash_gadget.hpp"
 #include "libzecale/core/application_pool.hpp"
 #include "libzecale/serialization/proto_utils.hpp"
 #include "zecale_config.h"
 
-#include <api/aggregator.grpc.pb.h>
 #include <boost/program_options.hpp>
 #include <fstream>
 #include <grpc/grpc.h>
@@ -20,7 +20,6 @@
 #include <grpcpp/server_context.h>
 #include <iostream>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
-#include <libzeth/circuits/circuit_types.hpp>
 #include <libzeth/core/utils.hpp>
 #include <libzeth/serialization/proto_utils.hpp>
 #include <libzeth/serialization/r1cs_serialization.hpp>
@@ -29,6 +28,7 @@
 #include <memory>
 #include <stdio.h>
 #include <string>
+#include <zecale/api/aggregator.grpc.pb.h>
 
 namespace proto = google::protobuf;
 namespace po = boost::program_options;
@@ -51,50 +51,98 @@ using npp = libzecale::other_curve<wpp>;
 #if defined(ZECALE_SNARK_PGHR13)
 #include <libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp>
 #include <libzeth/snarks/pghr13/pghr13_api_handler.hpp>
-using wverifier = libzecale::pghr13_verifier_parameters<wpp>;
+using wsnark = libzeth::pghr13_snark<wpp>;
 using wapi_handler = libzeth::pghr13_api_handler<wpp>;
-using nsnark = libzeth::pghr13_snark<npp>;
+using nverifier = libzecale::pghr13_verifier_parameters<wpp>;
 using napi_handler = libzeth::pghr13_api_handler<npp>;
 #elif defined(ZECALE_SNARK_GROTH16)
 #include <libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp>
 #include <libzeth/snarks/groth16/groth16_api_handler.hpp>
-using wverifier = libzecale::groth16_verifier_parameters<wpp>;
+using wsnark = libzeth::groth16_snark<wpp>;
 using wapi_handler = libzeth::groth16_api_handler<wpp>;
-using nsnark = libzeth::groth16_snark<npp>;
+using nverifier = libzecale::groth16_verifier_parameters<wpp>;
 using napi_handler = libzeth::groth16_api_handler<npp>;
 #else
 #error "ZECALE_SNARK_* variable not set to supported ZK snark"
 #endif
 
-using wsnark = typename wverifier::snark;
+using nsnark = typename nverifier::snark;
+using hash = libzecale::null_hash_gadget<libff::Fr<wpp>>;
 
-static const size_t batch_size = 1;
+static const size_t batch_size = 2;
+static const size_t num_inputs_per_nested_proof = 1;
+
+using aggregator_circuit =
+    libzecale::aggregator_circuit<wpp, wsnark, nverifier, hash, batch_size>;
+
+static wsnark::keypair load_keypair(const boost::filesystem::path &keypair_file)
+{
+    std::ifstream in(
+        keypair_file.c_str(), std::ios_base::in | std::ios_base::binary);
+    in.exceptions(
+        std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
+    return wsnark::keypair_read_bytes(in);
+}
+
+static void write_keypair(
+    const typename wsnark::keypair &keypair,
+    const boost::filesystem::path &keypair_file)
+{
+    std::ofstream out_s(
+        keypair_file.c_str(), std::ios_base::out | std::ios_base::binary);
+    wsnark::keypair_write_bytes(keypair, out_s);
+}
+
+static void write_constraint_system(
+    const aggregator_circuit &aggregator,
+    const boost::filesystem::path &r1cs_file)
+{
+    std::ofstream r1cs_stream(r1cs_file.c_str());
+    libzeth::r1cs_write_json<wpp>(
+        aggregator.get_constraint_system(), r1cs_stream);
+}
 
 /// The aggregator_server class inherits from the Aggregator service defined in
 /// the proto files, and provides an implementation of the service.
 class aggregator_server final : public zecale_proto::Aggregator::Service
 {
 private:
-    libzecale::
-        aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
-            aggregator;
+    using application_pool =
+        libzecale::application_pool<npp, nsnark, batch_size>;
+
+    aggregator_circuit &aggregator;
 
     // The keypair is the result of the setup for the aggregation circuit
-    wsnark::keypair keypair;
+    const wsnark::keypair &keypair;
 
     // The nested verification key is the vk used to verify the nested proofs
-    std::map<std::string, libzecale::application_pool<npp, nsnark, batch_size>>
-        pools_map;
+    std::map<std::string, application_pool *> application_pools;
 
 public:
     explicit aggregator_server(
-        libzecale::
-            aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
-                &aggregator,
-        const wsnark::keypair &keypair)
+        aggregator_circuit &aggregator, const wsnark::keypair &keypair)
         : aggregator(aggregator), keypair(keypair)
     {
-        // Nothing
+    }
+
+    virtual ~aggregator_server()
+    {
+        // Release all application_pool objects.
+        for (const auto &entry : application_pools) {
+            delete entry.second;
+        }
+        application_pools.clear();
+    }
+
+    grpc::Status GetConfiguration(
+        grpc::ServerContext * /*context*/,
+        const proto::Empty * /*request*/,
+        zecale_proto::AggregatorConfiguration *response) override
+    {
+        std::cout << "[INFO] Request for configuration\n";
+        libzecale::aggregator_configuration_to_proto<npp, wpp, nsnark, wsnark>(
+            *response);
+        return grpc::Status::OK;
     }
 
     grpc::Status GetVerificationKey(
@@ -107,7 +155,7 @@ public:
         std::cout << "[DEBUG] Preparing verification key for response..."
                   << std::endl;
         try {
-            wapi_handler::verification_key_to_proto(this->keypair.vk, response);
+            wapi_handler::verification_key_to_proto(keypair.vk, response);
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -117,79 +165,64 @@ public:
             return grpc::Status(grpc::StatusCode::UNKNOWN, "");
         }
 
+        return grpc::Status::OK;
+    }
+
+    grpc::Status GetNestedVerificationKeyHash(
+        grpc::ServerContext * /*context*/,
+        const zeth_proto::VerificationKey *request,
+        zecale_proto::VerificationKeyHash *response) override
+    {
+        typename nsnark::verification_key vk =
+            napi_handler::verification_key_from_proto(*request);
+        const libff::Fr<wpp> vk_hash =
+            libzecale::verification_key_hash_gadget<wpp, nverifier, hash>::
+                compute_hash(vk, num_inputs_per_nested_proof);
+        const std::string vk_hash_str = libzeth::field_element_to_json(vk_hash);
+        response->set_hash(vk_hash_str);
+
+        std::cout << "[DEBUG] GetNestedVerificationKeyHash: "
+                  << "vk:\n";
+        nsnark::verification_key_write_json(vk, std::cout)
+            << "\n VK hash: " << vk_hash_str << "\n";
         return grpc::Status::OK;
     }
 
     grpc::Status RegisterApplication(
         grpc::ServerContext * /*context*/,
-        const zecale_proto::ApplicationRegistration *registration,
-        proto::Empty * /*response*/) override
+        const zecale_proto::ApplicationDescription *registration,
+        zecale_proto::VerificationKeyHash *response) override
     {
         std::cout << "[ACK] Received 'register application' request"
                   << std::endl;
         std::cout << "[DEBUG] Registering application..." << std::endl;
+
         try {
-            // Add the application to the list of supported applications on the
-            // aggregator server.
-            typename nsnark::verification_key registered_vk =
-                napi_handler::verification_key_from_proto(registration->vk());
-            libzecale::application_pool<npp, nsnark, batch_size> app_pool(
-                registration->name(), registered_vk);
-            this->pools_map[registration->name()] = app_pool;
-        } catch (const std::exception &e) {
-            std::cout << "[ERROR] " << e.what() << std::endl;
-            return grpc::Status(
-                grpc::StatusCode::INVALID_ARGUMENT, grpc::string(e.what()));
-        } catch (...) {
-            std::cout << "[ERROR] In catch all" << std::endl;
-            return grpc::Status(grpc::StatusCode::UNKNOWN, "");
-        }
-
-        return grpc::Status::OK;
-    }
-
-    grpc::Status GenerateAggregateProof(
-        grpc::ServerContext * /*context*/,
-        const zecale_proto::ApplicationName *app_name,
-        zeth_proto::ExtendedProof *proof) override
-    {
-        std::cout
-            << "[ACK] Received the request to generate an aggregation proof"
-            << std::endl;
-        try {
-            std::cout << "[DEBUG] Pop batch from the pool..." << std::endl;
-            // Select the application pool corresponding to the request
-            libzecale::application_pool<npp, nsnark, batch_size> app_pool =
-                this->pools_map[app_name->name()];
-            // Retrieve batch from the pool
-            std::array<
-                libzecale::transaction_to_aggregate<npp, nsnark>,
-                batch_size>
-                batch = app_pool.get_next_batch();
-
-            std::cout << "[DEBUG] Parse batch and generate witness..."
-                      << std::endl;
-            // Get batch of proofs to aggregate
-            std::array<const libzeth::extended_proof<npp, nsnark> *, batch_size>
-                extended_proofs{nullptr};
-            for (size_t i = 0; i < batch.size(); i++) {
-                extended_proofs[i] = &(batch[i].extended_proof());
+            // Ensure an app of the same name has not already been registered.
+            const std::string &name = registration->application_name();
+            if (application_pools.count(name)) {
+                return grpc::Status(
+                    grpc::StatusCode::INVALID_ARGUMENT,
+                    grpc::string("application already registered"));
             }
 
-            // Retrieve the application verification key for the proof
-            // aggregation
-            nsnark::verification_key nested_vk = app_pool.verification_key();
+            // Add the application to the list of supported applications on the
+            // aggregator server.
+            const zeth_proto::VerificationKey &vk_proto = registration->vk();
+            typename nsnark::verification_key vk =
+                napi_handler::verification_key_from_proto(vk_proto);
+            application_pools[name] = new application_pool(name, vk);
+            const libff::Fr<wpp> vk_hash =
+                libzecale::verification_key_hash_gadget<wpp, nverifier, hash>::
+                    compute_hash(vk, num_inputs_per_nested_proof);
+            const std::string vk_hash_str =
+                libzeth::field_element_to_json(vk_hash);
+            response->set_hash(vk_hash_str);
 
-            std::cout << "[DEBUG] Generating the proof..." << std::endl;
-            libzeth::extended_proof<wpp, wsnark> wrapping_proof =
-                this->aggregator.prove(
-                    nested_vk, extended_proofs, this->keypair.pk);
-
-            std::cout << "[DEBUG] Displaying the extended proof" << std::endl;
-            wrapping_proof.write_json(std::cout);
-
-            std::cout << "[DEBUG] Preparing response..." << std::endl;
-            wapi_handler::extended_proof_to_proto(wrapping_proof, proof);
+            std::cout << "[DEBUG] Registered application '" << name
+                      << " with VK:\n";
+            nsnark::verification_key_write_json(vk, std::cout)
+                << "\n VK hash: " << vk_hash_str << "\n";
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -202,23 +235,107 @@ public:
         return grpc::Status::OK;
     }
 
-    grpc::Status SubmitTransaction(
+    grpc::Status SubmitNestedTransaction(
         grpc::ServerContext * /*context*/,
-        const zecale_proto::TransactionToAggregate *transaction,
+        const zecale_proto::NestedTransaction *transaction,
         proto::Empty * /*response*/) override
     {
-        std::cout << "[ACK] Received the request to submit transaction"
-                  << std::endl;
-        std::cout << "[DEBUG] Submitting transaction..." << std::endl;
         try {
-            // Add the application to the list of applications supported by the
-            // server.
-            libzecale::transaction_to_aggregate<npp, nsnark> tx = libzecale::
-                transaction_to_aggregate_from_proto<npp, napi_handler>(
+            // Get the application_pool if it exists (otherwise an exception is
+            // thrown, returning an error to the client).
+            const std::string &app_name = transaction->application_name();
+            std::cout << "[ACK] Received nested transaction, app name: "
+                      << app_name << std::endl;
+            application_pool *const app_pool = application_pools.at(app_name);
+
+            // Sanity-check the transaction (number of inputs).
+            const libzecale::nested_transaction<npp, nsnark> tx =
+                libzecale::nested_transaction_from_proto<npp, napi_handler>(
                     *transaction);
-            libzecale::application_pool<npp, nsnark, batch_size> app_pool =
-                this->pools_map[transaction->application_name()];
-            app_pool.add_tx(tx);
+            if (tx.extended_proof().get_primary_inputs().size() !=
+                num_inputs_per_nested_proof) {
+                throw std::invalid_argument("invalid number of inputs");
+            }
+
+            // Add the proof to the pool for the named application.
+            app_pool->add_tx(tx);
+
+            std::cout << "[DEBUG] Registered tx with ext proof:\n";
+            tx.extended_proof().write_json(std::cout) << "\n";
+
+            std::cout << "[DEBUG] " << std::to_string(app_pool->tx_pool_size())
+                      << " txs in pool\n";
+        } catch (const std::exception &e) {
+            std::cout << "[ERROR] " << e.what() << std::endl;
+            return grpc::Status(
+                grpc::StatusCode::INVALID_ARGUMENT, grpc::string(e.what()));
+        } catch (...) {
+            std::cout << "[ERROR] In catch all" << std::endl;
+            return grpc::Status(grpc::StatusCode::UNKNOWN, "");
+        }
+
+        return grpc::Status::OK;
+    }
+
+    grpc::Status GenerateAggregatedTransaction(
+        grpc::ServerContext * /*context*/,
+        const zecale_proto::AggregatedTransactionRequest *request,
+        zecale_proto::AggregatedTransaction *response) override
+    {
+        try {
+            // Get the application_pool if it exists (otherwise an exception is
+            // thrown, returning an error to the client).
+            const std::string &app_name = request->application_name();
+            std::cout << "[ACK] Aggregation tx request, app name: " << app_name
+                      << std::endl;
+            application_pool *const app_pool = application_pools.at(app_name);
+
+            // Retrieve a batch from the pool.
+            std::array<libzecale::nested_transaction<npp, nsnark>, batch_size>
+                batch;
+            const size_t num_entries = app_pool->get_next_batch(batch);
+            std::cout << "[DEBUG] Got batch of size"
+                      << std::to_string(num_entries) << " from the pool\n";
+            if (num_entries == 0) {
+                throw std::runtime_error("insufficient entries in pool");
+            }
+
+            // Extract the nested proofs
+            std::array<const libzeth::extended_proof<npp, nsnark> *, batch_size>
+                nested_proofs;
+            for (size_t i = 0; i < batch_size; ++i) {
+                nested_proofs[i] = &batch[i].extended_proof();
+
+                std::cout << "[DEBUG] got tx " << std::to_string(i)
+                          << " with ext proof:\n";
+                nested_proofs[i]->write_json(std::cout);
+            }
+
+            // Retrieve the nested verification key for this application.
+            const nsnark::verification_key &nested_vk =
+                app_pool->verification_key();
+
+            std::cout << "[DEBUG] Generating the batched proof...\n";
+            libzeth::extended_proof<wpp, wsnark> wrapping_proof =
+                aggregator.prove(nested_vk, nested_proofs, keypair.pk);
+
+            std::cout << "[DEBUG] Generated extended proof:\n";
+            wrapping_proof.write_json(std::cout);
+
+            // Populate the response with name, extended_proof and
+            // nested_parameters.
+            response->set_application_name(app_name);
+            zeth_proto::ExtendedProof *wrapping_proof_proto =
+                new zeth_proto::ExtendedProof();
+            wapi_handler::extended_proof_to_proto(
+                wrapping_proof, wrapping_proof_proto);
+            response->set_allocated_extended_proof(wrapping_proof_proto);
+            for (size_t i = 0; i < batch_size; ++i) {
+                const std::vector<uint8_t> &parameters = batch[i].parameters();
+                response->add_nested_parameters(
+                    (const char *)parameters.data(), parameters.size());
+            }
+            std::cout << "[DEBUG] Written to response" << std::endl;
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -236,7 +353,7 @@ std::string get_server_version()
 {
     char buffer[100];
     int n;
-    // Defined in the zethConfig file
+    // Defined in the zecale_config file
     n = snprintf(
         buffer,
         100,
@@ -272,10 +389,7 @@ void display_server_start_message()
 }
 
 static void RunServer(
-    libzecale::
-        aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
-            &aggregator,
-    const typename wsnark::keypair &keypair)
+    aggregator_circuit &aggregator, const typename wsnark::keypair &keypair)
 {
     // Listen for incoming connections on 0.0.0.0:50052
     // TODO: Move this in a config file
@@ -302,25 +416,17 @@ static void RunServer(
     server->Wait();
 }
 
-#ifdef ZKSNARK_GROTH16
-static wsnark::KeypairT load_keypair(const std::string &keypair_file)
-{
-    std::ifstream in(keypair_file, std::ios_base::in | std::ios_base::binary);
-    in.exceptions(
-        std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    return wsnark::keypair_read_bytes(in);
-}
-#endif
-
 int main(int argc, char **argv)
 {
     // Options
     po::options_description options("");
     options.add_options()(
-        "keypair,k", po::value<std::string>(), "file to load keypair from");
+        "keypair,k",
+        po::value<boost::filesystem::path>(),
+        "file to load keypair from");
 #ifdef DEBUG
     options.add_options()(
-        "jr1cs,j",
+        "r1cs,r",
         po::value<boost::filesystem::path>(),
         "file in which to export the r1cs in json format");
 #endif
@@ -334,10 +440,8 @@ int main(int argc, char **argv)
         std::cout << std::endl;
     };
 
-    std::string keypair_file;
-#ifdef DEBUG
-    boost::filesystem::path jr1cs_file;
-#endif
+    boost::filesystem::path keypair_file;
+    boost::filesystem::path r1cs_file;
     try {
         po::variables_map vm;
         po::store(
@@ -347,55 +451,58 @@ int main(int argc, char **argv)
             return 0;
         }
         if (vm.count("keypair")) {
-            keypair_file = vm["keypair"].as<std::string>();
+            keypair_file = vm["keypair"].as<boost::filesystem::path>();
         }
-#ifdef DEBUG
-        if (vm.count("jr1cs")) {
-            jr1cs_file = vm["jr1cs"].as<boost::filesystem::path>();
+        if (vm.count("r1cs")) {
+            r1cs_file = vm["r1cs"].as<boost::filesystem::path>();
         }
-#endif
     } catch (po::error &error) {
         std::cerr << " ERROR: " << error.what() << std::endl;
         usage();
         return 1;
     }
 
-    // We inititalize the curve parameters here
+    // Default keypair_file if none given
+    if (keypair_file.empty()) {
+        boost::filesystem::path setup_dir =
+            libzeth::get_path_to_setup_directory();
+        if (!setup_dir.empty()) {
+            boost::filesystem::create_directories(setup_dir);
+        }
+        keypair_file = setup_dir / "zecale_keypair.bin";
+    }
+
+    // Inititalize the curve parameters
     std::cout << "[INFO] Init params of both curves" << std::endl;
     npp::init_public_params();
     wpp::init_public_params();
 
-    libzecale::
-        aggregator_circuit_wrapper<npp, wpp, nsnark, wverifier, batch_size>
-            aggregator;
+    // Set up the aggregator circuit
+    aggregator_circuit aggregator(num_inputs_per_nested_proof);
+
+    // Load or generate the keypair
     wsnark::keypair keypair = [&keypair_file, &aggregator]() {
-        if (!keypair_file.empty()) {
-#ifdef ZKSNARK_GROTH16
-            std::cout << "[INFO] Loading keypair: " << keypair_file
-                      << std::endl;
+        if (boost::filesystem::exists(keypair_file)) {
+            std::cout << "[INFO] Loading keypair: " << keypair_file << "\n";
             return load_keypair(keypair_file);
-#else
-            std::cout << "Keypair loading not supported in this config"
-                      << std::endl;
-            exit(1);
-#endif
         }
 
-        std::cout << "[INFO] Generate new keypair" << std::endl;
-        wsnark::keypair keypair = aggregator.generate_trusted_setup();
+        std::cout << "[INFO] No keypair file " << keypair_file
+                  << ". Generating.\n";
+        const wsnark::keypair keypair = aggregator.generate_trusted_setup();
+        std::cout << "[INFO] Writing new keypair to " << keypair_file << "\n";
+        write_keypair(keypair, keypair_file);
         return keypair;
     }();
 
-#ifdef DEBUG
-    // Run only if the flag is set
-    if (!jr1cs_file.empty()) {
-        std::cout << "[DEBUG] Dump R1CS to json file" << std::endl;
-        std::ofstream jr1cs_stream(jr1cs_file.c_str());
-        libzeth::r1cs_write_json<wpp>(
-            aggregator.get_constraint_system(), jr1cs_stream);
+    // If a file has been given for the JSON representation of the circuit,
+    // write it out.
+    if (!r1cs_file.empty()) {
+        std::cout << "[INFO] Writing R1CS to " << std::endl;
+        write_constraint_system(aggregator, r1cs_file);
     }
-#endif
 
+    // Launch the server
     std::cout << "[INFO] Setup successful, starting the server..." << std::endl;
     RunServer(aggregator, keypair);
     return 0;

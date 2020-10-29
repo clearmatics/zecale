@@ -1,0 +1,26 @@
+[MASTER]
+ignore=zecale/api
+
+[DESIGN]
+max-attributes=10
+
+[MESSAGES CONTROL]
+disable=
+    bad-continuation,
+    too-many-arguments,
+    missing-class-docstring,
+    missing-function-docstring,
+    too-many-locals,
+    too-many-statements,
+    too-few-public-methods,
+    wrong-import-order,
+    missing-module-docstring,
+    broad-except,
+    too-many-function-args,
+    duplicate-code,
+    fixme
+
+good-names=i,e,x,y,m,k,h,c,cm,rc,ek,ex,ct,vk,sk,pk,pp,X,Y,r,el,nf,tx
+
+[REPORTS]
+output-format=text

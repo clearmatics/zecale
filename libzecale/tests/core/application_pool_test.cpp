@@ -8,7 +8,6 @@
 #include "libzecale/core/application_pool.hpp"
 
 #include "gtest/gtest.h"
-// #include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
 #include <stdio.h>
 
 using namespace libzecale;
@@ -24,7 +23,7 @@ public:
         size_t input_size);
 };
 
-// PGHR13 implementation of dummy_provider
+/// PGHR13 implementation of dummy_provider
 template<typename ppT> class dummy_provider<libzeth::pghr13_snark<ppT>>
 {
 public:
@@ -54,7 +53,7 @@ public:
     }
 };
 
-// GROTH16 implementation of dummy_provider
+/// GROTH16 implementation of dummy_provider
 template<typename ppT> class dummy_provider<libzeth::groth16_snark<ppT>>
 {
 public:
@@ -79,6 +78,8 @@ public:
 template<typename ppT, typename snarkT>
 void test_add_and_retrieve_transactions()
 {
+    static const size_t num_inputs = 3;
+
     // Create an application pool with a dummy verification key
     // (set with arbitrary number of inputs)
     const size_t BATCH_SIZE = 2;
@@ -94,29 +95,24 @@ void test_add_and_retrieve_transactions()
     // aggregate
     typename snarkT::proof proof = dummy_provider<snarkT>::get_proof();
     std::vector<libff::Fr<ppT>> dummy_inputs;
-    dummy_inputs.push_back(libff::Fr<ppT>::random_element());
-    dummy_inputs.push_back(libff::Fr<ppT>::random_element());
-    dummy_inputs.push_back(libff::Fr<ppT>::random_element());
+    for (size_t i = 0; i < num_inputs; ++i) {
+        dummy_inputs.push_back(libff::Fr<ppT>::random_element());
+    }
 
     libzeth::extended_proof<ppT, snarkT> dummy_extended_proof(
         std::move(proof), std::move(dummy_inputs));
 
     // Add transactions in the pool
-    transaction_to_aggregate<ppT, snarkT> tx_a =
-        transaction_to_aggregate<ppT, snarkT>(
-            dummy_app_name, dummy_extended_proof, 1);
-    transaction_to_aggregate<ppT, snarkT> tx_b =
-        transaction_to_aggregate<ppT, snarkT>(
-            dummy_app_name, dummy_extended_proof, 20);
-    transaction_to_aggregate<ppT, snarkT> tx_c =
-        transaction_to_aggregate<ppT, snarkT>(
-            dummy_app_name, dummy_extended_proof, 12);
-    transaction_to_aggregate<ppT, snarkT> tx_d =
-        transaction_to_aggregate<ppT, snarkT>(
-            dummy_app_name, dummy_extended_proof, 3);
-    transaction_to_aggregate<ppT, snarkT> tx_e =
-        transaction_to_aggregate<ppT, snarkT>(
-            dummy_app_name, dummy_extended_proof, 120);
+    nested_transaction<ppT, snarkT> tx_a = nested_transaction<ppT, snarkT>(
+        dummy_app_name, dummy_extended_proof, {}, 1);
+    nested_transaction<ppT, snarkT> tx_b = nested_transaction<ppT, snarkT>(
+        dummy_app_name, dummy_extended_proof, {1, 2}, 20);
+    nested_transaction<ppT, snarkT> tx_c = nested_transaction<ppT, snarkT>(
+        dummy_app_name, dummy_extended_proof, {}, 12);
+    nested_transaction<ppT, snarkT> tx_d = nested_transaction<ppT, snarkT>(
+        dummy_app_name, dummy_extended_proof, {3, 4, 5}, 3);
+    nested_transaction<ppT, snarkT> tx_e = nested_transaction<ppT, snarkT>(
+        dummy_app_name, dummy_extended_proof, {}, 120);
 
     pool.add_tx(tx_a);
     pool.add_tx(tx_b);
@@ -128,10 +124,11 @@ void test_add_and_retrieve_transactions()
     ASSERT_EQ(pool.tx_pool_size(), (size_t)5);
 
     // 2. Retrieve a batch
-    auto batch = pool.get_next_batch();
-    ASSERT_EQ(batch.size(), BATCH_SIZE);
+    std::array<libzecale::nested_transaction<ppT, snarkT>, BATCH_SIZE> batch;
+    const size_t batch_size = pool.get_next_batch(batch);
+    ASSERT_EQ(batch_size, BATCH_SIZE);
 
-    for (size_t i = 0; i < batch.size(); i++) {
+    for (size_t i = 0; i < BATCH_SIZE; ++i) {
         std::cout << "i: " << i << " val: ";
         batch[i].write_json(std::cout);
     }

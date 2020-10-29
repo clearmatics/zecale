@@ -16,7 +16,7 @@ project(zecale CXX)
 
 # Versionning of the project
 set (ZECALE_VERSION_MAJOR 0)
-set (ZECALE_VERSION_MINOR 2)
+set (ZECALE_VERSION_MINOR 3)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -49,7 +49,7 @@ option(
 # Here the Zeth proofs are assumed to be generated over MNT4 since we will verify them over MNT6
 set(
   ZECALE_CURVE
-  "MNT6"
+  "BW6_761"
   CACHE
   STRING
   "Default curve (Warning: make sure the choosen curve matches the curve used to
@@ -204,23 +204,21 @@ set(
   PROTO_SRC_DIR
   ${PROJECT_BINARY_DIR}
 )
-#file(MAKE_DIRECTORY ${PROTO_SRC_DIR})
 
 # Get the proto files
 file(
   GLOB
   PROTO_FILES
-  ${PROJECT_SOURCE_DIR}/api/*.proto
+  ${PROJECT_SOURCE_DIR}/proto/zecale/api/*.proto
 )
 
 # Set the import path to be able to re-use the Zeth proto files
-set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/depends/zeth/)
+set(PROTOBUF_IMPORT_DIRS ${PROJECT_SOURCE_DIR}/depends/zeth/proto)
 
-set(PROTOBUF_PROTO_PATH ${PROJECT_SOURCE_DIR})
-set(PROTOBUF_APPEND_DEST_PATH "/api")
+set(PROTOBUF_PROTO_PATH ${PROJECT_SOURCE_DIR}/proto)
+set(PROTOBUF_APPEND_DEST_PATH "/zecale/api")
 set(PROTOBUF_GENERATE_CPP_APPEND_PATH OFF)
 set(GRPC_GENERATE_CPP_APPEND_PATH OFF)
-set(Protobuf_DEBUG ON)
 
 # By default, compile with all warning flags
 add_compile_options(-Wall -Wextra)

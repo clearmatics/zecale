@@ -5,43 +5,61 @@
 #ifndef __ZECALE_CORE_APPLICATION_POOL_TCC__
 #define __ZECALE_CORE_APPLICATION_POOL_TCC__
 
-#include <array>
-#include <libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp>
-#include <libzeth/core/extended_proof.hpp>
-#include <queue>
+#include "libzecale/core/application_pool.hpp"
 
 namespace libzecale
 {
 
 template<typename nppT, typename nsnarkT, size_t NumProofs>
 application_pool<nppT, nsnarkT, NumProofs>::application_pool(
-    const std::string &name, typename nsnarkT::verification_key vk)
-    : _name(name), _tx_pool()
+    const std::string &name, const typename nsnarkT::verification_key &vk)
+    : _name(name), _verification_key(vk), _tx_pool()
 {
-    this->_verification_key =
-        std::make_shared<typename nsnarkT::verification_key>(vk);
 }
 
 template<typename nppT, typename nsnarkT, size_t NumProofs>
-std::array<transaction_to_aggregate<nppT, nsnarkT>, NumProofs> application_pool<
+const std::string &application_pool<nppT, nsnarkT, NumProofs>::name() const
+{
+    return _name;
+}
+
+template<typename nppT, typename nsnarkT, size_t NumProofs>
+const typename nsnarkT::verification_key &application_pool<
     nppT,
     nsnarkT,
-    NumProofs>::get_next_batch()
+    NumProofs>::verification_key() const
 {
-    std::array<transaction_to_aggregate<nppT, nsnarkT>, NumProofs> batch;
-    if (this->_tx_pool.size() < NumProofs) {
-        for (size_t i = 0; i < this->_tx_pool.size(); i++) {
-            batch[i] = this->_tx_pool.top();
-            _tx_pool.pop();
-        }
-        return batch;
-    }
+    return _verification_key;
+}
 
-    for (size_t i = 0; i < NumProofs; i++) {
-        batch[i] = this->_tx_pool.top();
+template<typename nppT, typename nsnarkT, size_t NumProofs>
+void application_pool<nppT, nsnarkT, NumProofs>::add_tx(
+    const nested_transaction<nppT, nsnarkT> &tx)
+{
+    _tx_pool.push(tx);
+}
+
+template<typename nppT, typename nsnarkT, size_t NumProofs>
+size_t application_pool<nppT, nsnarkT, NumProofs>::tx_pool_size() const
+{
+    return _tx_pool.size();
+}
+
+template<typename nppT, typename nsnarkT, size_t NumProofs>
+size_t application_pool<nppT, nsnarkT, NumProofs>::get_next_batch(
+    std::array<nested_transaction<nppT, nsnarkT>, NumProofs> &batch)
+{
+    // TODO: For now, only return whole batches (to avoid nasty errors where
+    // elements in the array are not initialized properly). Later, clean up the
+    // data structures to support partial-batches in a safe way.
+    if (_tx_pool.size() < NumProofs) {
+        return 0;
+    }
+    for (size_t entry_idx = 0; entry_idx < NumProofs; ++entry_idx) {
+        batch[entry_idx] = _tx_pool.top();
         _tx_pool.pop();
     }
-    return batch;
+    return NumProofs;
 }
 
 } // namespace libzecale

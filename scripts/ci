@@ -33,6 +33,28 @@ function check_cpp() {
     popd
 }
 
+function check_client() {
+    # Perform the zeth install to ensure Zeth api files are generated in the correct
+    # location.
+    pushd depends/zeth/client
+    python3 -m venv env
+    . env/bin/activate
+    pip install --upgrade pip --progress-bar off
+    make setup
+    deactivate
+    popd
+
+    # Execute Zecale client setup from client/README.md
+    pushd client
+    python3 -m venv env
+    . env/bin/activate
+    pip install --upgrade pip --progress-bar off
+    make setup
+    make check
+    deactivate
+    popd
+}
+
 function build() {
     # Enable warnings-as-errors
     # TODO: Uncomment, and support compilation with -Werror set
@@ -82,7 +104,7 @@ function ci_setup() {
     if [ "${platform}" == "Darwin" ] ; then
         # Some of these commands can fail (if packages are already installed,
         # etc), hence the `|| echo`.
-        brew unlink python@2
+        brew unlink python@2 || echo
         brew update || echo
         brew install \
              gmp \
@@ -103,10 +125,15 @@ function ci_setup() {
         # which installs the latest version of python3
         # See: https://pkgs.alpinelinux.org/package/edge/main/x86/python3
         # https://build.alpinelinux.org/buildlogs/build-edge-x86/main/python3/python3-3.8.2-r6.log
-        apk add \
-            py3-virtualenv \
-            libffi-dev \
-            python3-dev
+        if (which apk) ; then
+            apk add \
+                py3-virtualenv \
+                libffi-dev \
+                python3-dev
+        else
+            sudo apt update
+            sudo apt install python3-venv
+        fi
     fi
 }
 
