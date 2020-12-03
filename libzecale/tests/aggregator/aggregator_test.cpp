@@ -27,10 +27,32 @@ using namespace libzeth;
 // because now, a digest can be fully packed into a field element without
 // residual bits
 
+namespace libzeth
+{
+
+// Use mimc7 by default
+template<> class tree_hash_selector<libff::mnt4_Fr>
+{
+public:
+    using tree_hash = MiMC_mp_gadget<
+        libff::mnt4_Fr,
+        MiMC_permutation_gadget<libff::mnt4_Fr, 7, 91>>;
+};
+template<> class tree_hash_selector<libff::mnt6_Fr>
+{
+public:
+    using tree_hash = MiMC_mp_gadget<
+        libff::mnt6_Fr,
+        MiMC_permutation_gadget<libff::mnt6_Fr, 7, 91>>;
+};
+
+} // namespace libzeth
+
 // The templates and constants used in the Zeth circuit.
 template<typename nppT> using hash = libzeth::BLAKE2s_256<libff::Fr<nppT>>;
 template<typename nppT>
-using hashTree = libzeth::MiMC_mp_gadget<libff::Fr<nppT>>;
+using hashTree =
+    typename libzeth::tree_hash_selector<libff::Fr<nppT>>::tree_hash;
 
 static const size_t tree_depth = 4;
 static const size_t inputs_number = 2;
@@ -313,11 +335,6 @@ template<typename nppT, typename wppT> void aggregator_test_pghr13()
         wppT,
         libzeth::pghr13_snark<wppT>,
         libzecale::pghr13_verifier_parameters<wppT>>();
-}
-
-TEST(AggregatorTests, AggregatorMnt4Mnt6Groth16)
-{
-    aggregator_test_groth16<libff::mnt4_pp, libff::mnt6_pp>();
 }
 
 TEST(AggregatorTests, AggregatorBls12Bw6Groth16)

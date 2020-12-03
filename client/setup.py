@@ -21,15 +21,15 @@ setup(
     packages=find_packages(),
     # zip_safe=False,
     install_requires=[
-        "mypy==0.720",
+        "mypy==0.790",
         "mypy-protobuf==1.23",
         "flake8==3.8.3",
-        "pylint==2.4.3",
+        "pylint==2.6",
         "click==7.0",
         "click-default-group==1.2",
         "protobuf==3.13.0",
-        "grpcio==1.30",
-        "grpcio-tools==1.30",
+        "grpcio==1.33.2",
+        "grpcio-tools==1.33.2",
     ],
     entry_points={
         'console_scripts': [
