@@ -18,7 +18,8 @@ disable=
     broad-except,
     too-many-function-args,
     duplicate-code,
-    fixme
+    fixme,
+    unsubscriptable-object,
 
 good-names=i,e,x,y,m,k,h,c,cm,rc,ek,ex,ct,vk,sk,pk,pp,X,Y,r,el,nf,tx
 

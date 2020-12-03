@@ -22,6 +22,7 @@ DUMMY_APP_DIR = join(ZECALE_DIR, "testdata", "dummy_app")
 # Pairing parameters for BW6-761
 # pylint: disable=line-too-long
 BW6_761_PAIRING_PARAMETERS = PairingParameters.from_json_dict({
+    "name": "bw6-761",
     "r": "0x01ae3a4617c510eac63b05c06ca1493b1a22d9f300f5138f1ef3622fba094800170b5d44300000008508c00000000001",  # noqa
     "q": "0x0122e824fb83ce0ad187c94004faff3eb926186a81d14688528275ef8087be41707ba638e584e91903cebaff25b423048689c8ed12f9fd9071dcd3dc73ebff2e98a116c25667a8f8160cf8aeeaf0a437e6913e6870000082f49d00000000008b",  # noqa
     "generator_g1": [
