@@ -22,6 +22,30 @@ template<typename wppT>
 libff::G2<other_curve<wppT>> g2_variable_get_element(
     const libsnark::G2_variable<wppT> &var);
 
+template<typename wppT, mp_size_t scalarLimbs>
+class G1_mul_by_const_scalar_gadget : libsnark::gadget<libff::Fr<wppT>>
+{
+public:
+    using Field = libff::Fr<wppT>;
+    using add_gadget = libsnark::G1_add_gadget<wppT>;
+    using dbl_gadget = libsnark::G1_dbl_gadget<wppT>;
+
+    const libff::bigint<scalarLimbs> _scalar;
+    std::vector<std::shared_ptr<add_gadget>> _add_gadgets;
+    std::vector<std::shared_ptr<dbl_gadget>> _dbl_gadgets;
+    const libsnark::G1_variable<wppT> &_result;
+
+    G1_mul_by_const_scalar_gadget(
+        libsnark::protoboard<libff::Fr<wppT>> &pb,
+        const libff::bigint<scalarLimbs> &scalar,
+        const libsnark::G1_variable<wppT> &P,
+        const libsnark::G1_variable<wppT> &result,
+        const std::string &annotation_prefix);
+
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
+};
+
 } // namespace libzecale
 
 #include "libzecale/circuits/pairing/point_multiplication_gadgets.tcc"
