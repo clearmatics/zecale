@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZECALE_CIRCUITS_PAIRING_POINT_MULTIPLICATION_GADGETS_TCC__
-#define __ZECALE_CIRCUITS_PAIRING_POINT_MULTIPLICATION_GADGETS_TCC__
+#ifndef __ZECALE_CIRCUITS_PAIRING_GROUP_VARIABLE_GADGETS_TCC__
+#define __ZECALE_CIRCUITS_PAIRING_GROUP_VARIABLE_GADGETS_TCC__
 
-#include "libzecale/circuits/pairing/point_multiplication_gadgets.hpp"
+#include "libzecale/circuits/pairing/group_variable_gadgets.hpp"
 
 namespace libzecale
 {
@@ -342,4 +342,4 @@ template<typename wppT> void G2_dbl_gadget<wppT>::generate_r1cs_witness()
 
 } // namespace libzecale
 
-#endif // __ZECALE_CIRCUITS_PAIRING_POINT_MULTIPLICATION_GADGETS_TCC__
+#endif // __ZECALE_CIRCUITS_PAIRING_GROUP_VARIABLE_GADGETS_TCC__
