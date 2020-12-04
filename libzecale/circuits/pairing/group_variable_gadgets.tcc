@@ -2,15 +2,15 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-#ifndef __ZECALE_CIRCUITS_PAIRING_POINT_MULTIPLICATION_GADGETS_TCC__
-#define __ZECALE_CIRCUITS_PAIRING_POINT_MULTIPLICATION_GADGETS_TCC__
+#ifndef __ZECALE_CIRCUITS_PAIRING_GROUP_VARIABLE_GADGETS_TCC__
+#define __ZECALE_CIRCUITS_PAIRING_GROUP_VARIABLE_GADGETS_TCC__
 
-#include "libzecale/circuits/pairing/point_multiplication_gadgets.hpp"
+#include "libzecale/circuits/pairing/group_variable_gadgets.hpp"
 
 namespace libzecale
 {
 
-namespace implementation
+namespace internal
 {
 
 // Internal class used to extract the value of a G1_variable.
@@ -28,13 +28,13 @@ public:
     }
 };
 
-} // namespace implementation
+} // namespace internal
 
 template<typename wppT>
 libff::G1<other_curve<wppT>> g1_variable_get_element(
     const libsnark::G1_variable<wppT> &var)
 {
-    return ((implementation::G1_variable_with_get_element<wppT> *)(&var))
+    return ((internal::G1_variable_with_get_element<wppT> *)(&var))
         ->get_element();
 }
 
@@ -342,4 +342,4 @@ template<typename wppT> void G2_dbl_gadget<wppT>::generate_r1cs_witness()
 
 } // namespace libzecale
 
-#endif // __ZECALE_CIRCUITS_PAIRING_POINT_MULTIPLICATION_GADGETS_TCC__
+#endif // __ZECALE_CIRCUITS_PAIRING_GROUP_VARIABLE_GADGETS_TCC__

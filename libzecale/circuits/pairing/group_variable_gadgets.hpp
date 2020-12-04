@@ -1,8 +1,9 @@
 // Copyright (c) 2015-2020 Clearmatics Technologies Ltd
 //
 // SPDX-License-Identifier: LGPL-3.0+
-#ifndef __ZECALE_CIRCUITS_PAIRING_POINT_MULTIPLICATION_GADGETS_HPP__
-#define __ZECALE_CIRCUITS_PAIRING_POINT_MULTIPLICATION_GADGETS_HPP__
+
+#ifndef __ZECALE_CIRCUITS_PAIRING_GROUP_VARIABLE_GADGETS_HPP__
+#define __ZECALE_CIRCUITS_PAIRING_GROUP_VARIABLE_GADGETS_HPP__
 
 #include "libzecale/circuits/pairing/pairing_params.hpp"
 
@@ -125,6 +126,6 @@ public:
 
 } // namespace libzecale
 
-#include "libzecale/circuits/pairing/point_multiplication_gadgets.tcc"
+#include "libzecale/circuits/pairing/group_variable_gadgets.tcc"
 
-#endif // __ZECALE_CIRCUITS_PAIRING_POINT_MULTIPLICATION_GADGETS_HPP__
+#endif // __ZECALE_CIRCUITS_PAIRING_GROUP_VARIABLE_GADGETS_HPP__
