@@ -122,6 +122,29 @@ TEST(PointMultiplicationGadgetsTest, G2AddGadget)
     ASSERT_EQ(expect_C_val, C_val);
 }
 
+TEST(PointMultiplicationGadgetsTest, G2DblGadget)
+{
+    // Compute inputs and results
+    const libff::G2<npp> A_val = libff::Fr<npp>(13) * libff::G2<npp>::one();
+    const libff::G2<npp> expect_B_val =
+        libff::Fr<npp>(13 + 13) * libff::G2<npp>::one();
+    ASSERT_EQ(A_val.dbl(), expect_B_val);
+
+    libsnark::protoboard<libff::Fr<wpp>> pb;
+    libsnark::G2_variable<wpp> A(pb, "A");
+    libsnark::G2_variable<wpp> B(pb, "B");
+    libzecale::G2_dbl_gadget<wpp> dbl_gadget(pb, A, B, "dbl_gadget");
+
+    dbl_gadget.generate_r1cs_constraints();
+
+    A.generate_r1cs_witness(A_val);
+    dbl_gadget.generate_r1cs_witness();
+
+    const libff::G2<npp> B_val = libzecale::g2_variable_get_element(B);
+    ASSERT_TRUE(pb.is_satisfied());
+    ASSERT_EQ(expect_B_val, B_val);
+}
+
 } // namespace
 
 int main(int argc, char **argv)

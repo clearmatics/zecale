@@ -84,6 +84,45 @@ public:
     void generate_r1cs_witness();
 };
 
+template<typename wppT> class G2_dbl_gadget : libsnark::gadget<libff::Fr<wppT>>
+{
+public:
+    using nppT = other_curve<wppT>;
+
+    libsnark::G2_variable<wppT> _A;
+    libsnark::G2_variable<wppT> _B;
+
+    libsnark::Fqe_variable<wppT> _lambda;
+    libsnark::Fqe_variable<wppT> _nu;
+
+    // Ax_squared = Ax * Ax
+    libsnark::Fqe_mul_gadget<wppT> _Ax_squared_constraint;
+
+    // lambda = (3 * Ax^2 + a) / 2 * Ay
+    // <=> lambda * (Ay + Ay) = 3 * Ax_squared + a
+    libsnark::Fqe_mul_gadget<wppT> _lambda_constraint;
+
+    // nu = Ay - lambda * Ax
+    // <=> lambda * Ax = Ay - nu
+    libsnark::Fqe_mul_gadget<wppT> _nu_constraint;
+
+    // Bx = lambda^2 - 2 * Ax
+    // <=> lambda * lambda = Bx + Ax + Ax
+    libsnark::Fqe_mul_gadget<wppT> _Bx_constraint;
+
+    // By = - (lambda * Bx + nu)
+    // <=> lambda * Bx = - By - nu
+    libsnark::Fqe_mul_gadget<wppT> _By_constraint;
+
+    G2_dbl_gadget(
+        libsnark::protoboard<libff::Fr<wppT>> &pb,
+        const libsnark::G2_variable<wppT> &A,
+        const libsnark::G2_variable<wppT> &B,
+        const std::string &annotation_prefix);
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
+};
+
 } // namespace libzecale
 
 #include "libzecale/circuits/pairing/point_multiplication_gadgets.tcc"
