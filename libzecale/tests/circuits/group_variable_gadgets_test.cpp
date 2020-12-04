@@ -96,6 +96,32 @@ TEST(PointMultiplicationGadgetsTest, G1MulByConstScalarWithKnownResult)
     }
 }
 
+TEST(PointMultiplicationGadgetsTest, G2AddGadget)
+{
+    // Compute inputs and results
+    const libff::G2<npp> A_val = libff::Fr<npp>(13) * libff::G2<npp>::one();
+    const libff::G2<npp> B_val = libff::Fr<npp>(12) * libff::G2<npp>::one();
+    const libff::G2<npp> expect_C_val =
+        libff::Fr<npp>(12 + 13) * libff::G2<npp>::one();
+    ASSERT_EQ(expect_C_val, A_val + B_val);
+
+    libsnark::protoboard<libff::Fr<wpp>> pb;
+    libsnark::G2_variable<wpp> A(pb, "A");
+    libsnark::G2_variable<wpp> B(pb, "B");
+    libsnark::G2_variable<wpp> C(pb, "C");
+    libzecale::G2_add_gadget<wpp> add_gadget(pb, A, B, C, "add_gadget");
+
+    add_gadget.generate_r1cs_constraints();
+
+    A.generate_r1cs_witness(A_val);
+    B.generate_r1cs_witness(B_val);
+    add_gadget.generate_r1cs_witness();
+
+    const libff::G2<npp> C_val = libzecale::g2_variable_get_element(C);
+    ASSERT_TRUE(pb.is_satisfied());
+    ASSERT_EQ(expect_C_val, C_val);
+}
+
 } // namespace
 
 int main(int argc, char **argv)
