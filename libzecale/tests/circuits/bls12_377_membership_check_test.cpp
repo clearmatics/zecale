@@ -19,9 +19,11 @@ using Field = libff::Fr<wpp>;
 namespace
 {
 
-void populate_g1_membership_check_circuit(
-    libsnark::protoboard<Field> &pb, const libff::G1<npp> &g1_value)
+void g1_membership_check_circuit(const libff::G1<npp> &g1_value)
 {
+    ASSERT_TRUE(g1_value.is_well_formed());
+
+    libsnark::protoboard<Field> pb;
     libsnark::G1_variable<wpp> g1(pb, " g1");
     libzecale::bls12_377_G1_membership_check_gadget<wpp> check_g1(
         pb, g1, "check_g1");
@@ -30,23 +32,38 @@ void populate_g1_membership_check_circuit(
 
     g1.generate_r1cs_witness(g1_value);
     check_g1.generate_r1cs_witness();
+
+    ASSERT_EQ(g1_value.is_in_safe_subgroup(), pb.is_satisfied());
+}
+
+void g2_membership_check_circuit(const libff::G2<npp> &g2_value)
+{
+    ASSERT_TRUE(g2_value.is_well_formed());
+
+    libsnark::protoboard<Field> pb;
+    libsnark::G2_variable<wpp> g2(pb, " g2");
+    libzecale::bls12_377_G2_membership_check_gadget<wpp> check_g2(
+        pb, g2, "check_g2");
+
+    check_g2.generate_r1cs_constraints();
+
+    g2.generate_r1cs_witness(g2_value);
+    check_g2.generate_r1cs_witness();
+
+    ASSERT_EQ(g2_value.is_in_safe_subgroup(), pb.is_satisfied());
 }
 
 TEST(BLS12_377_Membership_Check, G1ValidMember)
 {
     const libff::G1<npp> g1_valid = libff::Fr<npp>(3) * libff::G1<npp>::one();
-    libsnark::protoboard<Field> pb;
-    populate_g1_membership_check_circuit(pb, g1_valid);
-    ASSERT_TRUE(pb.is_satisfied());
+    g1_membership_check_circuit(g1_valid);
 }
 
 TEST(BLS12_377_Membership_Check, G1InvalidMember)
 {
-    const libff::G1<npp> invalid_element =
+    const libff::G1<npp> g1_invalid =
         libff::g1_curve_point_at_x<libff::G1<npp>>(libff::Fq<npp>(3));
-    libsnark::protoboard<Field> pb;
-    populate_g1_membership_check_circuit(pb, invalid_element);
-    ASSERT_FALSE(pb.is_satisfied());
+    g1_membership_check_circuit(g1_invalid);
 }
 
 TEST(BLS12_377_Membership_Check, G2UntwistFrobeniusTwist)
@@ -65,6 +82,20 @@ TEST(BLS12_377_Membership_Check, G2UntwistFrobeniusTwist)
     const libff::G2<npp> g2_uft_val =
         libzecale::g2_variable_get_element<wpp>(g2_uft);
     ASSERT_EQ(g2_uft_val_expect, g2_uft_val);
+}
+
+TEST(BLS12_377_Membership_Check, G2ValidMember)
+{
+    const libff::G2<npp> g2_valid = libff::Fr<npp>(3) * libff::G2<npp>::one();
+    g2_membership_check_circuit(g2_valid);
+}
+
+TEST(BLS12_377_Membership_Check, G2InvalidMember)
+{
+    const libff::G2<npp> g2_invalid =
+        libff::g2_curve_point_at_x<libff::G2<npp>>(
+            libff::Fq<npp>(3) * libff::Fqe<npp>::one());
+    g2_membership_check_circuit(g2_invalid);
 }
 
 } // namespace

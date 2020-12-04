@@ -124,6 +124,79 @@ libsnark::G2_variable<wppT> bls12_377_g2_untwist_frobenius_twist(
         annotation_prefix);
 }
 
+// bls12_377_G2_membership_check_gadget
+
+template<typename wppT>
+bls12_377_G2_membership_check_gadget<wppT>::
+    bls12_377_G2_membership_check_gadget(
+        libsnark::protoboard<libff::Fr<wppT>> &pb,
+        libsnark::G2_variable<wppT> &P,
+        const std::string &annotation_prefix)
+    : libsnark::gadget<libff::Fr<wppT>>(pb, annotation_prefix)
+    , _P_checker(pb, P, FMT(annotation_prefix, " _P_checker"))
+    // \psi(P) - P
+    , _psi_P_minus_P(
+          pb,
+          bls12_377_g2_untwist_frobenius_twist(
+              pb, P, 1, FMT(annotation_prefix, " psi(P)")),
+          g2_variable_negate(pb, P, FMT(annotation_prefix, " -P")),
+          libsnark::G2_variable<wppT>(pb, FMT(annotation_prefix, " psi(P)-P")),
+          FMT(annotation_prefix, " _psi_P_minus_P"))
+    // [t](\psi(P) - P)
+    , _t_times_psi_P_minus_P(
+          pb,
+          libff::bls12_377_trace_of_frobenius,
+          _psi_P_minus_P._C,
+          libsnark::G2_variable<wppT>(
+              pb, FMT(annotation_prefix, " [t](psi(P)-P)")),
+          FMT(annotation_prefix, " _t_times_psi_P_minus_P"))
+    // P + [t](\psi(P) - P)
+    , _P_plus_t_times_psi_P_minus_P(
+          pb,
+          P,
+          _t_times_psi_P_minus_P.result(),
+          libsnark::G2_variable<wppT>(
+              pb, FMT(annotation_prefix, " P-[t](psi(P)-P)")),
+          FMT(annotation_prefix, " _P_plus_t_times_psi_P_minus_P"))
+    // P + [t](\psi(P) - P) = \psi^2(P)
+    , _h1_r_P_equals_zero(
+          pb,
+          _P_plus_t_times_psi_P_minus_P._C,
+          bls12_377_g2_untwist_frobenius_twist(
+              pb, P, 2, FMT(annotation_prefix, " psi^2(P)")),
+          FMT(annotation_prefix, " _h1_r_P_is_zero"))
+{
+}
+
+template<typename wppT>
+void bls12_377_G2_membership_check_gadget<wppT>::generate_r1cs_constraints()
+{
+    _psi_P_minus_P.generate_r1cs_constraints();
+    _t_times_psi_P_minus_P.generate_r1cs_constraints();
+    _P_plus_t_times_psi_P_minus_P.generate_r1cs_constraints();
+    _h1_r_P_equals_zero.generate_r1cs_constraints();
+}
+
+template<typename wppT>
+void bls12_377_G2_membership_check_gadget<wppT>::generate_r1cs_witness()
+{
+    // Evaluate result of untwist_frobenius_twist and g2_variable_negate
+    _psi_P_minus_P._A.X->evaluate();
+    _psi_P_minus_P._A.Y->evaluate();
+    _psi_P_minus_P._B.X->evaluate();
+    _psi_P_minus_P._B.Y->evaluate();
+    _psi_P_minus_P.generate_r1cs_witness();
+
+    _t_times_psi_P_minus_P.generate_r1cs_witness();
+
+    _P_plus_t_times_psi_P_minus_P.generate_r1cs_witness();
+
+    // Evaluate result of untwist_frobenius_twist
+    _h1_r_P_equals_zero._A.X->evaluate();
+    _h1_r_P_equals_zero._A.Y->evaluate();
+    _h1_r_P_equals_zero.generate_r1cs_witness();
+}
+
 } // namespace libzecale
 
 #endif // __ZECALE_CIRCUITS_PAIRING_BLS12_377_MEMBERSHIP_CHECK_GADGETS_TCC__
