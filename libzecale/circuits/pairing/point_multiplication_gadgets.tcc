@@ -240,6 +240,106 @@ template<typename wppT> void G2_add_gadget<wppT>::generate_r1cs_witness()
     _Cy_constraint.generate_r1cs_witness();
 }
 
+// G2_dbl_gadget
+
+template<typename wppT>
+G2_dbl_gadget<wppT>::G2_dbl_gadget(
+    libsnark::protoboard<libff::Fr<wppT>> &pb,
+    const libsnark::G2_variable<wppT> &A,
+    const libsnark::G2_variable<wppT> &B,
+    const std::string &annotation_prefix)
+    : libsnark::gadget<libff::Fr<wppT>>(pb, annotation_prefix)
+    , _A(A)
+    , _B(B)
+    , _lambda(pb, FMT(annotation_prefix, " lambda"))
+    , _nu(pb, FMT(annotation_prefix, " nu"))
+    // Ax_squared = Ax * Ax
+    , _Ax_squared_constraint(
+          pb,
+          *_A.X,
+          *_A.X,
+          libsnark::Fqe_variable<wppT>(pb, FMT(annotation_prefix, " Ax^2")),
+          FMT(annotation_prefix, " _Ax_squared_constraint"))
+    // lambda * (Ay + Ay) = 3 * Ax_squared + a
+    , _lambda_constraint(
+          pb,
+          _lambda,
+          *_A.Y + *_A.Y,
+          _Ax_squared_constraint.result * libff::Fr<wppT>(3) +
+              libff::G2<nppT>::coeff_a,
+          FMT(annotation_prefix, " _lambda_constraint"))
+    // lambda * Ax = Ay - nu
+    , _nu_constraint(
+          pb,
+          _lambda,
+          *_A.X,
+          *_A.Y - _nu,
+          FMT(annotation_prefix, " _nu_constraint"))
+    // lambda * lambda = Bx + Ax + Ax
+    , _Bx_constraint(
+          pb,
+          _lambda,
+          _lambda,
+          *_B.X + *_A.X + *_A.X,
+          FMT(annotation_prefix, " _Bx_constraint"))
+    // lambda * Bx = - By - nu
+    , _By_constraint(
+          pb,
+          _lambda,
+          *_B.X,
+          -*_B.Y - _nu,
+          FMT(annotation_prefix, " _By_constraint"))
+{
+}
+
+template<typename wppT> void G2_dbl_gadget<wppT>::generate_r1cs_constraints()
+{
+    _Ax_squared_constraint.generate_r1cs_constraints();
+    _lambda_constraint.generate_r1cs_constraints();
+    _nu_constraint.generate_r1cs_constraints();
+    _Bx_constraint.generate_r1cs_constraints();
+    _By_constraint.generate_r1cs_constraints();
+}
+
+template<typename wppT> void G2_dbl_gadget<wppT>::generate_r1cs_witness()
+{
+    const libff::Fqe<nppT> Ax = _A.X->get_element();
+    const libff::Fqe<nppT> Ay = _A.Y->get_element();
+
+    // Ax_squared = Ax * Ax
+    _Ax_squared_constraint.generate_r1cs_witness();
+    _Ax_squared_constraint.result.evaluate();
+    const libff::Fqe<nppT> Ax_squared =
+        _Ax_squared_constraint.result.get_element();
+
+    // lambda = (3 * Ax^2 + a) / 2 * Ay
+    // <=> lambda * (Ay + Ay) = 3 * Ax_squared + a
+    const libff::Fqe<nppT> Ax_squared_plus_a =
+        Ax_squared + Ax_squared + Ax_squared + libff::G2<nppT>::coeff_a;
+    const libff::Fqe<nppT> lambda = Ax_squared_plus_a * (Ay + Ay).inverse();
+    _lambda.generate_r1cs_witness(lambda);
+    _lambda_constraint.B.evaluate();
+    _lambda_constraint.generate_r1cs_witness();
+
+    // nu = Ay - lambda * Ax
+    // <=> lambda * Ax = Ay - nu
+    const libff::Fqe<nppT> nu = Ay - lambda * Ax;
+    _nu.generate_r1cs_witness(nu);
+    _nu_constraint.generate_r1cs_witness();
+
+    // Bx = lambda^2 - 2 * Ax
+    // By = - (lambda * Ax + nu)
+    const libff::Fqe<nppT> Bx = lambda.squared() - Ax - Ax;
+    const libff::Fqe<nppT> By = -(lambda * Bx + nu);
+    _B.generate_r1cs_witness(libff::G2<nppT>(Bx, By, libff::Fqe<nppT>::one()));
+
+    // lambda * lambda = Bx + Ax + Ax
+    _Bx_constraint.generate_r1cs_witness();
+
+    // lambda * Bx = - By - nu
+    _By_constraint.generate_r1cs_witness();
+}
+
 } // namespace libzecale
 
 #endif // __ZECALE_CIRCUITS_PAIRING_POINT_MULTIPLICATION_GADGETS_TCC__
