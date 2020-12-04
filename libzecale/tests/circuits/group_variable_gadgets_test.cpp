@@ -145,6 +145,79 @@ TEST(PointMultiplicationGadgetsTest, G2DblGadget)
     ASSERT_EQ(expect_B_val, B_val);
 }
 
+TEST(PointMultiplicationGadgetsTest, G2MulByConstScalar)
+{
+    // Compute inputs and results
+    const libff::G2<npp> P_val = libff::Fr<npp>(13) * libff::G2<npp>::one();
+    const libff::Fr<npp> scalar_val = libff::Fr<npp>(127);
+    const libff::G2<npp> expect_result_val = scalar_val * P_val;
+
+    // Circuit
+    libsnark::protoboard<libff::Fr<wpp>> pb;
+    libsnark::G2_variable<wpp> P(pb, "P");
+    libsnark::G2_variable<wpp> result(pb, "result");
+    libzecale::G2_mul_by_const_scalar_gadget<wpp, libff::Fr<npp>::num_limbs>
+        mul_gadget(pb, scalar_val.as_bigint(), P, result, "mul_gadget");
+
+    mul_gadget.generate_r1cs_constraints();
+
+    P.generate_r1cs_witness(P_val);
+    mul_gadget.generate_r1cs_witness();
+
+    ASSERT_TRUE(pb.is_satisfied());
+
+    const libff::G2<npp> result_val =
+        libzecale::g2_variable_get_element(result);
+    ASSERT_EQ(expect_result_val, result_val);
+}
+
+TEST(PointMultiplicationGadgetsTest, G2MulByConstScalarWithKnownResult)
+{
+    // Compute inputs and results
+    const libff::G2<npp> P_val = libff::Fr<npp>(13) * libff::G2<npp>::one();
+    const libff::G2<npp> Q_val = libff::Fr<npp>(12) * libff::G2<npp>::one();
+    const libff::Fr<npp> scalar_val = libff::Fr<npp>(127);
+    const libff::G2<npp> result_val = scalar_val * P_val;
+
+    // Valid case
+    {
+        // Circuit
+        libsnark::protoboard<libff::Fr<wpp>> pb;
+        libsnark::G2_variable<wpp> P(pb, "P");
+        libsnark::G2_variable<wpp> result(pb, "result");
+        libzecale::G2_mul_by_const_scalar_gadget<wpp, libff::Fr<npp>::num_limbs>
+            mul_gadget(pb, scalar_val.as_bigint(), P, result, "mul_gadget");
+
+        mul_gadget.generate_r1cs_constraints();
+
+        // Witness the input and output
+        result.generate_r1cs_witness(result_val);
+        P.generate_r1cs_witness(P_val);
+        mul_gadget.generate_r1cs_witness();
+        result.generate_r1cs_witness(result_val);
+        ASSERT_TRUE(pb.is_satisfied());
+    }
+
+    // Invalid case
+    {
+        // Circuit
+        libsnark::protoboard<libff::Fr<wpp>> pb;
+        libsnark::G2_variable<wpp> P(pb, "P");
+        libsnark::G2_variable<wpp> result(pb, "result");
+        libzecale::G2_mul_by_const_scalar_gadget<wpp, libff::Fr<npp>::num_limbs>
+            mul_gadget(pb, scalar_val.as_bigint(), P, result, "mul_gadget");
+
+        mul_gadget.generate_r1cs_constraints();
+
+        // Witness the input and output
+        result.generate_r1cs_witness(result_val);
+        P.generate_r1cs_witness(Q_val);
+        mul_gadget.generate_r1cs_witness();
+        result.generate_r1cs_witness(result_val);
+        ASSERT_FALSE(pb.is_satisfied());
+    }
+}
+
 } // namespace
 
 int main(int argc, char **argv)

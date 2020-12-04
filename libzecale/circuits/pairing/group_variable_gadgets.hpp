@@ -139,6 +139,14 @@ public:
     void generate_r1cs_witness();
 };
 
+template<typename wppT, mp_size_t scalarLimbs>
+using G2_mul_by_const_scalar_gadget = point_mul_by_const_scalar_gadget<
+    libff::G2<other_curve<wppT>>,
+    libsnark::G2_variable<wppT>,
+    G2_add_gadget<wppT>,
+    G2_dbl_gadget<wppT>,
+    libff::bigint<scalarLimbs>>;
+
 } // namespace libzecale
 
 #include "libzecale/circuits/pairing/group_variable_gadgets.tcc"
