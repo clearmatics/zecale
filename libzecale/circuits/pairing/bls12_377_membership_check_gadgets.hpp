@@ -5,9 +5,11 @@
 #ifndef __ZECALE_CIRCUITS_PAIRING_BLS12_377_MEMBERSHIP_CHECK_GADGETS_HPP__
 #define __ZECALE_CIRCUITS_PAIRING_BLS12_377_MEMBERSHIP_CHECK_GADGETS_HPP__
 
+#include "libzecale/circuits/fields/fp12_2over3over2_gadgets.hpp"
 #include "libzecale/circuits/pairing/group_variable_gadgets.hpp"
 #include "libzecale/circuits/pairing/pairing_params.hpp"
 
+#include <libff/algebra/curves/bls12_377/bls12_377_init.hpp>
 #include <libsnark/gadgetlib1/gadgets/curves/weierstrass_g1_gadget.hpp>
 
 namespace libzecale
@@ -38,6 +40,16 @@ public:
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
 };
+
+/// Untwist-Frobenius-Twist operation on BLS12-377 G2 elements. (Note that
+/// evaluate should be called on the result, or its components, before using it
+/// in witness generation).
+template<typename wppT>
+libsnark::G2_variable<wppT> bls12_377_g2_untwist_frobenius_twist(
+    libsnark::protoboard<libff::Fr<wppT>> &pb,
+    const libsnark::G2_variable<wppT> &g2,
+    size_t exp,
+    const std::string &annotation_prefix);
 
 } // namespace libzecale
 

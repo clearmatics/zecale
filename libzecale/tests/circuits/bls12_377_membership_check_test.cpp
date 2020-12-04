@@ -49,6 +49,24 @@ TEST(BLS12_377_Membership_Check, G1InvalidMember)
     ASSERT_FALSE(pb.is_satisfied());
 }
 
+TEST(BLS12_377_Membership_Check, G2UntwistFrobeniusTwist)
+{
+    const libff::G2<npp> g2_val = libff::Fr<npp>(3) * libff::G2<npp>::one();
+    const libff::G2<npp> g2_uft_val_expect = g2_val.untwist_frobenius_twist();
+
+    libsnark::protoboard<Field> pb;
+    libsnark::G2_variable<wpp> g2(pb, "g2");
+    libsnark::G2_variable<wpp> g2_uft =
+        libzecale::bls12_377_g2_untwist_frobenius_twist(pb, g2, 1, "g2_uft");
+    g2.generate_r1cs_witness(g2_val);
+
+    g2_uft.X->evaluate();
+    g2_uft.Y->evaluate();
+    const libff::G2<npp> g2_uft_val =
+        libzecale::g2_variable_get_element<wpp>(g2_uft);
+    ASSERT_EQ(g2_uft_val_expect, g2_uft_val);
+}
+
 } // namespace
 
 int main(int argc, char **argv)

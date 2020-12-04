@@ -55,6 +55,75 @@ void bls12_377_G1_membership_check_gadget<wppT>::generate_r1cs_witness()
     _P.generate_r1cs_witness(P_val);
 }
 
+template<typename wppT>
+libsnark::G2_variable<wppT> bls12_377_g2_untwist_frobenius_twist(
+    libsnark::protoboard<libff::Fr<wppT>> &pb,
+    const libsnark::G2_variable<wppT> &g2,
+    size_t exp,
+    const std::string &annotation_prefix)
+{
+    // Follows the libff implementation of
+    // bls12_377_G2::untwist_frobenius_twist(). See:
+    // libff/algebra/curves/bls12_377/bls12_377_g2.cpp.
+
+    using nppT = other_curve<wppT>;
+    using FqeT = libff::Fqe<nppT>;
+    using FqkT = libff::Fqk<nppT>;
+    using Fq6T = typename FqkT::my_Fp6;
+
+    // Untwist:
+    //   untwist_x =
+    //     (x as Fp6) * bls12_377_g2_untwist_frobenius_twist_v.coeffs[0]
+    //   untwist_y =
+    //     (y as Fp12) * bls12_377_g2_untwist_frobenius_twist_w_3
+    Fp6_3over2_variable<Fq6T> x_as_Fp6(
+        pb,
+        *g2.X,
+        libsnark::Fp2_variable<FqeT>(
+            pb, libff::Fqe<nppT>::zero(), FMT(annotation_prefix, " Fqe(0)")),
+        libsnark::Fp2_variable<FqeT>(
+            pb, libff::Fqe<nppT>::zero(), FMT(annotation_prefix, " Fqe(0)")),
+        FMT(annotation_prefix, " x_as_Fp6"));
+    Fp6_3over2_variable<Fq6T> y_as_Fp6(
+        pb,
+        *g2.Y,
+        libsnark::Fp2_variable<FqeT>(
+            pb, FqeT::zero(), FMT(annotation_prefix, " Fqe(0)")),
+        libsnark::Fp2_variable<FqeT>(
+            pb, FqeT::zero(), FMT(annotation_prefix, " Fqe(0)")),
+        FMT(annotation_prefix, " y_as_Fp6"));
+    Fp12_2over3over2_variable<FqkT> y_as_Fp12(
+        pb,
+        y_as_Fp6,
+        Fp6_3over2_variable<Fq6T>(
+            pb, Fq6T::zero(), FMT(annotation_prefix, " Fp6(0)")),
+        FMT(annotation_prefix, " y_as_Fp12"));
+
+    Fp6_3over2_variable<Fq6T> untwist_x =
+        x_as_Fp6 * libff::bls12_377_g2_untwist_frobenius_twist_v.coeffs[0];
+    Fp12_2over3over2_variable<FqkT> untwist_y =
+        y_as_Fp12 * libff::bls12_377_g2_untwist_frobenius_twist_w_3;
+
+    // Frobenius:
+    Fp6_3over2_variable<Fq6T> frob_untwist_x = untwist_x.frobenius_map(exp);
+    Fp12_2over3over2_variable<FqkT> frob_untwist_y =
+        untwist_y.frobenius_map(exp);
+
+    // Twist:
+    Fp6_3over2_variable<Fq6T> twist_frob_untwist_x =
+        frob_untwist_x *
+        libff::bls12_377_g2_untwist_frobenius_twist_v_inverse.coeffs[0];
+    Fp12_2over3over2_variable<FqkT> twist_frob_untwist_y =
+        frob_untwist_y *
+        libff::bls12_377_g2_untwist_frobenius_twist_w_3_inverse;
+
+    return libsnark::G2_variable<wppT>(
+        pb,
+        twist_frob_untwist_x._c0,
+        twist_frob_untwist_y._c0._c0,
+        annotation_prefix);
+}
+
 } // namespace libzecale
 
 #endif // __ZECALE_CIRCUITS_PAIRING_BLS12_377_MEMBERSHIP_CHECK_GADGETS_TCC__
