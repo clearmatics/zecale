@@ -22,29 +22,44 @@ template<typename wppT>
 libff::G2<other_curve<wppT>> g2_variable_get_element(
     const libsnark::G2_variable<wppT> &var);
 
-template<typename wppT, mp_size_t scalarLimbs>
-class G1_mul_by_const_scalar_gadget : libsnark::gadget<libff::Fr<wppT>>
+/// Generic gadget to perform scalar multiplication of group variables.
+template<
+    typename groupT,
+    typename groupVariableT,
+    typename add_gadget,
+    typename dbl_gadget,
+    typename scalarT>
+class point_mul_by_const_scalar_gadget
+    : libsnark::gadget<typename groupT::base_field>
 {
 public:
-    using Field = libff::Fr<wppT>;
-    using add_gadget = libsnark::G1_add_gadget<wppT>;
-    using dbl_gadget = libsnark::G1_dbl_gadget<wppT>;
+    using FieldT = typename groupT::base_field;
 
-    const libff::bigint<scalarLimbs> _scalar;
+    const scalarT _scalar;
+    const groupVariableT _result;
     std::vector<std::shared_ptr<add_gadget>> _add_gadgets;
     std::vector<std::shared_ptr<dbl_gadget>> _dbl_gadgets;
-    const libsnark::G1_variable<wppT> &_result;
 
-    G1_mul_by_const_scalar_gadget(
-        libsnark::protoboard<libff::Fr<wppT>> &pb,
-        const libff::bigint<scalarLimbs> &scalar,
-        const libsnark::G1_variable<wppT> &P,
-        const libsnark::G1_variable<wppT> &result,
+    point_mul_by_const_scalar_gadget(
+        libsnark::protoboard<FieldT> &pb,
+        const scalarT &scalar,
+        const groupVariableT &P,
+        const groupVariableT &result,
         const std::string &annotation_prefix);
 
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
+    const groupVariableT &result() const;
 };
+
+/// Gadget for scalar multiplication of G1 elements
+template<typename wppT, mp_size_t scalarLimbs>
+using G1_mul_by_const_scalar_gadget = point_mul_by_const_scalar_gadget<
+    libff::G1<other_curve<wppT>>,
+    libsnark::G1_variable<wppT>,
+    libsnark::G1_add_gadget<wppT>,
+    libsnark::G1_dbl_gadget<wppT>,
+    libff::bigint<scalarLimbs>>;
 
 /// Gadget to add 2 G2 points
 template<typename wppT>
