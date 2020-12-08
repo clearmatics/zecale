@@ -40,6 +40,7 @@ public:
         const std::string &annotation_prefix);
 
     Fp12_2over3over2_variable<Fp12T> operator*(const Fp2T &fp2_const) const;
+    Fp12_2over3over2_variable<Fp12T> operator*(const Fp12T &fp12_const) const;
     Fp12_2over3over2_variable<Fp12T> frobenius_map(size_t power) const;
     Fp12_2over3over2_variable<Fp12T> unitary_inverse() const;
     void evaluate() const;
