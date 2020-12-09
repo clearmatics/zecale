@@ -49,6 +49,15 @@ libff::G2<other_curve<wppT>> g2_variable_get_element(
         libff::G2<nppT>::twist_field::one());
 }
 
+template<typename wppT>
+libsnark::G2_variable<wppT> g2_variable_negate(
+    libsnark::protoboard<libff::Fr<wppT>> &pb,
+    const libsnark::G2_variable<wppT> &g2,
+    const std::string &annotation_prefix)
+{
+    return libsnark::G2_variable<wppT>(pb, *g2.X, -*g2.Y, annotation_prefix);
+}
+
 // point_mul_by_const_scalar_gadget
 
 template<
