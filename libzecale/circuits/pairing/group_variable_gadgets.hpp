@@ -155,6 +155,35 @@ using G2_mul_by_const_scalar_gadget = point_mul_by_const_scalar_gadget<
     G2_dbl_gadget<wppT>,
     libff::bigint<scalarLimbs>>;
 
+template<typename wppT>
+class G2_equality_gadget : libsnark::gadget<libff::Fr<wppT>>
+{
+public:
+    using nppT = other_curve<wppT>;
+
+    libsnark::G2_variable<wppT> _A;
+    libsnark::G2_variable<wppT> _B;
+
+    G2_equality_gadget(
+        libsnark::protoboard<libff::Fr<wppT>> &pb,
+        const libsnark::G2_variable<wppT> &A,
+        const libsnark::G2_variable<wppT> &B,
+        const std::string &annotation_prefix);
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness();
+
+private:
+    // There is no generic way to iterate over the components of Fp?_variable,
+    // so this method must be specialized per field extension. However, the
+    // version that expects 2 components may still compile on Fp3_variable,
+    // say. Hence we specify Fp2_variable explicitly in the parameters to avoid
+    // callers accidentally using this for other pairings and passing in
+    // Fp?_variable.
+    void generate_fpe_equality_constraints(
+        const libsnark::Fp2_variable<libff::Fqe<nppT>> &a,
+        const libsnark::Fp2_variable<libff::Fqe<nppT>> &b);
+};
+
 } // namespace libzecale
 
 #include "libzecale/circuits/pairing/group_variable_gadgets.tcc"

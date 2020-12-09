@@ -218,6 +218,34 @@ TEST(PointMultiplicationGadgetsTest, G2MulByConstScalarWithKnownResult)
     }
 }
 
+TEST(PointMultiplicationGadgetsTest, G2EqualityGadget)
+{
+    // Compute inputs and results
+    const libff::G2<npp> P_val = libff::Fr<npp>(13) * libff::G2<npp>::one();
+    const libff::G2<npp> Q_val = libff::Fr<npp>(12) * libff::G2<npp>::one();
+
+    // Circuit
+    libsnark::protoboard<libff::Fr<wpp>> pb;
+    libsnark::G2_variable<wpp> P(pb, "P");
+    libsnark::G2_variable<wpp> Q(pb, "Q");
+    libzecale::G2_equality_gadget<wpp> equality_gadget(
+        pb, P, Q, "equality_gadget");
+
+    equality_gadget.generate_r1cs_constraints();
+
+    // P == Q case
+    P.generate_r1cs_witness(P_val);
+    Q.generate_r1cs_witness(P_val);
+    equality_gadget.generate_r1cs_witness();
+    ASSERT_TRUE(pb.is_satisfied());
+
+    // P != Q case
+    P.generate_r1cs_witness(P_val);
+    Q.generate_r1cs_witness(Q_val);
+    equality_gadget.generate_r1cs_witness();
+    ASSERT_FALSE(pb.is_satisfied());
+}
+
 } // namespace
 
 int main(int argc, char **argv)

@@ -395,6 +395,45 @@ template<typename wppT> void G2_dbl_gadget<wppT>::generate_r1cs_witness()
     _By_constraint.generate_r1cs_witness();
 }
 
+// G2_is_zero_gadget
+
+template<typename wppT>
+G2_equality_gadget<wppT>::G2_equality_gadget(
+    libsnark::protoboard<libff::Fr<wppT>> &pb,
+    const libsnark::G2_variable<wppT> &A,
+    const libsnark::G2_variable<wppT> &B,
+    const std::string &annotation_prefix)
+    : libsnark::gadget<libff::Fr<wppT>>(pb, annotation_prefix), _A(A), _B(B)
+{
+}
+
+template<typename wppT>
+void G2_equality_gadget<wppT>::generate_r1cs_constraints()
+{
+    // A.X == B.X
+    generate_fpe_equality_constraints(*_A.X, *_B.X);
+    // A.Y == B.Y
+    generate_fpe_equality_constraints(*_A.X, *_B.X);
+}
+
+template<typename wppT> void G2_equality_gadget<wppT>::generate_r1cs_witness()
+{
+    // Nothing to do
+}
+
+template<typename wppT>
+void G2_equality_gadget<wppT>::generate_fpe_equality_constraints(
+    const libsnark::Fp2_variable<libff::Fqe<nppT>> &a,
+    const libsnark::Fp2_variable<libff::Fqe<nppT>> &b)
+{
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<libff::Fr<wppT>>(a.c0, 1, b.c0),
+        FMT(this->annotation_prefix, " c0"));
+    this->pb.add_r1cs_constraint(
+        libsnark::r1cs_constraint<libff::Fr<wppT>>(a.c1, 1, b.c1),
+        FMT(this->annotation_prefix, " c1"));
+}
+
 } // namespace libzecale
 
 #endif // __ZECALE_CIRCUITS_PAIRING_GROUP_VARIABLE_GADGETS_TCC__
