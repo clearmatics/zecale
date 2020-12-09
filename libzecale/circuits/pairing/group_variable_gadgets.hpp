@@ -22,6 +22,15 @@ template<typename wppT>
 libff::G2<other_curve<wppT>> g2_variable_get_element(
     const libsnark::G2_variable<wppT> &var);
 
+/// Negate a G2 variable and return the result. (Note that evaluate should be
+/// called on the result, or its components, before using it in witness
+/// generation).
+template<typename wppT>
+libsnark::G2_variable<wppT> g2_variable_negate(
+    libsnark::protoboard<libff::Fr<wppT>> &pb,
+    const libsnark::G2_variable<wppT> &g2,
+    const std::string &annotation_prefix);
+
 /// Generic gadget to perform scalar multiplication of group variables.
 template<
     typename groupT,
