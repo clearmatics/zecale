@@ -171,6 +171,7 @@ bls12_377_G2_membership_check_gadget<wppT>::
 template<typename wppT>
 void bls12_377_G2_membership_check_gadget<wppT>::generate_r1cs_constraints()
 {
+    _P_checker.generate_r1cs_constraints();
     _psi_P_minus_P.generate_r1cs_constraints();
     _t_times_psi_P_minus_P.generate_r1cs_constraints();
     _P_plus_t_times_psi_P_minus_P.generate_r1cs_constraints();
@@ -180,6 +181,8 @@ void bls12_377_G2_membership_check_gadget<wppT>::generate_r1cs_constraints()
 template<typename wppT>
 void bls12_377_G2_membership_check_gadget<wppT>::generate_r1cs_witness()
 {
+    _P_checker.generate_r1cs_witness();
+
     // Evaluate result of untwist_frobenius_twist and g2_variable_negate
     _psi_P_minus_P._A.X->evaluate();
     _psi_P_minus_P._A.Y->evaluate();
