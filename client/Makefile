@@ -43,7 +43,8 @@ syntax: $(API_OUTPUT)
 	mypy -p zecale
 	mypy -p tests
 	mypy -p test_commands
-	pylint zecale tests
+	mypy -p zeth_zecale
+	pylint zecale tests test_commands zeth_zecale
 
 
 test: $(API_OUTPUT)
