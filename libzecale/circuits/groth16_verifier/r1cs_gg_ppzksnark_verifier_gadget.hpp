@@ -37,9 +37,8 @@ public:
     std::vector<std::shared_ptr<libsnark::G1_variable<ppT>>> _all_G1_vars;
     std::vector<std::shared_ptr<libsnark::G2_variable<ppT>>> _all_G2_vars;
 
-    std::vector<std::shared_ptr<libsnark::G1_checker_gadget<ppT>>>
-        _all_G1_checkers;
-    std::shared_ptr<libsnark::G2_checker_gadget<ppT>> _G2_checker;
+    std::vector<std::shared_ptr<G1_checker<ppT>>> _all_G1_checkers;
+    std::shared_ptr<G2_checker<ppT>> _G2_checker;
 
     libsnark::pb_variable_array<FieldT> _proof_contents;
 

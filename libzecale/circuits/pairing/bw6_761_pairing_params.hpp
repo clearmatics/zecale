@@ -6,6 +6,7 @@
 #define __ZECALE_CIRCUITS_PAIRING_BW6_761_PAIRING_PARAMS_HPP__
 
 #include "libzecale/circuits/fields/fp12_2over3over2_gadgets.hpp"
+#include "libzecale/circuits/pairing/bls12_377_membership_check_gadgets.hpp"
 #include "libzecale/circuits/pairing/bls12_377_pairing.hpp"
 #include "libzecale/circuits/pairing/pairing_params.hpp"
 
@@ -53,6 +54,10 @@ public:
 
     typedef libff::bls12_377_pp other_curve_type;
 
+    typedef bls12_377_G1_membership_check_gadget<libff::bw6_761_pp>
+        G1_checker_type;
+    typedef bls12_377_G2_membership_check_gadget<libff::bw6_761_pp>
+        G2_checker_type;
     typedef bls12_377_G1_precomputation<libff::bw6_761_pp>
         G1_precomputation_type;
     typedef bls12_377_G1_precompute_gadget<libff::bw6_761_pp>

@@ -37,14 +37,14 @@ r1cs_gg_ppzksnark_proof_variable<ppT>::r1cs_gg_ppzksnark_proof_variable(
     _all_G1_checkers.resize(_all_G1_vars.size());
 
     for (size_t i = 0; i < _all_G1_vars.size(); ++i) {
-        _all_G1_checkers[i].reset(new libsnark::G1_checker_gadget<ppT>(
+        _all_G1_checkers[i].reset(new G1_checker<ppT>(
             pb,
             *_all_G1_vars[i],
             FMT(annotation_prefix, " all_G1_checkers_%zu", i)));
     }
 
-    _G2_checker.reset(new libsnark::G2_checker_gadget<ppT>(
-        pb, *_g_B, FMT(annotation_prefix, " G2_checker")));
+    _G2_checker.reset(
+        new G2_checker<ppT>(pb, *_g_B, FMT(annotation_prefix, " G2_checker")));
 
     assert(_all_G1_vars.size() == num_G1);
     assert(_all_G2_vars.size() == num_G2);
