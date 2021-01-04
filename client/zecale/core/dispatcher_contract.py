@@ -84,7 +84,7 @@ class DispatcherContract:
         contract_call = self.instance.functions.process_batch(
             proof_evm,
             inputs_evm,
-            hex_list_to_uint256_list([p.hex() for p in batch.nested_parameters]),
+            batch.nested_parameters,
             application_contract_address)
 
         # Broadcast the call

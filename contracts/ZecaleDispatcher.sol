@@ -85,7 +85,7 @@ contract ZecaleDispatcher
     function process_batch(
         uint256[18] memory batch_proof,
         uint256[] memory inputs,
-        uint256[] memory nested_parameters,
+        bytes[] memory nested_parameters,
         IZecaleApplication target_application) public returns(bool)
     {
         // Compute expected inputs per batch (TODO: move this to the constructor)
@@ -114,8 +114,6 @@ contract ZecaleDispatcher
         // Create an array to reuse for the nested inputs for each proof.
         uint256[] memory nested_proof_inputs =
             new uint256[](inputs_per_batch - 1);
-        uint256[] memory nested_parameters_data =
-            new uint256[](nested_parameters_per_batch);
 
         // Pass the details of each valid proof to the application
         for (uint256 nested_proof_idx = 0; nested_proof_idx < batch_size;
@@ -157,18 +155,10 @@ contract ZecaleDispatcher
                     nested_proof_inputs[i] = inputs[batch_start_word_idx + (2 * i) + 1];
                 }
 
-                // Copy nested_parameters
-                uint256 nested_parameters_start_idx =
-                nested_parameters_per_batch * nested_proof_idx;
-                for (uint256 i = 0; i < nested_parameters_per_batch; ++i) {
-                    nested_parameters_data[i] =
-                    nested_parameters[nested_parameters_start_idx + i];
-                }
-
                 target_application.dispatch(
                     nested_vk_hash,
                     nested_proof_inputs,
-                    nested_parameters_data);
+                    nested_parameters[nested_proof_idx]);
             }
         }
 
