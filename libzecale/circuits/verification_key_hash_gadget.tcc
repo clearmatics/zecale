@@ -19,7 +19,9 @@ verification_key_hash_gadget<wppT, nverifierT, hashT>::
         const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
     , _vk_block(
-          pb, {verification_key.all_bits}, FMT(annotation_prefix, " _vk_block"))
+          pb,
+          {verification_key._all_bits},
+          FMT(annotation_prefix, " _vk_block"))
     , _vk_digest(
           pb, hashT::get_digest_len(), FMT(annotation_prefix, " _vk_digest"))
     , _hash_gadget(
