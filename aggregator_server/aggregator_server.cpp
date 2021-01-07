@@ -20,6 +20,7 @@
 #include <grpcpp/server_context.h>
 #include <iostream>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
+#include <libzeth/circuits/circuit_types.hpp>
 #include <libzeth/core/utils.hpp>
 #include <libzeth/serialization/proto_utils.hpp>
 #include <libzeth/serialization/r1cs_serialization.hpp>
@@ -67,6 +68,9 @@ using napi_handler = libzeth::groth16_api_handler<npp>;
 #endif
 
 using nsnark = typename nverifier::snark;
+// Use the null hash for fast turn-around during development. Alternatively,
+// the following enables blake2s:
+//   using hash = libzeth::BLAKE2s_256<libff::Fr<wpp>>;
 using hash = libzecale::null_hash_gadget<libff::Fr<wpp>>;
 
 static const size_t batch_size = 2;
@@ -490,6 +494,12 @@ int main(int argc, char **argv)
         std::cout << "[INFO] No keypair file " << keypair_file
                   << ". Generating.\n";
         const wsnark::keypair keypair = aggregator.generate_trusted_setup();
+
+        const size_t num_constraints =
+            aggregator.get_constraint_system().num_constraints();
+        std::cout << "[INFO] Circuit has " << std::to_string(num_constraints)
+                  << " constraints\n";
+
         std::cout << "[INFO] Writing new keypair to " << keypair_file << "\n";
         write_keypair(keypair, keypair_file);
         return keypair;
