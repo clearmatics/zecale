@@ -81,22 +81,24 @@ public:
     libsnark::G2_variable<wppT> _C;
 
     libsnark::Fqe_variable<wppT> _lambda;
-    libsnark::Fqe_variable<wppT> _nu;
+
+    // For curve points A = (Ax, Ay), B = (Bx, By), we have that
+    // A + B = C = (Cx, Cy) is given by:
+    //
+    //   Cx = lambda^2 - Ax - Bx
+    //   Cy = lambda*(Ax - Cx) - Ay
+    //   where lambda = (By - Ay) / (Bx - Ax)
 
     // lambda = (By - Ay) / (Bx - Ax)
     // <=>  lambda * (Bx - Ax) = By - Ay
     libsnark::Fqe_mul_gadget<wppT> _lambda_constraint;
 
-    // nu = Ay - lambda * Ax
-    // <=> lambda * Ax = Ay - nu
-    libsnark::Fqe_mul_gadget<wppT> _nu_constraint;
-
     // Cx = lambda^2 - Ax - Bx
     // <=> lambda^2 = Cx + Ax + Bx
     libsnark::Fqe_mul_gadget<wppT> _Cx_constraint;
 
-    // Cy = -(lambda * Cx + nu)
-    // <=> Cx * lambda = -Cy - nu
+    // Cy = lambda * (Ax - Cx) - Ay
+    // <=> lambda * (Ax - Cx) = Cy + Ay
     libsnark::Fqe_mul_gadget<wppT> _Cy_constraint;
 
     G2_add_gadget(
@@ -118,7 +120,13 @@ public:
     libsnark::G2_variable<wppT> _B;
 
     libsnark::Fqe_variable<wppT> _lambda;
-    libsnark::Fqe_variable<wppT> _nu;
+
+    // For a curve point A = (Ax, Ay), we have that A + A = B = (Bx, By) is
+    // given by:
+    //
+    //   Bx = lambda^2 - 2 * Ax
+    //   By = lambda*(Ax - Bx) - Ay
+    //   where lambda = (3 * Ax^2) / 2 * Ay
 
     // Ax_squared = Ax * Ax
     libsnark::Fqe_mul_gadget<wppT> _Ax_squared_constraint;
@@ -127,16 +135,12 @@ public:
     // <=> lambda * (Ay + Ay) = 3 * Ax_squared + a
     libsnark::Fqe_mul_gadget<wppT> _lambda_constraint;
 
-    // nu = Ay - lambda * Ax
-    // <=> lambda * Ax = Ay - nu
-    libsnark::Fqe_mul_gadget<wppT> _nu_constraint;
-
     // Bx = lambda^2 - 2 * Ax
     // <=> lambda * lambda = Bx + Ax + Ax
     libsnark::Fqe_mul_gadget<wppT> _Bx_constraint;
 
-    // By = - (lambda * Bx + nu)
-    // <=> lambda * Bx = - By - nu
+    // By = lambda * (Ax - Bx) - Ay
+    // <=> lambda * (Ax - Bx) = By + Ay
     libsnark::Fqe_mul_gadget<wppT> _By_constraint;
 
     G2_dbl_gadget(
