@@ -100,8 +100,11 @@ class DispatcherContract:
         """
         Print out debug log information from a dispatcher invocation
         """
+        my_address = self.instance.address
         event_abi = find_matching_event_abi(self.instance.abi, event_name="log")
         logs = tx_receipt.logs
         for log in logs:
+            if log.address != my_address:
+                continue
             event_data = get_event_data(event_abi, log)
             print(f"{event_data.args['a']}: {event_data.args['v']}")

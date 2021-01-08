@@ -11,9 +11,10 @@ from zecale.cli.zecale_nested_verification_key_hash import \
     nested_verification_key_hash
 from zecale.cli.zecale_register import register
 from zecale.cli.zecale_submit import submit
-from zecale.cli.zecale_submit_batch import submit_batch
 from zecale.cli.zecale_get_batch import get_batch
 from zecale.cli.zecale_check_batch import check_batch
+from zecale.cli.zecale_submit_batch import submit_batch
+from zecale.cli.zecale_wait import wait
 from zeth.cli.constants import ETH_NETWORK_FILE_DEFAULT
 from grpc import RpcError
 from click import group, option, pass_context, Context
@@ -84,3 +85,4 @@ zecale.add_command(submit)
 zecale.add_command(get_batch)
 zecale.add_command(check_batch)
 zecale.add_command(submit_batch)
+zecale.add_command(wait)
