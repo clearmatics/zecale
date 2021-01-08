@@ -265,7 +265,9 @@ library Groth16BW6_761
     /// Given the length of a verification key, encoded as a uint256 array,
     /// compute the number of inputs expected in the proof.
     function num_inputs_from_vk_length(uint256 vk_length) internal returns (uint256) {
-        // See the format of vk above
-        return (vk_length - 0x12) / 6;
+        // See the format of vk above. This computes the length of the ABC
+        // array (measured in group elements) - 1, which is the number of
+        // inputs required in a valid proof.
+        return (vk_length - 0x18) / 6;
     }
 }
