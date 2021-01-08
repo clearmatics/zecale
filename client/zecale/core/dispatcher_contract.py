@@ -7,12 +7,9 @@ from zecale.core.utils import get_zecale_dir
 from zecale.core.aggregated_transaction import AggregatedTransaction
 from zeth.core.utils import hex_list_to_uint256_list
 from zeth.core.pairing import PairingParameters
-from zeth.core.contracts import InstanceDescription, send_contract_call
+from zeth.core.contracts import InstanceDescription, send_contract_call, \
+    get_event_logs_from_tx_receipt
 from zeth.core.zksnark import IZKSnarkProvider, IVerificationKey
-# from zeth.core.zksnark import IZKSnarkProvider, GenericVerificationKey, \
-#     GenericProof
-from web3.utils.contracts import find_matching_event_abi  # type: ignore
-from web3.utils.events import get_event_data  # type: ignore
 from os.path import join
 from typing import Tuple, Optional, Any
 
@@ -100,11 +97,6 @@ class DispatcherContract:
         """
         Print out debug log information from a dispatcher invocation
         """
-        my_address = self.instance.address
-        event_abi = find_matching_event_abi(self.instance.abi, event_name="log")
-        logs = tx_receipt.logs
-        for log in logs:
-            if log.address != my_address:
-                continue
-            event_data = get_event_data(event_abi, log)
+        logs = get_event_logs_from_tx_receipt(self.instance, "log", tx_receipt)
+        for event_data in logs:
             print(f"{event_data.args['a']}: {event_data.args['v']}")
