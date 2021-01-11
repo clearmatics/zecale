@@ -488,12 +488,28 @@ int main(int argc, char **argv)
     wsnark::keypair keypair = [&keypair_file, &aggregator]() {
         if (boost::filesystem::exists(keypair_file)) {
             std::cout << "[INFO] Loading keypair: " << keypair_file << "\n";
-            return load_keypair(keypair_file);
+            wsnark::keypair keypair = load_keypair(keypair_file);
+
+            // Should have 1 + 2 * (num_inputs_per_nested_proof + 1) public
+            // inputs in the wrapping keypair.
+            if (keypair.vk.ABC_g1.size() !=
+                1 + batch_size * (num_inputs_per_nested_proof + 1)) {
+                throw std::invalid_argument("invalid VK");
+            }
+
+            return keypair;
         }
 
         std::cout << "[INFO] No keypair file " << keypair_file
                   << ". Generating.\n";
         const wsnark::keypair keypair = aggregator.generate_trusted_setup();
+
+        // Should have 1 + 2 * (num_inputs_per_nested_proof + 1) public
+        // inputs in the wrapping keypair.
+        if (keypair.vk.ABC_g1.size() !=
+            1 + batch_size * (num_inputs_per_nested_proof + 1)) {
+            throw std::invalid_argument("invalid VK");
+        }
 
         const size_t num_constraints =
             aggregator.get_constraint_system().num_constraints();
