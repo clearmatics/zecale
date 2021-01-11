@@ -214,12 +214,12 @@ G2_add_gadget<wppT>::G2_add_gadget(
     libsnark::protoboard<libff::Fr<wppT>> &pb,
     const libsnark::G2_variable<wppT> &A,
     const libsnark::G2_variable<wppT> &B,
-    const libsnark::G2_variable<wppT> &C,
+    const libsnark::G2_variable<wppT> &result,
     const std::string &annotation_prefix)
     : libsnark::gadget<libff::Fr<wppT>>(pb, annotation_prefix)
     , _A(A)
     , _B(B)
-    , _C(C)
+    , _result(result)
     , _lambda(pb, FMT(annotation_prefix, " lambda"))
     // lambda = (By - Ay) / (Bx - Ax)
     // <=>  lambda * (Bx - Ax) = By - Ay
@@ -229,30 +229,30 @@ G2_add_gadget<wppT>::G2_add_gadget(
           *_B.X - *_A.X,
           *_B.Y - *_A.Y,
           FMT(annotation_prefix, " _lambda_constraint"))
-    // Cx = lambda^2 - Ax - Bx
-    // <=> lambda^2 = Cx + Ax + Bx
-    , _Cx_constraint(
+    // Rx = lambda^2 - Ax - Bx
+    // <=> lambda^2 = Rx + Ax + Bx
+    , _Rx_constraint(
           pb,
           _lambda,
           _lambda,
-          *_C.X + *_A.X + *_B.X,
-          FMT(annotation_prefix, " _Cx_constraint"))
-    // Cy = lambda * (Ax - Cx) - Ay
-    // <=> lambda * (Ax - Cx) = Cy + Ay
-    , _Cy_constraint(
+          *_result.X + *_A.X + *_B.X,
+          FMT(annotation_prefix, " _Rx_constraint"))
+    // Ry = lambda * (Ax - Rx) - Ay
+    // <=> lambda * (Ax - Rx) = Ry + Ay
+    , _Ry_constraint(
           pb,
           _lambda,
-          (*_A.X - *_C.X),
-          *_C.Y + *_A.Y,
-          FMT(annotation_prefix, " _Cy_constraint"))
+          (*_A.X - *_result.X),
+          *_result.Y + *_A.Y,
+          FMT(annotation_prefix, " _Ry_constraint"))
 {
 }
 
 template<typename wppT> void G2_add_gadget<wppT>::generate_r1cs_constraints()
 {
     _lambda_constraint.generate_r1cs_constraints();
-    _Cx_constraint.generate_r1cs_constraints();
-    _Cy_constraint.generate_r1cs_constraints();
+    _Rx_constraint.generate_r1cs_constraints();
+    _Ry_constraint.generate_r1cs_constraints();
 }
 
 template<typename wppT> void G2_add_gadget<wppT>::generate_r1cs_witness()
@@ -270,20 +270,21 @@ template<typename wppT> void G2_add_gadget<wppT>::generate_r1cs_witness()
     _lambda_constraint.result.evaluate();
     _lambda_constraint.generate_r1cs_witness();
 
-    // Cx = lambda^2 - Ax - Bx
-    // Cy = lambda * (Ax - Cx) - Ay
-    const libff::Fqe<nppT> Cx = lambda.squared() - Ax - Bx;
-    const libff::Fqe<nppT> Cy = lambda * (Ax - Cx) - Ay;
-    _C.generate_r1cs_witness(libff::G2<nppT>(Cx, Cy, libff::Fqe<nppT>::one()));
+    // Rx = lambda^2 - Ax - Bx
+    // Ry = lambda * (Ax - Rx) - Ay
+    const libff::Fqe<nppT> Rx = lambda.squared() - Ax - Bx;
+    const libff::Fqe<nppT> Ry = lambda * (Ax - Rx) - Ay;
+    _result.generate_r1cs_witness(
+        libff::G2<nppT>(Rx, Ry, libff::Fqe<nppT>::one()));
 
-    // lambda^2 = Cx + Ax + Bx
-    _Cx_constraint.result.evaluate();
-    _Cx_constraint.generate_r1cs_witness();
+    // lambda^2 = Rx + Ax + Bx
+    _Rx_constraint.result.evaluate();
+    _Rx_constraint.generate_r1cs_witness();
 
-    // lambda * (Ax - Cx) = Cy + Ay
-    _Cy_constraint.B.evaluate();
-    _Cy_constraint.result.evaluate();
-    _Cy_constraint.generate_r1cs_witness();
+    // lambda * (Ax - Rx) = Ry + Ay
+    _Ry_constraint.B.evaluate();
+    _Ry_constraint.result.evaluate();
+    _Ry_constraint.generate_r1cs_witness();
 }
 
 // G2_dbl_gadget

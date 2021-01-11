@@ -146,7 +146,7 @@ bls12_377_G2_membership_check_gadget<wppT>::
     , _t_times_psi_P_minus_P(
           pb,
           libff::bls12_377_trace_of_frobenius,
-          _psi_P_minus_P._C,
+          _psi_P_minus_P._result,
           libsnark::G2_variable<wppT>(
               pb, FMT(annotation_prefix, " [t](psi(P)-P)")),
           FMT(annotation_prefix, " _t_times_psi_P_minus_P"))
@@ -161,7 +161,7 @@ bls12_377_G2_membership_check_gadget<wppT>::
     // P + [t](\psi(P) - P) = \psi^2(P)
     , _h1_r_P_equals_zero(
           pb,
-          _P_plus_t_times_psi_P_minus_P._C,
+          _P_plus_t_times_psi_P_minus_P._result,
           bls12_377_g2_untwist_frobenius_twist(
               pb, P, 2, FMT(annotation_prefix, " psi^2(P)")),
           FMT(annotation_prefix, " _h1_r_P_is_zero"))

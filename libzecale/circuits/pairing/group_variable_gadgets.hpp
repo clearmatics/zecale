@@ -78,34 +78,34 @@ class G2_add_gadget : public libsnark::gadget<libff::Fr<wppT>>
 public:
     libsnark::G2_variable<wppT> _A;
     libsnark::G2_variable<wppT> _B;
-    libsnark::G2_variable<wppT> _C;
+    libsnark::G2_variable<wppT> _result;
 
     libsnark::Fqe_variable<wppT> _lambda;
 
     // For curve points A = (Ax, Ay), B = (Bx, By), we have that
-    // A + B = C = (Cx, Cy) is given by:
+    // A + B = R = (Rx, Ry) is given by:
     //
-    //   Cx = lambda^2 - Ax - Bx
-    //   Cy = lambda*(Ax - Cx) - Ay
+    //   Rx = lambda^2 - Ax - Bx
+    //   Ry = lambda*(Ax - Rx) - Ay
     //   where lambda = (By - Ay) / (Bx - Ax)
 
     // lambda = (By - Ay) / (Bx - Ax)
     // <=>  lambda * (Bx - Ax) = By - Ay
     libsnark::Fqe_mul_gadget<wppT> _lambda_constraint;
 
-    // Cx = lambda^2 - Ax - Bx
-    // <=> lambda^2 = Cx + Ax + Bx
-    libsnark::Fqe_mul_gadget<wppT> _Cx_constraint;
+    // Rx = lambda^2 - Ax - Bx
+    // <=> lambda^2 = Rx + Ax + Bx
+    libsnark::Fqe_mul_gadget<wppT> _Rx_constraint;
 
-    // Cy = lambda * (Ax - Cx) - Ay
-    // <=> lambda * (Ax - Cx) = Cy + Ay
-    libsnark::Fqe_mul_gadget<wppT> _Cy_constraint;
+    // Ry = lambda * (Ax - Rx) - Ay
+    // <=> lambda * (Ax - Rx) = Ry + Ay
+    libsnark::Fqe_mul_gadget<wppT> _Ry_constraint;
 
     G2_add_gadget(
         libsnark::protoboard<libff::Fr<wppT>> &pb,
         const libsnark::G2_variable<wppT> &A,
         const libsnark::G2_variable<wppT> &B,
-        const libsnark::G2_variable<wppT> &C,
+        const libsnark::G2_variable<wppT> &R,
         const std::string &annotation_prefix);
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
