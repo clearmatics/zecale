@@ -27,6 +27,8 @@ contract ZecaleDispatcher
 {
     uint256 constant batch_size = 2;
 
+    uint256 constant scalar_size_in_words = 2;
+
     // Verification key
     uint256[] _vk;
 
@@ -92,7 +94,7 @@ contract ZecaleDispatcher
         // }
 
         require(
-            inputs.length == _total_inputs * 2,
+            inputs.length == _total_inputs * scalar_size_in_words,
             "invalid inputs length");
         require(
             nested_parameters.length == batch_size,
@@ -120,16 +122,24 @@ contract ZecaleDispatcher
         for (uint256 nested_tx_idx = 0; nested_tx_idx < batch_size;
              ++nested_tx_idx) {
 
+            // Note that the offsets here are all based on the assumption that
+            // each scalar consists of 2 uint256 words, and that each nested
+            // input is held in the final uint256 word.
+
             // Of the inputs for this nested tx, the first `inputs_per_batch -
             // 1` are the inputs to the nested proof. The final entry is the
             // `result` for the nested proof.
 
             // Word index (in `inputs`) of the start of the inputs for this
-            // nested tx. Final +1 to extract the LO word.
+            // nested tx, offset by scalar_size_in_words - 1 to extract the LO
+            // word.
             uint256 batch_start_word_idx =
-                2 * (1 + inputs_per_nested_tx * nested_tx_idx) + 1;
+                scalar_size_in_words *
+                    (2 + inputs_per_nested_tx * nested_tx_idx)
+                - 1;
             uint256 result_word_idx =
-                batch_start_word_idx + (2 * (inputs_per_nested_tx - 1));
+                batch_start_word_idx +
+                (scalar_size_in_words * (inputs_per_nested_tx - 1));
 
             // emit log("batch_start_word_idx", batch_start_word_idx);
             // emit log("result_word_idx", result_word_idx);
@@ -146,7 +156,8 @@ contract ZecaleDispatcher
                 // sizes, copying only the low-order word from wrapped inputs
                 // into the array of nested inputs.
                 for (uint256 i = 0; i < inputs_per_nested_tx - 1; ++i) {
-                    nested_proof_inputs[i] = inputs[batch_start_word_idx + (2 * i)];
+                    nested_proof_inputs[i] = inputs[
+                        batch_start_word_idx + (scalar_size_in_words * i)];
                     // emit log("ni", nested_proof_inputs[i]);
                 }
 
