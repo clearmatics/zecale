@@ -28,6 +28,7 @@ $(foreach src,$(ZECALE_PROTO_FILES),$(eval \
 
 
 setup:
+	pip install --upgrade pip --progress-bar off
 	pip install -e . --progress-bar off
 	pip install -e $(ZETH_CLIENT_DIR) --progress-bar off
 	$(MAKE) grpc
