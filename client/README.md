@@ -144,6 +144,9 @@ funds.
 # Specify an eth-address file for an (unlocked) Ethereum account
 (env)$ echo 0x.... > eth-address
 
+# Get the verification key
+(env)$ zecale get-verification-key
+
 # Compile and deploy
 (env)$ zecale deploy
 
