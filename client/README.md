@@ -144,6 +144,9 @@ funds.
 # Specify an eth-address file for an (unlocked) Ethereum account
 (env)$ echo 0x.... > eth-address
 
+# Get the verification key
+(env)$ zecale get-verification-key
+
 # Compile and deploy
 (env)$ zecale deploy
 
@@ -159,3 +162,7 @@ application. One can use the `DummyApplication` contract as an example:
 ```console
 zecale_dummy_app deploy
 ```
+
+For a more comprehensive overview on how to use Zecale with a base
+application, please refer to the [zeth-zecale integration test script](../scripts/test_zeth_zecale).
+

@@ -10,11 +10,10 @@ from click import option, command, pass_context, Context
 
 @command()
 @option(
-    "--verification-key-file",
-    "-f",
+    "--vk-out",
+    "-o",
     default=AGGREGATOR_VERIFICATION_KEY_FILE_DEFAULT,
-    help="Write verification key to this file (default: "
-    f"{AGGREGATOR_VERIFICATION_KEY_FILE_DEFAULT})")
+    help=f"Output file (default: {AGGREGATOR_VERIFICATION_KEY_FILE_DEFAULT})")
 @pass_context
 def get_verification_key(
         ctx: Context,

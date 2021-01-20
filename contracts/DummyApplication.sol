@@ -34,20 +34,23 @@ contract DummyApplication is IZecaleApplication
     function dispatch(
         uint256 vk_hash,
         uint256[] memory inputs,
-        uint256[] memory parameters) public payable
+        bytes memory parameters) public payable
     {
+        // Decode parameters into the app-specific format.
+        uint256[] memory param_uints = abi.decode(parameters, (uint256[]));
+
         // Sanity checks
         require(inputs.length == 1, "unexpected inputs length");
-        require(parameters.length == 1, "unexpected parameters length");
+        require(param_uints.length == 1, "unexpected parameters length");
 
         // Ensure that the caller and vk_hash are as expected
         require(msg.sender == _permitted_dispatcher, "dispatcher not permitted");
         require(vk_hash == _vk_hash, "invalid vk_hash");
         require(0 == _scalars[inputs[0]], "scalar already seen");
 
-        require(0 != parameters[0], "param should not be 0");
+        require(0 != param_uints[0], "param should not be 0");
 
-        _scalars[inputs[0]] = parameters[0];
+        _scalars[inputs[0]] = param_uints[0];
     }
 
     function get(uint256 scalar) public view returns(uint256)

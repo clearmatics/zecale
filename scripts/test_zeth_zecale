@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+
+# TODO: Remove this once the issue of the number of nested inputs is resolved.
+echo "============================================================="
+echo "                         !!WARNING!!"
+echo "============================================================="
+echo "This test requires a zecale aggregator configured for 9 nested"
+echo "inputs. For now, this must be changed in the aggregator source:"
+echo "  aggregator_server/aggregator_server.cpp"
+echo ""
+
+set -x
+set -e
+
+ROOT_DIR=`pwd`
+
+# 1 - user_name
+# 2- (optional) network name
+function setup_user() {
+    mkdir -p $1
+    pushd $1
+    [ -e eth-network ] || zeth_helper eth-gen-network-config $2
+    [ -e eth-address ] || \
+        (zeth_helper eth-gen-address && zeth_helper eth-fund)
+    [ -e zeth-address.priv ] || zeth gen-address
+    popd
+}
+
+mkdir -p _test_zeth_zecale_data
+pushd _test_zeth_zecale_data
+
+# Create user zecale deployer
+
+setup_user zecale_deployer
+
+# Deploy zecale
+
+pushd zecale_deployer
+    [ -e aggregator_vk.json ] || zecale get-verification-key
+    [ -e zecale-instance ] || zecale deploy
+popd # zecale_deployer
+
+# Create user zeth_deployer
+
+setup_user zeth_deployer
+
+# Deploy and register zeth
+
+pushd zeth_deployer
+    # Get zeth vk and hash.
+    [ -e zecale-instance ] || cp ../zecale_deployer/zecale-instance .
+    [ -e zecale-instance ] || cp ../zecale_deployer/zecale-instance .
+
+    # Get zeth vk and hash.
+    [ -e zeth-vk.json ] || zeth get-verification-key --vk-out zeth-vk.json
+    [ -e vk-hash ] || zecale nested-verification-key-hash zeth-vk.json > vk-hash
+
+    # Deploy zeth using zecale_address and vk_hash.
+    dispatcher_address=`zeth_helper eth-get-contract-address zecale-instance`
+    [ -e zeth-instance ] || zeth deploy \
+                                 --permitted-dispatcher ${dispatcher_address} \
+                                 --vk-hash `cat vk-hash`
+
+    # Register with the aggregation server (support the case where zeth already
+    # registered).
+    zecale register --key zeth-vk.json --name zeth || echo -n
+
+    # Deposit (manually)
+    zeth mix --wait --vin 100 --out 50 --out 50
+    note_id_1=`zeth ls-notes | head -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+    note_id_2=`zeth ls-notes | tail -n 1 | grep -oe '^[A-Za-z0-9]\+'`
+
+    # Create 2 transactions to move Zeth notes
+    zeth mix --for-dispatch-call \
+         --dump-parameters zeth_tx1.json \
+         --dump-signing-keypair zeth_signing_key1.json \
+         --eth-addr ${dispatcher_address} \
+         --in ${note_id_1} \
+         --out zeth-address.pub,25 \
+         --out zeth-address.pub,25
+    zeth_zecale create-nested-tx zeth_tx1.json -o nested_zeth_tx1.json
+    zecale submit nested_zeth_tx1.json
+
+    zeth mix --for-dispatch-call \
+         --dump-parameters zeth_tx2.json \
+         --dump-signing-keypair zeth_signing_key2.json \
+         --eth-addr ${dispatcher_address} \
+         --in ${note_id_2} \
+         --out zeth-address.pub,25 \
+         --out zeth-address.pub,25
+    zeth_zecale create-nested-tx zeth_tx2.json -o nested_zeth_tx2.json
+    zecale submit nested_zeth_tx2.json
+
+    # Create a batch
+    zecale get-batch --name zeth --batch-file batch1.json
+    zecale check-batch batch1.json --batch-size 2
+    zecale submit-batch batch1.json -i zeth-instance --wait
+
+    # Sync.  Should have 4 notes of 25 each.
+    zeth sync
+    zeth ls-notes
+    [ "4" == `zeth ls-notes | wc -l` ]
+
+popd # zeth_deployer
+
+popd # _test_zeth_zecale_data
+
+set +e
+set +x
+
+echo "=================================================="
+echo "==           Zeth-Zecale Test Passed            =="
+echo "=================================================="

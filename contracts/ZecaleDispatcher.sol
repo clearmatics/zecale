@@ -27,8 +27,16 @@ contract ZecaleDispatcher
 {
     uint256 constant batch_size = 2;
 
+    uint256 constant scalar_size_in_words = 2;
+
     // Verification key
     uint256[] _vk;
+
+    // Total number of inputs expected
+    uint256 _total_inputs;
+
+    // Number of inputs per nested proof (note that this includes the result)
+    uint256 _inputs_per_nested_tx;
 
     // Constructor for Zecale contract. Initializes the batch verification key.
     // `vk` is passed as the verification key encoded as uint256 array, in the
@@ -36,6 +44,9 @@ contract ZecaleDispatcher
     constructor(uint256[] memory vk) public
     {
         _vk = vk;
+        // Compute expected inputs per batch
+        _total_inputs = Groth16BW6_761.num_inputs_from_vk_length(vk.length);
+        _inputs_per_nested_tx = (_total_inputs - 1) / batch_size;
     }
 
     // Event logger to aid contract debugging. Can be removed eventually when
@@ -46,38 +57,23 @@ contract ZecaleDispatcher
     //   IDX           VALUE
     //   00            <hash_of_vk>      (HO)
     //   01            <hash_of_vk>      (LO)
-    //   02            <nested_inputs_1> (HO)
-    //   03            <nested_inputs_1> (LO)
-    //   ..            ...
-    //   ..            ...
-    //   ..            <nested_inputs_1> (HO)
-    //   ..            <nested_inputs_1> (LO)
-    //   ..            <result_1>        (HO)
-    //   ..            <result_1>        (LO)
-    //   ..            <nested_inputs_2> (HO)
-    //   ..            <nested_inputs_2> (LO)
-    //   ..            ...
-    //   ..            ...
-    //   ..            <nested_inputs_2> (HO)
-    //   ..            <nested_inputs_2> (LO)
-    //   ..            <result_2>        (HO)
-    //   ..            <result_2>        (LO)
-    //   ..            <nested_inputs_3> (HO)
-    //   ..            <nested_inputs_3> (LO)
-    //   ..            ...
-    //   ..            ...
-    //   ..            <nested_inputs_3> (HO)
-    //   ..            <nested_inputs_3> (LO)
-    //   ..            <result_3>        (HO)
-    //   ..            <result_3>        (LO)
-    //   ..            <nested_inputs_4> (HO)
-    //   ..            <nested_inputs_4> (LO)
-    //   ..            ...
-    //   ..            ...
-    //   ..            <nested_inputs_4> (HO)
-    //   ..            <nested_inputs_4> (LO)
-    //   ..            <result_4>        (HO)
-    //   ..            <result_4>        (LO)
+    //   02            <nested_inputs_1> (HO) ---
+    //   03            <nested_inputs_1> (LO)   |
+    //   ..            ...                      |
+    //   ..            ...                     nested_tx_1
+    //   ..            <nested_inputs_1> (HO)   |
+    //   ..            <nested_inputs_1> (LO)   |
+    //   ..            <result_1>        (HO)   |
+    //   ..            <result_1>        (LO) ---
+    //   ..                     ...
+    //   ..            <nested_inputs_N> (HO) ---
+    //   ..            <nested_inputs_N> (LO)   |
+    //   ..            ...                      |
+    //   ..            ...                     nested_tx_N
+    //   ..            <nested_inputs_N> (HO)   |
+    //   ..            <nested_inputs_N> (LO)   |
+    //   ..            <result_N>        (HO)   |
+    //   ..            <result_N>        (LO) ---
     //
     // `nested_parameters` are the extra parameters required by the application
     // contract (the application contract is responsible for "binding" these to
@@ -85,18 +81,23 @@ contract ZecaleDispatcher
     function process_batch(
         uint256[18] memory batch_proof,
         uint256[] memory inputs,
-        uint256[] memory nested_parameters,
+        bytes[] memory nested_parameters,
         IZecaleApplication target_application) public returns(bool)
     {
-        // Compute expected inputs per batch (TODO: move this to the constructor)
-        uint256 total_inputs =
-            Groth16BW6_761.num_inputs_from_vk_length(_vk.length);
-        uint256 inputs_per_batch = (total_inputs - 1) / batch_size;
+        // TODO: Remove this (and all emit log calls below) once code is more
+        // thoroughly tested.
 
-        uint256 nested_parameters_per_batch =
-            nested_parameters.length / batch_size;
+        // emit log("_total_inputs", _total_inputs);
+        // emit log("_inputs_per_nested_tx", _inputs_per_nested_tx);
+        // for (uint256 i = 0 ; i < inputs.length ; ++i) {
+        //     emit log("i", inputs[i]);
+        // }
+
         require(
-            nested_parameters.length == batch_size * nested_parameters_per_batch,
+            inputs.length == _total_inputs * scalar_size_in_words,
+            "invalid inputs length");
+        require(
+            nested_parameters.length == batch_size,
             "invalid nested_parameters length");
 
         // Verify the wrapped proof.
@@ -108,42 +109,43 @@ contract ZecaleDispatcher
         // word of the first nested input. (See notes above about scalar
         // sizes).
 
-        // Cache the nested VK (LO word).
+        // Cache the nested VK (LO word) and
         uint256 nested_vk_hash = inputs[1];
+        uint256 inputs_per_nested_tx = _inputs_per_nested_tx;
 
-        // Create an array to reuse for the nested inputs for each proof.
+        // Create an array to reuse to pass the nested inputs to the
+        // application (note that the result is not passed, hence -1).
         uint256[] memory nested_proof_inputs =
-            new uint256[](inputs_per_batch - 1);
-        uint256[] memory nested_parameters_data =
-            new uint256[](nested_parameters_per_batch);
+            new uint256[](_inputs_per_nested_tx - 1);
 
         // Pass the details of each valid proof to the application
-        for (uint256 nested_proof_idx = 0; nested_proof_idx < batch_size;
-             ++nested_proof_idx) {
+        for (uint256 nested_tx_idx = 0; nested_tx_idx < batch_size;
+             ++nested_tx_idx) {
 
-            // Of the inputs for this batch, the first `inputs_per_batch - 1`
-            // are the inputs to the nested proof. The final entry is the
-            // `result` for this nested proof.
-            // uint256 batch_start_scalar_idx = 1 + inputs_per_batch * nested_proof_idx;
-            // uint256 result_scalar_idx = batch_start_scalar_idx + (inputs_per_batch - 1);
+            // Note that the offsets here are all based on the assumption that
+            // each scalar consists of 2 uint256 words, and that each nested
+            // input is held in the final uint256 word.
+
+            // Of the inputs for this nested tx, the first `inputs_per_batch -
+            // 1` are the inputs to the nested proof. The final entry is the
+            // `result` for the nested proof.
+
+            // Word index (in `inputs`) of the start of the inputs for this
+            // nested tx, offset by scalar_size_in_words - 1 to extract the LO
+            // word.
             uint256 batch_start_word_idx =
-                2 * (1 + inputs_per_batch * nested_proof_idx);
+                scalar_size_in_words *
+                    (2 + inputs_per_nested_tx * nested_tx_idx)
+                - 1;
             uint256 result_word_idx =
-                batch_start_word_idx + (2 * (inputs_per_batch - 1));
+                batch_start_word_idx +
+                (scalar_size_in_words * (inputs_per_nested_tx - 1));
 
-            // For some reason, the following Solidity code generates an
-            // invalid opcode error. Hence it is replaced with the equivalent
-            // assembly.
-            //   uint256 result = inputs[result_word_idx + 1];
-            //
-            // NOTE: +1 here extracts the LO word. In the code below, we add 2
-            // to skip the first word (length) in the memory representation.
-            uint256 result;
-            assembly
-            {
-                let result_byte_idx := mul(add(result_word_idx, 2), 0x20)
-                result := mload(add(inputs, result_byte_idx))
-            }
+            // emit log("batch_start_word_idx", batch_start_word_idx);
+            // emit log("result_word_idx", result_word_idx);
+
+            uint256 result = inputs[result_word_idx];
+            // emit log("result", result);
 
             if (result == 1) {
                 // The nested proof is known to be valid. Copy the nested
@@ -153,22 +155,16 @@ contract ZecaleDispatcher
                 // NOTE: We use knowledge of the wrapped and nested scalar
                 // sizes, copying only the low-order word from wrapped inputs
                 // into the array of nested inputs.
-                for (uint256 i = 0; i < inputs_per_batch - 1; ++i) {
-                    nested_proof_inputs[i] = inputs[batch_start_word_idx + (2 * i) + 1];
-                }
-
-                // Copy nested_parameters
-                uint256 nested_parameters_start_idx =
-                nested_parameters_per_batch * nested_proof_idx;
-                for (uint256 i = 0; i < nested_parameters_per_batch; ++i) {
-                    nested_parameters_data[i] =
-                    nested_parameters[nested_parameters_start_idx + i];
+                for (uint256 i = 0; i < inputs_per_nested_tx - 1; ++i) {
+                    nested_proof_inputs[i] = inputs[
+                        batch_start_word_idx + (scalar_size_in_words * i)];
+                    // emit log("ni", nested_proof_inputs[i]);
                 }
 
                 target_application.dispatch(
                     nested_vk_hash,
                     nested_proof_inputs,
-                    nested_parameters_data);
+                    nested_parameters[nested_tx_idx]);
             }
         }
 

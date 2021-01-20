@@ -21,5 +21,5 @@ contract IZecaleApplication
     function dispatch(
         uint256 nested_vk_hash,
         uint256[] memory nested_inputs,
-        uint256[] memory nested_parameters) public payable;
+        bytes memory nested_parameters) public payable;
 }
