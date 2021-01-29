@@ -22,6 +22,8 @@ public:
     using proof_variable_gadget = r1cs_gg_ppzksnark_proof_variable<ppT>;
     using verification_key_variable_gadget =
         r1cs_gg_ppzksnark_verification_key_variable<ppT>;
+    using verification_key_scalar_variable_gadget =
+        r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT>;
 };
 
 } // namespace libzecale
