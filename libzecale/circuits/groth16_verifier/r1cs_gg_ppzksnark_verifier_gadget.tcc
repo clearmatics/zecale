@@ -371,7 +371,7 @@ template<typename ppT>
 r1cs_gg_ppzksnark_verifier_process_vk_gadget<ppT>::
     r1cs_gg_ppzksnark_verifier_process_vk_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const r1cs_gg_ppzksnark_verification_key_variable<ppT> &vk,
+        const r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT> &vk,
         r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
             ppT> &pvk,
         const std::string &annotation_prefix)
@@ -388,7 +388,7 @@ r1cs_gg_ppzksnark_verifier_process_vk_gadget<ppT>::
 
     _compute_vk_alpha_g1_precomp.reset(new G1_precompute_gadget<ppT>(
         pb,
-        *vk._alpha_g1,
+        vk._alpha_g1,
         *pvk._vk_alpha_g1_precomp,
         FMT(annotation_prefix, " compute_vk_alpha_g1_precomp")));
 
@@ -398,12 +398,12 @@ r1cs_gg_ppzksnark_verifier_process_vk_gadget<ppT>::
         FMT(annotation_prefix, " vk_generator_g2_precomp")));
     _compute_vk_beta_g2_precomp.reset(new G2_precompute_gadget<ppT>(
         pb,
-        *vk._beta_g2,
+        vk._beta_g2,
         *pvk._vk_beta_g2_precomp,
         FMT(annotation_prefix, " compute_vk_beta_g2_precomp")));
     _compute_vk_delta_g2_precomp.reset(new G2_precompute_gadget<ppT>(
         pb,
-        *vk._delta_g2,
+        vk._delta_g2,
         *pvk._vk_delta_g2_precomp,
         FMT(annotation_prefix, " compute_vk_delta_g2_precomp")));
 }
@@ -555,7 +555,7 @@ void r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::generate_r1cs_witness()
 template<typename ppT>
 r1cs_gg_ppzksnark_verifier_gadget<ppT>::r1cs_gg_ppzksnark_verifier_gadget(
     libsnark::protoboard<FieldT> &pb,
-    const r1cs_gg_ppzksnark_verification_key_variable<ppT> &vk,
+    const r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT> &vk,
     const libsnark::pb_variable_array<FieldT> &input,
     const size_t elt_size,
     const r1cs_gg_ppzksnark_proof_variable<ppT> &proof,

@@ -21,7 +21,7 @@ aggregator_gadget<wppT, nverifierT, NumProofs>::aggregator_gadget(
         &proof_results,
     const std::string &annotation_prefix)
     : libsnark::gadget<libff::Fr<wppT>>(pb, annotation_prefix)
-    , num_inputs_per_nested_proof(vk._input_size)
+    , num_inputs_per_nested_proof(vk._num_primary_inputs)
     , nested_primary_inputs(inputs)
 {
     // Assert that a single input of a nested proof (element of

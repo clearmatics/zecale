@@ -6,7 +6,6 @@
 // the corresponding pairing parameters type.
 
 #include "libzecale/circuits/aggregator_circuit.hpp"
-#include "libzecale/circuits/null_hash_gadget.hpp"
 #include "libzecale/core/application_pool.hpp"
 #include "libzecale/serialization/proto_utils.hpp"
 #include "zecale_config.h"
@@ -68,16 +67,12 @@ using napi_handler = libzeth::groth16_api_handler<npp>;
 #endif
 
 using nsnark = typename nverifier::snark;
-// Use the null hash for fast turn-around during development. Alternatively,
-// the following enables blake2s:
-//   using hash = libzeth::BLAKE2s_256<libff::Fr<wpp>>;
-using hash = libzecale::null_hash_gadget<libff::Fr<wpp>>;
 
 static const size_t batch_size = 2;
 static const size_t num_inputs_per_nested_proof = 1;
 
 using aggregator_circuit =
-    libzecale::aggregator_circuit<wpp, wsnark, nverifier, hash, batch_size>;
+    libzecale::aggregator_circuit<wpp, wsnark, nverifier, batch_size>;
 
 static wsnark::keypair load_keypair(const boost::filesystem::path &keypair_file)
 {
@@ -180,7 +175,7 @@ public:
         typename nsnark::verification_key vk =
             napi_handler::verification_key_from_proto(*request);
         const libff::Fr<wpp> vk_hash =
-            libzecale::verification_key_hash_gadget<wpp, nverifier, hash>::
+            libzecale::verification_key_scalar_hash_gadget<wpp, nverifier>::
                 compute_hash(vk, num_inputs_per_nested_proof);
         const std::string vk_hash_str = libzeth::field_element_to_json(vk_hash);
         response->set_hash(vk_hash_str);
@@ -217,7 +212,7 @@ public:
                 napi_handler::verification_key_from_proto(vk_proto);
             application_pools[name] = new application_pool(name, vk);
             const libff::Fr<wpp> vk_hash =
-                libzecale::verification_key_hash_gadget<wpp, nverifier, hash>::
+                libzecale::verification_key_scalar_hash_gadget<wpp, nverifier>::
                     compute_hash(vk, num_inputs_per_nested_proof);
             const std::string vk_hash_str =
                 libzeth::field_element_to_json(vk_hash);

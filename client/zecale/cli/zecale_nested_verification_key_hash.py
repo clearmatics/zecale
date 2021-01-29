@@ -26,11 +26,14 @@ def nested_verification_key_hash(
     aggregator_client = cmd_ctx.get_aggregator_client()
     vk_hash_hex = aggregator_client.get_nested_verification_key_hash(snark, vk)
 
-    # Decode the key into evm words and extract the lowest order one. Assert
-    # that the higher order ints are all zero.
+    # Use the lowest order uint256_t for the client application. (The wrapping
+    # zk-snark still uses the full width hash, which is returned by the
+    # aggregation server as a primary input when a batch is created).
     vk_hash_evm = list(hex_to_uint256_list(vk_hash_hex))
     vk_hash = vk_hash_evm[-1]
-    for i in vk_hash_evm[:-1]:
-        assert i == 0, "expected higher orders words to be 0"
+
+    # TODO: pass the full-width vk_hash to to the application (requires the
+    # dispatch interface to be updated), or show that using the LO word
+    # is still collision resistant.
 
     print(vk_hash.to_bytes(32, byteorder='big').hex())

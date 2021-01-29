@@ -156,13 +156,13 @@ public:
     std::shared_ptr<G2_precompute_gadget<ppT>> _compute_vk_beta_g2_precomp;
     std::shared_ptr<G2_precompute_gadget<ppT>> _compute_vk_delta_g2_precomp;
 
-    r1cs_gg_ppzksnark_verification_key_variable<ppT> _vk;
+    r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT> _vk;
     r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
         ppT> &_pvk;
 
     r1cs_gg_ppzksnark_verifier_process_vk_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const r1cs_gg_ppzksnark_verification_key_variable<ppT> &vk,
+        const r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT> &vk,
         r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
             ppT> &pvk,
         const std::string &annotation_prefix);
@@ -234,7 +234,7 @@ public:
 
     r1cs_gg_ppzksnark_verifier_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const r1cs_gg_ppzksnark_verification_key_variable<ppT> &vk,
+        const r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT> &vk,
         const libsnark::pb_variable_array<FieldT> &input,
         const size_t elt_size,
         const r1cs_gg_ppzksnark_proof_variable<ppT> &proof,
