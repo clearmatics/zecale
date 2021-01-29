@@ -65,24 +65,14 @@ public:
 
     libsnark::pb_variable_array<FieldT> _all_bits;
     libsnark::pb_linear_combination_array<FieldT> _all_vars;
-    size_t _input_size;
+    const size_t _num_primary_inputs;
 
     std::shared_ptr<libsnark::multipacking_gadget<FieldT>> _packer;
 
-    // Unfortunately, g++ 4.9 and g++ 5.0 have a bug related to
-    // incorrect inlining of small functions:
-    // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65307, which
-    // produces wrong assembly even at -O1. The test case at the bug
-    // report is directly derived from this code here. As a temporary
-    // work-around we mark the key functions noinline to hint compiler
-    // that inlining should not be performed.
-
-    // TODO: remove later, when g++ developers fix the bug.
-
-    __attribute__((noinline)) r1cs_gg_ppzksnark_verification_key_variable(
+    r1cs_gg_ppzksnark_verification_key_variable(
         libsnark::protoboard<FieldT> &pb,
         const libsnark::pb_variable_array<FieldT> &all_bits,
-        const size_t input_size,
+        const size_t num_primary_inputs,
         const std::string &annotation_prefix);
     void generate_r1cs_constraints(const bool enforce_bitness);
     void generate_r1cs_witness(
