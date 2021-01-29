@@ -1,14 +1,5 @@
 #!/usr/bin/env bash
 
-# TODO: Remove this once the issue of the number of nested inputs is resolved.
-echo "============================================================="
-echo "                         !!WARNING!!"
-echo "============================================================="
-echo "This test requires a zecale aggregator configured for 9 nested"
-echo "inputs. For now, this must be changed in the aggregator source:"
-echo "  aggregator_server/aggregator_server.cpp"
-echo ""
-
 set -x
 set -e
 
@@ -51,8 +42,13 @@ pushd zeth_deployer
     [ -e zecale-instance ] || cp ../zecale_deployer/zecale-instance .
     [ -e zecale-instance ] || cp ../zecale_deployer/zecale-instance .
 
-    # Get zeth vk and hash.
+    # Get zeth vk and hash. (Once the vk has been retrieved, check the zeth
+    # configuration to ensure it is configured for the expected pairing.
     [ -e zeth-vk.json ] || zeth get-verification-key --vk-out zeth-vk.json
+    if ! (grep 'bls12-377' prover-config.cache) then
+        echo "ERROR: Zeth prover server is configured for the wrong pairing"
+        exit 1
+    fi
     [ -e vk-hash ] || zecale nested-verification-key-hash zeth-vk.json > vk-hash
 
     # Deploy zeth using zecale_address and vk_hash.

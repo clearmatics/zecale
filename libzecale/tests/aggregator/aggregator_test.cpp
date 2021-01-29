@@ -59,10 +59,10 @@ static const size_t inputs_number = 2;
 static const size_t outputs_number = 2;
 static const size_t batch_size = 2;
 
-// The # of primary inputs for Zeth proofs is 9, since the primary inputs are:
+// The single primary input is the hash of public data elements:
 // [Root, NullifierS(2), CommitmentS(2), h_sig, h_iS(2), Residual Field,
 // Element]
-static const size_t num_zeth_inputs = 9;
+static const size_t num_zeth_inputs = 1;
 template<typename wppT>
 using nested_key_hash = libzecale::null_hash_gadget<libff::Fr<wppT>>;
 
@@ -83,7 +83,8 @@ libzeth::extended_proof<nppT, snarkT> generate_valid_zeth_proof(
         inputs_number,
         outputs_number,
         tree_depth> &zeth_prover,
-    const typename snarkT::keypair &zeth_keypair)
+    const typename snarkT::keypair &zeth_keypair,
+    std::vector<libff::Fr<nppT>> &public_data)
 {
     using zethScalarField = libff::Fr<nppT>;
 
@@ -196,7 +197,8 @@ libzeth::extended_proof<nppT, snarkT> generate_valid_zeth_proof(
         value_pub_out_bits64,
         h_sig,
         phi,
-        zeth_keypair.pk);
+        zeth_keypair.pk,
+        public_data);
     libff::leave_block("Generate Zeth proof", true);
 
     libff::enter_block("Verify Zeth proof", true);
@@ -283,8 +285,10 @@ void aggregator_test()
     // Test to aggregate a single proof (i.e. generate a proof for the
     // verification of the proof)
     std::cout << "[DEBUG] Before gen Zeth proof" << std::endl;
+    std::vector<libff::Fr<npp>> nested_public_data;
     libzeth::extended_proof<npp, nsnark> valid_proof =
-        generate_valid_zeth_proof(zeth_prover, zeth_keypair);
+        generate_valid_zeth_proof(
+            zeth_prover, zeth_keypair, nested_public_data);
 
     /*
      * // Generate an invalid proof
@@ -299,7 +303,7 @@ void aggregator_test()
     std::cout << "[DEBUG] nested_proofs[0].get_primary_inputs().size(): "
               << batch[0]->get_primary_inputs().size() << std::endl;
     // Make sure that we have the right amount of primary inputs
-    ASSERT_EQ(batch[0]->get_primary_inputs().size(), 9);
+    ASSERT_EQ(batch[0]->get_primary_inputs().size(), num_zeth_inputs);
 
     std::cout << "[DEBUG] Before creation of the Aggregator prover"
               << std::endl;
