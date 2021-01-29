@@ -87,6 +87,40 @@ public:
             &r1cs_vk);
 };
 
+/// A version of r1cs_gg_ppzksnark_verification_key_variable without variables
+/// for the bits. In the case where an algebraic hash of the verification key
+/// is used, this type saves many unnecessary variables.
+template<typename ppT>
+class r1cs_gg_ppzksnark_verification_key_scalar_variable
+    : public libsnark::gadget<libff::Fr<ppT>>
+{
+public:
+    typedef libff::Fr<ppT> FieldT;
+
+    libsnark::G1_variable<ppT> _alpha_g1;
+    libsnark::G2_variable<ppT> _beta_g2;
+    libsnark::G2_variable<ppT> _delta_g2;
+    std::shared_ptr<libsnark::G1_variable<ppT>> _encoded_ABC_base;
+    std::vector<std::shared_ptr<libsnark::G1_variable<ppT>>> _ABC_g1;
+
+    libsnark::pb_linear_combination_array<FieldT> _all_vars;
+    const size_t _num_primary_inputs;
+
+    r1cs_gg_ppzksnark_verification_key_scalar_variable(
+        libsnark::protoboard<FieldT> &pb,
+        const size_t num_primary_inputs,
+        const std::string &annotation_prefix);
+    void generate_r1cs_constraints();
+    void generate_r1cs_witness(
+        const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
+            &vk);
+
+    const libsnark::pb_linear_combination_array<FieldT> &get_all_vars() const;
+    static std::vector<FieldT> get_verification_key_scalars(
+        const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
+            &r1cs_vk);
+};
+
 template<typename ppT>
 class r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable
 {
