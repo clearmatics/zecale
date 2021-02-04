@@ -17,12 +17,12 @@ contract DummyApplication is IZecaleApplication
 
     // Hash of nested verification key for proofs associated with this
     // contract.
-    uint256 _vk_hash;
+    uint256[2] _vk_hash;
 
     // The set of scalars seen by the contract.
     mapping(uint256 => uint256) _scalars;
 
-    constructor(address permitted_dispatcher, uint256 vk_hash) public
+    constructor(address permitted_dispatcher, uint256[2] memory vk_hash) public
     {
         _permitted_dispatcher = permitted_dispatcher;
         _vk_hash = vk_hash;
@@ -33,7 +33,7 @@ contract DummyApplication is IZecaleApplication
     // demonstrated. `parameters` is the encoding of a dynamically sized array
     // of uint256s, which must have length 1.
     function dispatch(
-        uint256 vk_hash,
+        uint256[2] memory vk_hash,
         uint256[] memory inputs,
         bytes memory parameters) public payable
     {
@@ -46,7 +46,9 @@ contract DummyApplication is IZecaleApplication
 
         // Ensure that the caller and vk_hash are as expected
         require(msg.sender == _permitted_dispatcher, "dispatcher not permitted");
-        require(vk_hash == _vk_hash, "invalid vk_hash");
+        require(
+            vk_hash[0] == _vk_hash[0] && vk_hash[1] == _vk_hash[1],
+            "invalid vk_hash");
         require(0 == _scalars[inputs[0]], "scalar already seen");
 
         require(0 != param_uints[0], "param should not be 0");
