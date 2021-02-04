@@ -28,9 +28,10 @@ contract DummyApplication is IZecaleApplication
         _vk_hash = vk_hash;
     }
 
-    // Implementation of IZecaleApplication. Here, the single
-    // input is the scalar for which knowledge of the multiplicative inverse
-    // is demonstrated. `parameters` is currently unused.
+    // Implementation of IZecaleApplication. Here, the single input is the
+    // scalar for which knowledge of the multiplicative inverse is
+    // demonstrated. `parameters` is the encoding of a dynamically sized array
+    // of uint256s, which must have length 1.
     function dispatch(
         uint256 vk_hash,
         uint256[] memory inputs,
