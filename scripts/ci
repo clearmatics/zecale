@@ -4,6 +4,8 @@ platform=`uname`
 echo platform=${platform}
 echo "running against commit: "`git log --oneline --no-decorate -n 1`
 
+. depends/zeth/scripts/ci_utils.sh
+
 set -x
 set -e
 
@@ -56,6 +58,9 @@ function check_client() {
 }
 
 function build() {
+
+    cpp_build_setup
+
     # Enable warnings-as-errors
     # TODO: Uncomment, and support compilation with -Werror set
     #cxx_flags="-Werror"
@@ -105,19 +110,19 @@ function ci_setup() {
         # Some of these commands can fail (if packages are already installed,
         # etc), hence the `|| echo`.
         brew unlink python@2 || echo
-        brew update || echo
-        brew install \
-             gmp \
-             grpc \
-             protobuf \
-             boost \
-             openssl \
-             cmake \
-             libtool \
-             autoconf \
-             automake \
-             python \
-             || echo
+        # brew update || echo
+        # brew install \
+        #      gmp \
+        #      grpc \
+        #      protobuf \
+        #      boost \
+        #      openssl \
+        #      cmake \
+        #      libtool \
+        #      autoconf \
+        #      automake \
+        #      python \
+        #      || echo
     fi
 
     if [ "${platform}" == "Linux" ] ; then
