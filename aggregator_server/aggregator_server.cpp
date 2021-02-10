@@ -485,10 +485,8 @@ int main(int argc, char **argv)
             std::cout << "[INFO] Loading keypair: " << keypair_file << "\n";
             wsnark::keypair keypair = load_keypair(keypair_file);
 
-            // Should have 1 + 2 * (num_inputs_per_nested_proof + 1) public
-            // inputs in the wrapping keypair.
-            if (keypair.vk.ABC_g1.size() !=
-                1 + batch_size * (num_inputs_per_nested_proof + 1)) {
+            // Check the VK is for the correct number of inputs.
+            if (keypair.vk.ABC_g1.size() != aggregator.num_primary_inputs()) {
                 throw std::invalid_argument("invalid VK");
             }
 
@@ -499,10 +497,8 @@ int main(int argc, char **argv)
                   << ". Generating.\n";
         const wsnark::keypair keypair = aggregator.generate_trusted_setup();
 
-        // Should have 1 + 2 * (num_inputs_per_nested_proof + 1) public
-        // inputs in the wrapping keypair.
-        if (keypair.vk.ABC_g1.size() !=
-            1 + batch_size * (num_inputs_per_nested_proof + 1)) {
+        // Check the VK is for the correct number of inputs.
+        if (keypair.vk.ABC_g1.size() != aggregator.num_primary_inputs()) {
             throw std::invalid_argument("invalid VK");
         }
 

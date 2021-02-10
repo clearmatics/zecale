@@ -44,9 +44,9 @@ contract ZecaleDispatcher
     constructor(uint256[] memory vk) public
     {
         _vk = vk;
-        // Compute expected inputs per batch
+        // Compute expected inputs per batch (-2 for vk_hash and results)
         _total_inputs = Groth16BW6_761.num_inputs_from_vk_length(vk.length);
-        _inputs_per_nested_tx = (_total_inputs - 1) / batch_size;
+        _inputs_per_nested_tx = (_total_inputs - 2) / batch_size;
     }
 
     // Event logger to aid contract debugging. Can be removed eventually when
@@ -57,23 +57,21 @@ contract ZecaleDispatcher
     //   IDX           VALUE
     //   00            <hash_of_vk>      (HO)
     //   01            <hash_of_vk>      (LO)
-    //   02            <nested_inputs_1> (HO) ---
-    //   03            <nested_inputs_1> (LO)   |
+    //   02            <results>         (HO)
+    //   03            <results>         (LO)
+    //   04            <nested_inputs_1> (HO) ---
+    //   05            <nested_inputs_1> (LO)   |
     //   ..            ...                      |
     //   ..            ...                     nested_tx_1
     //   ..            <nested_inputs_1> (HO)   |
-    //   ..            <nested_inputs_1> (LO)   |
-    //   ..            <result_1>        (HO)   |
-    //   ..            <result_1>        (LO) ---
-    //   ..                     ...
+    //   ..            <nested_inputs_1> (LO) __|
+    //   ..                     ...           ...
     //   ..            <nested_inputs_N> (HO) ---
     //   ..            <nested_inputs_N> (LO)   |
     //   ..            ...                      |
     //   ..            ...                     nested_tx_N
     //   ..            <nested_inputs_N> (HO)   |
-    //   ..            <nested_inputs_N> (LO)   |
-    //   ..            <result_N>        (HO)   |
-    //   ..            <result_N>        (LO) ---
+    //   ..            <nested_inputs_N> (LO) __|
     //
     // `nested_parameters` are the extra parameters required by the application
     // contract (the application contract is responsible for "binding" these to
@@ -118,56 +116,53 @@ contract ZecaleDispatcher
         // Create an array to reuse to pass the nested inputs to the
         // application (note that the result is not passed, hence -1).
         uint256[] memory nested_proof_inputs =
-            new uint256[](_inputs_per_nested_tx - 1);
+            new uint256[](_inputs_per_nested_tx);
+
+        // Result bits
+        uint256 results = inputs[3];
 
         // Pass the details of each valid proof to the application
         for (uint256 nested_tx_idx = 0; nested_tx_idx < batch_size;
              ++nested_tx_idx) {
 
-            // Note that the offsets here are all based on the assumption that
-            // each scalar consists of 2 uint256 words, and that each nested
-            // input is held in the final uint256 word.
+            uint256 result = results & 0x1;
+            results = results >> 1;
 
-            // Of the inputs for this nested tx, the first `inputs_per_batch -
-            // 1` are the inputs to the nested proof. The final entry is the
-            // `result` for the nested proof.
+            // Skip nested transactions whose proofs are invalid.
+            // emit log("result", result);
+            if (result == 0) {
+                continue;
+            }
+
+            // Note that the offsets here are all based on the assumption that
+            // each scalar consists of scalar_size_in_words uint256 words, and
+            // that each nested input is held in the final uint256 word.
 
             // Word index (in `inputs`) of the start of the inputs for this
-            // nested tx, offset by scalar_size_in_words - 1 to extract the LO
-            // word.
+            // nested tx. +1 to target LO word.
             uint256 batch_start_word_idx =
                 scalar_size_in_words *
                     (2 + inputs_per_nested_tx * nested_tx_idx)
-                - 1;
-            uint256 result_word_idx =
-                batch_start_word_idx +
-                (scalar_size_in_words * (inputs_per_nested_tx - 1));
-
+                + 1;
             // emit log("batch_start_word_idx", batch_start_word_idx);
-            // emit log("result_word_idx", result_word_idx);
 
-            uint256 result = inputs[result_word_idx];
-            // emit log("result", result);
-
-            if (result == 1) {
-                // The nested proof is known to be valid. Copy the nested
-                // inputs into their own array and invoke the application's
-                // `dispatch` entry point.
-                //
-                // NOTE: We use knowledge of the wrapped and nested scalar
-                // sizes, copying only the low-order word from wrapped inputs
-                // into the array of nested inputs.
-                for (uint256 i = 0; i < inputs_per_nested_tx - 1; ++i) {
-                    nested_proof_inputs[i] = inputs[
-                        batch_start_word_idx + (scalar_size_in_words * i)];
-                    // emit log("ni", nested_proof_inputs[i]);
-                }
-
-                target_application.dispatch(
-                    nested_vk_hash,
-                    nested_proof_inputs,
-                    nested_parameters[nested_tx_idx]);
+            // The nested proof is known to be valid. Copy the nested
+            // inputs into their own array and invoke the application's
+            // `dispatch` entry point.
+            //
+            // NOTE: We use knowledge of the wrapped and nested scalar
+            // sizes, copying only the low-order word from wrapped inputs
+            // into the array of nested inputs.
+            for (uint256 i = 0; i < inputs_per_nested_tx; ++i) {
+                nested_proof_inputs[i] = inputs[
+                    batch_start_word_idx + (scalar_size_in_words * i)];
+                // emit log("ni", nested_proof_inputs[i]);
             }
+
+            target_application.dispatch(
+                nested_vk_hash,
+                nested_proof_inputs,
+                nested_parameters[nested_tx_idx]);
         }
 
         return true;
