@@ -35,9 +35,7 @@ function check_cpp() {
     popd
 }
 
-function check_client() {
-    # Perform the zeth install to ensure Zeth api files are generated in the correct
-    # location.
+function setup_client() {
     pushd depends/zeth/client
     python3 -m venv env
     . env/bin/activate
@@ -45,6 +43,19 @@ function check_client() {
     make setup
     deactivate
     popd
+}
+
+function check_client() {
+    # # Perform the zeth install to ensure Zeth api files are generated in the correct
+    # # location.
+    # pushd depends/zeth/client
+    # python3 -m venv env
+    # . env/bin/activate
+    # pip install --upgrade pip --progress-bar off
+    # make setup
+    # deactivate
+    # popd
+    setup_client
 
     # Execute Zecale client setup from client/README.md
     pushd client
@@ -54,6 +65,25 @@ function check_client() {
     make setup
     make check
     deactivate
+    popd
+}
+
+function integration_tests() {
+    setup_client
+
+    # Use zeth scripts to start ganache (frm zeth root)
+    pushd depends/zeth
+    ganache_setup
+    ganache_start
+    popd
+
+    # Start eggregataor and run integration test
+    aggregator_start
+    ./scripts/test_client
+    aggregator_stop
+
+    pushd depends/zeth
+    ganache_stop
     popd
 }
 
@@ -79,7 +109,7 @@ function build() {
     fi
 
     cmake_flags="-DCMAKE_BUILD_TYPE=${CI_CONFIG}"
-    if ! [ "${full_build}" == "1" ] ; then
+    if ! [ "${CI_FULL_TESTS}" == "1" ] ; then
         cmake_flags="${cmake_flags} -DFAST_TESTS_ONLY=ON"
     fi
 
@@ -102,6 +132,10 @@ function build() {
     # Compile and run the tests
     make -j 2 check
     cd ..
+
+    if [ "${CI_INTEGRATION_TESTS}" == "1" ] ; then
+        integration_tests
+    fi
 }
 
 function ci_setup() {
@@ -144,19 +178,13 @@ function ci_setup() {
 
 
 ci_task=$1
-full_build=$2
-if [ "${full_build}" == "" ] ; then
-    if [ "${CI_EVENT_NAME}" == "pull_request" ] ; then
-        full_build=1
-    fi
-fi
 
 echo ci_task = ${ci_task}
-echo full_build=${full_build}
 echo CI_CONFIG=${CI_CONFIG}
 echo CI_ZKSNARK=${CI_ZKSNARK}
+echo CI_FULL_TESTS=${CI_FULL_TESTS}
 echo CI_CHECK_FORMAT=${CI_CHECK_FORMAT}
-echo CI_EVENT_NAME=${CI_EVENT_NAME}
+echo CI_INTEGRATION_TESTS=${CI_INTEGRATION_TESTS}
 
 if [ "${CI_CHECK_FORMAT}" == "1" ] ; then
     check_format
@@ -178,7 +206,10 @@ if [ "${CI_USE_DOCKER}" == "1" ] ; then
            --name zecale \
            --env CI_CONFIG=${CI_CONFIG} \
            --env CI_ZKSNARK=${CI_ZKSNARK} \
-           zecale-dev:latest $0 ${ci_task} ${full_build}
+           --env CI_FULL_TESTS=${CI_FULL_TESTS} \
+           --env CI_CHECK_FORMAT=${CI_CHECK_FORMAT} \
+           --env CI_INTEGRATION_TESTS=${CI_INTEGRATION_TESTS} \
+           zecale-dev:latest $0 ${ci_task}
 else
     ci_setup
     ${ci_task}
