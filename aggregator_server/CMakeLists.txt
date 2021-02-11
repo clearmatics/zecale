@@ -32,6 +32,12 @@ add_executable(
   ${AGGREGATOR_SERVER_SOURCE}
   ${GRPC_SRCS}
 )
+
+if (NOT APPLE)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(GRPC REQUIRED IMPORTED_TARGET grpc++)
+endif()
+
 target_link_libraries(
   aggregator_server
 
@@ -39,6 +45,7 @@ target_link_libraries(
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  ${GRPC_LIBRARIES}
   gRPC::grpc++_reflection
   protobuf::libprotobuf
 )
