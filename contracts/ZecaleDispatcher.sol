@@ -109,7 +109,7 @@ contract ZecaleDispatcher
         // word of the first nested input. (See notes above about scalar
         // sizes).
 
-        // Cache the nested VK (LO word) and
+        // Cache the nested VK (LO word) to pass to the application.
         uint256 nested_vk_hash = inputs[1];
         uint256 inputs_per_nested_tx = _inputs_per_nested_tx;
 

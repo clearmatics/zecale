@@ -14,14 +14,9 @@ using namespace libzeth;
 namespace libzecale
 {
 
-template<
-    typename wppT,
-    typename wsnarkT,
-    typename nverifierT,
-    typename hashT,
-    size_t NumProofs>
-aggregator_circuit<wppT, wsnarkT, nverifierT, hashT, NumProofs>::
-    aggregator_circuit(const size_t inputs_per_nested_proof)
+template<typename wppT, typename wsnarkT, typename nverifierT, size_t NumProofs>
+aggregator_circuit<wppT, wsnarkT, nverifierT, NumProofs>::aggregator_circuit(
+    const size_t inputs_per_nested_proof)
     : _num_inputs_per_nested_proof(inputs_per_nested_proof), _pb()
 {
     // The order of allocation here is important as it determines which inputs
@@ -49,13 +44,8 @@ aggregator_circuit<wppT, wsnarkT, nverifierT, hashT, NumProofs>::
     _pb.set_input_sizes(total_primary_inputs);
 
     // Allocate vk and the intermediate bit representation
-    const size_t vk_size_in_bits =
-        verification_key_variable_gadget::size_in_bits(
-            _num_inputs_per_nested_proof);
-    libsnark::pb_variable_array<libff::Fr<wppT>> nested_vk_bits;
-    nested_vk_bits.allocate(_pb, vk_size_in_bits, "nested_vk_bits");
     _nested_vk.reset(new verification_key_variable_gadget(
-        _pb, nested_vk_bits, _num_inputs_per_nested_proof, "_nested_vk"));
+        _pb, _num_inputs_per_nested_proof, "_nested_vk"));
 
     // Allocate proof variables.
     for (size_t i = 0; i < NumProofs; i++) {
@@ -65,7 +55,7 @@ aggregator_circuit<wppT, wsnarkT, nverifierT, hashT, NumProofs>::
 
     // Nested verification key hash gadget
     _nested_vk_hash_gadget.reset(
-        new verification_key_hash_gadget<wppT, nverifierT, hashT>(
+        new verification_key_scalar_hash_gadget<wppT, nverifierT>(
             _pb,
             *_nested_vk,
             _nested_vk_hash,
@@ -81,7 +71,7 @@ aggregator_circuit<wppT, wsnarkT, nverifierT, hashT, NumProofs>::
         "_aggregator_gadget"));
 
     // Initialize all constraints in the circuit.
-    _nested_vk->generate_r1cs_constraints(true);
+    _nested_vk->generate_r1cs_constraints();
     for (size_t i = 0; i < NumProofs; ++i) {
         _nested_proofs[i]->generate_r1cs_constraints();
     }
@@ -89,47 +79,30 @@ aggregator_circuit<wppT, wsnarkT, nverifierT, hashT, NumProofs>::
     _aggregator_gadget->generate_r1cs_constraints();
 }
 
-template<
-    typename wppT,
-    typename wsnarkT,
-    typename nverifierT,
-    typename hashT,
-    size_t NumProofs>
+template<typename wppT, typename wsnarkT, typename nverifierT, size_t NumProofs>
 typename wsnarkT::keypair aggregator_circuit<
     wppT,
     wsnarkT,
     nverifierT,
-    hashT,
     NumProofs>::generate_trusted_setup() const
 {
     // Generate a verification and proving key (trusted setup)
     return wsnarkT::generate_setup(_pb);
 }
 
-template<
-    typename wppT,
-    typename wsnarkT,
-    typename nverifierT,
-    typename hashT,
-    size_t NumProofs>
+template<typename wppT, typename wsnarkT, typename nverifierT, size_t NumProofs>
 const libsnark::protoboard<libff::Fr<wppT>>
-    &aggregator_circuit<wppT, wsnarkT, nverifierT, hashT, NumProofs>::
+    &aggregator_circuit<wppT, wsnarkT, nverifierT, NumProofs>::
         get_constraint_system() const
 {
     return _pb;
 }
 
-template<
-    typename wppT,
-    typename wsnarkT,
-    typename nverifierT,
-    typename hashT,
-    size_t NumProofs>
+template<typename wppT, typename wsnarkT, typename nverifierT, size_t NumProofs>
 libzeth::extended_proof<wppT, wsnarkT> aggregator_circuit<
     wppT,
     wsnarkT,
     nverifierT,
-    hashT,
     NumProofs>::
     prove(
         const typename nsnark::verification_key &nested_vk,

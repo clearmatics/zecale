@@ -144,6 +144,10 @@ using e_times_e_times_e_over_e_miller_loop_gadget = typename pairing_selector<
 template<typename ppT>
 using final_exp_gadget = typename pairing_selector<ppT>::final_exp_gadget_type;
 
+template<typename ppT>
+using compression_function_gadget =
+    typename pairing_selector<ppT>::compression_function_gadget_type;
+
 } // namespace libzecale
 
 #endif // __ZECALE_CIRCUITS_PAIRING_PAIRING_PARAMS_HPP__

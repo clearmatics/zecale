@@ -38,7 +38,7 @@ private:
     using verifier_gadget = typename nverifierT::verifier_gadget;
     using proof_variable_gadget = typename nverifierT::proof_variable_gadget;
     using verification_key_variable_gadget =
-        typename nverifierT::verification_key_variable_gadget;
+        typename nverifierT::verification_key_scalar_variable_gadget;
     using input_packing_gadget = libsnark::multipacking_gadget<libff::Fr<wppT>>;
 
     const size_t num_inputs_per_nested_proof;

@@ -16,6 +16,7 @@
 #include <libsnark/gadgetlib1/gadgets/fields/fp6_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/pairing/weierstrass_final_exponentiation.hpp>
 #include <libsnark/gadgetlib1/gadgets/pairing/weierstrass_precomputation.hpp>
+#include <libzeth/circuits/mimc/mimc_mp.hpp>
 
 namespace libzecale
 {
@@ -64,6 +65,13 @@ public:
 
     static const constexpr libff::bigint<libff::mnt6_Fr::num_limbs>
         &pairing_loop_count = libff::mnt6_ate_loop_count;
+
+    // Constants e=31, r=61 computed via scripts/mimc_constraints.sage in
+    // http://github.com/clearmatics/zeth.
+    typedef libzeth::MiMC_mp_gadget<
+        libff::mnt4_Fr,
+        libzeth::MiMC_permutation_gadget<libff::mnt4_Fr, 31, 61>>
+        compression_function_gadget_type;
 };
 
 // Specialization for MNT6.
@@ -111,6 +119,13 @@ public:
 
     static const constexpr libff::bigint<libff::mnt4_Fr::num_limbs>
         &pairing_loop_count = libff::mnt4_ate_loop_count;
+
+    // Constants e=31, r=61 computed via scripts/mimc_constraints.sage in
+    // http://github.com/clearmatics/zeth.
+    typedef libzeth::MiMC_mp_gadget<
+        libff::mnt6_Fr,
+        libzeth::MiMC_permutation_gadget<libff::mnt6_Fr, 31, 61>>
+        compression_function_gadget_type;
 };
 
 } // namespace libzecale

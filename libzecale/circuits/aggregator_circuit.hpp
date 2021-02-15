@@ -37,19 +37,14 @@ namespace libzecale
 ///   M = num_inputs_per_nested_proof,
 ///   input[i,j] = j-th input to i-th proof,
 ///   result[i] = result of i-th proof verification)
-template<
-    typename wppT,
-    typename wsnarkT,
-    typename nverifierT,
-    typename hashT,
-    size_t NumProofs>
+template<typename wppT, typename wsnarkT, typename nverifierT, size_t NumProofs>
 class aggregator_circuit
 {
 private:
     using npp = other_curve<wppT>;
     using nsnark = typename nverifierT::snark;
     using verification_key_variable_gadget =
-        typename nverifierT::verification_key_variable_gadget;
+        typename nverifierT::verification_key_scalar_variable_gadget;
     using proof_variable_gadget = typename nverifierT::proof_variable_gadget;
 
     const size_t _num_inputs_per_nested_proof;
@@ -87,7 +82,7 @@ private:
         _nested_proofs;
 
     /// Gadget to check the hash of the nested verification key.
-    std::shared_ptr<verification_key_hash_gadget<wppT, nverifierT, hashT>>
+    std::shared_ptr<verification_key_scalar_hash_gadget<wppT, nverifierT>>
         _nested_vk_hash_gadget;
 
     /// Gadget to aggregate proofs.
