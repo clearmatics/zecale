@@ -19,7 +19,7 @@ contract IZecaleApplication
     // proof inputs) to be passed as part of this invocation. The
     // interpretation of these is application-defined.
     function dispatch(
-        uint256 nested_vk_hash,
+        uint256[2] memory nested_vk_hash,
         uint256[] memory nested_inputs,
         bytes memory nested_parameters) public payable;
 }
