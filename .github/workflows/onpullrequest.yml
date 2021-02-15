@@ -20,7 +20,7 @@ jobs:
     - name: Build grpc
       run: if ! [ -d depends/grpc ] ; then depends/zeth/scripts/install_grpc /usr v1.31.x depends/grpc ; fi
 
-  build-linux-full:
+  build-linux-full-tests:
     runs-on: ubuntu-20.04
     needs: [onpr-build-grpc]
     steps:
@@ -41,16 +41,51 @@ jobs:
         path: |
           ~/.cache/pip
           ~/Library/Caches/pip
-        key: build-full-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
+        key: build-linux-full-tests-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
     - name: Cache npm
       uses: actions/cache@v2
       with:
         path: |
           ~/.npm
-          depends/ganache-cli/node_modules
-        key: build-full-npm-${{ hashFiles('**/package-lock.json') }}-${{ runner.os }}
+          depends/zeth/depends/ganache-cli/node_modules
+        key: build-linux-full-tests-npm-${{ hashFiles('**/package-lock.json') }}-${{ runner.os }}
     - name: Install dependencies
       run: |
         depends/zeth/scripts/install_grpc /usr v1.31.x depends/grpc
     - name: Execute
-      run: CI_FULL_TESTS=1 CI_INTEGRATION_TESTS=1 CI_CONFIG=Release scripts/ci build
+      run: CI_FULL_TESTS=1 CI_CONFIG=Release scripts/ci build
+
+  build-linux-integration-tests:
+    runs-on: ubuntu-20.04
+    needs: [onpr-build-grpc]
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 10
+    - name: Cache grpc
+      uses: actions/cache@v2
+      with:
+        key: grpc-1.31.x-${{ runner.os }}
+        path: depends/grpc
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache/pip
+          ~/Library/Caches/pip
+        key: build-linux-integration-tests-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
+    - name: Cache npm
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.npm
+          depends/zeth/depends/ganache-cli/node_modules
+        key: build-linux-integration-tests-npm-${{ hashFiles('**/package-lock.json') }}-${{ runner.os }}
+    - name: Install dependencies
+      run: |
+        depends/zeth/scripts/install_grpc /usr v1.31.x depends/grpc
+    - name: Execute
+      run: CI_INTEGRATION_TESTS=1 CI_CONFIG=Release scripts/ci build
