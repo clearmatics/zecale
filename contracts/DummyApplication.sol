@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.0;
 
 import "./IZecaleApplication.sol";
 
@@ -35,7 +35,11 @@ contract DummyApplication is IZecaleApplication
     function dispatch(
         uint256[2] memory vk_hash,
         uint256[] memory inputs,
-        bytes memory parameters) public payable
+        bytes memory parameters
+    )
+        public
+        payable
+        override
     {
         // Decode parameters into the app-specific format.
         uint256[] memory param_uints = abi.decode(parameters, (uint256[]));
