@@ -41,6 +41,19 @@ void fp_from_fp(
     wfp = libff::Fp_model<wn, wmodulus>(wint);
 }
 
+template<typename FieldT, size_t length>
+FieldT fp_from_bits(const std::array<FieldT, length> &bits)
+{
+    FieldT v = FieldT::zero();
+    const FieldT two = FieldT::one() + FieldT::one();
+    for (size_t i = 0; i < length; ++i) {
+        if (bits[i] == FieldT::one()) {
+            v += two ^ i;
+        }
+    }
+    return v;
+}
+
 template<
     typename wppT,
     typename wsnarkT,
@@ -79,6 +92,17 @@ void test_aggregator_with_batch(
     ASSERT_EQ(expect_nested_vk_hash, winputs[winput_idx]);
     ++winput_idx;
 
+    // Packed results
+    libff::Fr<wppT> expect_packed_results = fp_from_bits(expected_results);
+    std::cout << "expect_packed_results: ";
+    libzeth::field_element_write_json(expect_packed_results, std::cout);
+    std::cout << "\nwinputs[winput_idx]: ";
+    libzeth::field_element_write_json(winputs[winput_idx], std::cout);
+    std::cout << "\n";
+
+    ASSERT_EQ(expect_packed_results, winputs[winput_idx]);
+    ++winput_idx;
+
     for (size_t proof_idx = 0; proof_idx < batch_size; ++proof_idx) {
         // Check that each input from the batch appears as expected in the
         // nested primary input list.
@@ -88,9 +112,6 @@ void test_aggregator_with_batch(
             fp_from_fp(ninput_w, ninput);
             ASSERT_EQ(ninput_w, winputs[winput_idx++]);
         }
-
-        // Check that the next public input is the result for this proof.
-        ASSERT_EQ(expected_results[proof_idx], winputs[winput_idx++]);
     }
 }
 

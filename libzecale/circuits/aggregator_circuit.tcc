@@ -25,23 +25,27 @@ aggregator_circuit<wppT, wsnarkT, nverifierT, NumProofs>::aggregator_circuit(
     // Input for hash of nested verification key.
     _nested_vk_hash.allocate(_pb, FMT("", "_nested_vk_hash"));
 
-    // For each proof in a batch, allocate primary inputs and results. These
-    // are the primary inputs. Note: both inputs and results will be
-    // populated by the aggregator gadget.
+    // Packed results (populated by the packer)
+    _nested_proof_results.allocate(_pb, FMT("", "_nested_proof_results"));
+
+    // Allocate nested primary inputs (populated by aggregator).
     for (size_t i = 0; i < NumProofs; i++) {
         _nested_primary_inputs[i].allocate(
             _pb,
             _num_inputs_per_nested_proof,
             FMT("", "_nested_primary_inputs_bits[%zu]", i));
-
-        _nested_proof_results[i].allocate(
-            _pb, FMT("", "_nested_proof_results[%zu]", i));
     }
 
     // Set the number of primary inputs.
-    const size_t total_primary_inputs =
-        1 + NumProofs * (inputs_per_nested_proof + 1);
+    const size_t total_primary_inputs = num_primary_inputs();
     _pb.set_input_sizes(total_primary_inputs);
+
+    // Allocate the unpacked nested proof verification results (populated by
+    // aggregator, consumed by results packer.
+    for (size_t i = 0; i < NumProofs; i++) {
+        _nested_proof_results_unpacked[i].allocate(
+            _pb, FMT("", "_nested_proof_results[%zu]", i));
+    }
 
     // Allocate vk and the intermediate bit representation
     _nested_vk.reset(new verification_key_variable_gadget(
@@ -67,8 +71,22 @@ aggregator_circuit<wppT, wsnarkT, nverifierT, NumProofs>::aggregator_circuit(
         *_nested_vk,
         _nested_primary_inputs,
         _nested_proofs,
-        _nested_proof_results,
+        _nested_proof_results_unpacked,
         "_aggregator_gadget"));
+
+    // Results packer gadgets
+    libsnark::pb_linear_combination_array<libff::Fr<wppT>>
+        unpacked_results_array(NumProofs);
+    for (size_t i = 0; i < NumProofs; ++i) {
+        unpacked_results_array[i] = _nested_proof_results_unpacked[i];
+    }
+
+    _nested_proof_results_packer.reset(
+        new libsnark::packing_gadget<libff::Fr<wppT>>(
+            _pb,
+            unpacked_results_array,
+            _nested_proof_results,
+            "_nested_proof_results_packer"));
 
     // Initialize all constraints in the circuit.
     _nested_vk->generate_r1cs_constraints();
@@ -77,6 +95,7 @@ aggregator_circuit<wppT, wsnarkT, nverifierT, NumProofs>::aggregator_circuit(
     }
     _nested_vk_hash_gadget->generate_r1cs_constraints();
     _aggregator_gadget->generate_r1cs_constraints();
+    _nested_proof_results_packer->generate_r1cs_constraints(false);
 }
 
 template<typename wppT, typename wsnarkT, typename nverifierT, size_t NumProofs>
@@ -135,6 +154,9 @@ libzeth::extended_proof<wppT, wsnarkT> aggregator_circuit<
     // Pass the input values (in npp) to the aggregator gadget.
     _aggregator_gadget->generate_r1cs_witness(nested_inputs);
 
+    // Witness the packed results
+    _nested_proof_results_packer->generate_r1cs_witness_from_bits();
+
 #ifdef DEBUG
     // Check the validity of the circuit.
     bool is_valid_witness = _pb.is_satisfied();
@@ -146,6 +168,16 @@ libzeth::extended_proof<wppT, wsnarkT> aggregator_circuit<
     return extended_proof<wppT, wsnarkT>(
         wsnarkT::generate_proof(_pb, aggregator_proving_key),
         _pb.primary_input());
+}
+
+template<typename wppT, typename wsnarkT, typename nverifierT, size_t NumProofs>
+size_t aggregator_circuit<wppT, wsnarkT, nverifierT, NumProofs>::
+    num_primary_inputs() const
+{
+    // Compute the total number of primary inputs for a circuit of this type,
+    // including leading vk_hash, results and nested primary inputs (see
+    // aggregator_circuit.hpp for full layout).
+    return 1 + 1 + NumProofs * _num_inputs_per_nested_proof;
 }
 
 } // namespace libzecale

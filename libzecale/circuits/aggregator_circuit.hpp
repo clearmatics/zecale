@@ -20,23 +20,16 @@ namespace libzecale
 /// nested proofs. Inputs are allocated as follows:
 ///
 ///   <hash of nested verification key>
-///   <input[1,1]>
+///   <packed_results>
+///   <nested_inputs[1]>
+///   <nested_inputs[2]>
 ///   ...
-///   <input[1,M]>
-///   <result[1]>
-///   ...
-///   ...
-///   ...
-///   <input[N,1]>
-///   ...
-///   <input[N,M]>
-///   <result[N]>
+///   <nested_inputs[N]>
 ///
 /// where:
 ///   N = NumProofs,
-///   M = num_inputs_per_nested_proof,
-///   input[i,j] = j-th input to i-th proof,
-///   result[i] = result of i-th proof verification)
+///   packed_results = verification result for all proofs, represented as bits
+///   nested_inputs[i][j] = j-th input to i-th proof,
 template<typename wppT, typename wsnarkT, typename nverifierT, size_t NumProofs>
 class aggregator_circuit
 {
@@ -56,16 +49,20 @@ private:
     /// _nested_vk_hash_gadget.
     libsnark::pb_variable<libff::Fr<wppT>> _nested_vk_hash;
 
+    /// (Primary) Results of the verifiers as bits. 1 meaning that the nested
+    /// proof is valid, 0 meaning it may not be valid. (LO-bit corresponds to
+    /// 0-th nested proof).
+    libsnark::pb_variable<libff::Fr<wppT>> _nested_proof_results;
+
     /// (Primary) The nested primary inputs lie in the scalar field
     /// `libff::Fr<nppT>`, and must be represented as elements of
     /// `libff::Fr<wppT>` for use in the wrapper proof.
     std::array<libsnark::pb_variable_array<libff::Fr<wppT>>, NumProofs>
         _nested_primary_inputs;
 
-    /// (Primary) The array of the results of the verifiers. 1 meaning that the
-    /// nested proof is valid, 0 meaning it may not be valid.
+    /// (Auxiliary) The array of the results of the verifiers, as scalars.
     std::array<libsnark::pb_variable<libff::Fr<wppT>>, NumProofs>
-        _nested_proof_results;
+        _nested_proof_results_unpacked;
 
     /// (Auxiliary) Verification key used to verify the nested proofs. Consists
     /// of group elements of `nppT`, which again, can be represented using
@@ -89,6 +86,10 @@ private:
     std::shared_ptr<aggregator_gadget<wppT, nverifierT, NumProofs>>
         _aggregator_gadget;
 
+    /// Nested proof verification results packer
+    std::shared_ptr<libsnark::packing_gadget<libff::Fr<wppT>>>
+        _nested_proof_results_packer;
+
 public:
     explicit aggregator_circuit(const size_t inputs_per_nested_proof);
 
@@ -97,6 +98,9 @@ public:
         delete;
 
     typename wsnarkT::keypair generate_trusted_setup() const;
+
+    // Number of primary inputs to the wrapping circuit
+    size_t num_primary_inputs() const;
 
     const libsnark::protoboard<libff::Fr<wppT>> &get_constraint_system() const;
 
