@@ -33,6 +33,13 @@ void r1cs_ppzksnark_verification_key_scalar_variable<
 }
 
 template<typename ppT>
+size_t r1cs_ppzksnark_verification_key_scalar_variable<
+    ppT>::num_primary_inputs() const
+{
+    return libsnark::r1cs_ppzksnark_verification_key_variable<ppT>::input_size;
+}
+
+template<typename ppT>
 const libsnark::pb_linear_combination_array<libff::Fr<ppT>>
     &r1cs_ppzksnark_verification_key_scalar_variable<ppT>::get_all_vars() const
 {

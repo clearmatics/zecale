@@ -103,9 +103,6 @@ public:
     std::shared_ptr<libsnark::G1_variable<ppT>> _encoded_ABC_base;
     std::vector<std::shared_ptr<libsnark::G1_variable<ppT>>> _ABC_g1;
 
-    libsnark::pb_linear_combination_array<FieldT> _all_vars;
-    const size_t _num_primary_inputs;
-
     r1cs_gg_ppzksnark_verification_key_scalar_variable(
         libsnark::protoboard<FieldT> &pb,
         const size_t num_primary_inputs,
@@ -115,10 +112,15 @@ public:
         const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
             &vk);
 
+    size_t num_primary_inputs() const;
     const libsnark::pb_linear_combination_array<FieldT> &get_all_vars() const;
     static std::vector<FieldT> get_verification_key_scalars(
         const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
             &r1cs_vk);
+
+protected:
+    libsnark::pb_linear_combination_array<FieldT> _all_vars;
+    const size_t _num_primary_inputs;
 };
 
 template<typename ppT>
