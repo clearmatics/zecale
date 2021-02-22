@@ -241,6 +241,23 @@ TEST(AggregatorTest, AggregateDummyApplicationBls12Groth16Bw6Pghr13)
         nverifier>();
 }
 
+// Note, the verification gadgets for pghr13 as the nested proof scheme (from
+// libsnark) can only be used with the mnt variable gadgets. Hence, without
+// some reefactoring, we cannot write tests
+// AggregateDummyApplicationBls12Pghr13Bw6{Groth16,Pghr13}
+
+TEST(AggregatorTest, AggregateDummyApplicationMnt4Pghr13Mnt6Groth16)
+{
+    using wpp = libff::mnt6_pp;
+    using wsnark = libzeth::groth16_snark<wpp>;
+    using nverifier = pghr13_verifier_parameters<wpp>;
+    test_aggregate_dummy_application<wpp, wsnark, nverifier>();
+    test_aggregate_dummy_application_with_invalid_proof<
+        wpp,
+        wsnark,
+        nverifier>();
+}
+
 } // namespace
 
 int main(int argc, char **argv)
