@@ -30,8 +30,7 @@ public:
     using verification_key_scalar_variable_gadget =
         r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT>;
     using processed_verification_key_variable_gadget =
-        r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
-            ppT>;
+        r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT>;
 };
 
 } // namespace libzecale
