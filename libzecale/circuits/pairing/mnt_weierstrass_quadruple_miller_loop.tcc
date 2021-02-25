@@ -5,6 +5,8 @@
 #ifndef __ZECALE_CIRCUITS_PAIRING_MNT_WEIERSTRASS_QUADRUPLE_MILLER_LOOP_TCC__
 #define __ZECALE_CIRCUITS_PAIRING_MNT_WEIERSTRASS_QUADRUPLE_MILLER_LOOP_TCC__
 
+#include "libzecale/circuits/pairing/mnt_weierstrass_quadruple_miller_loop.hpp"
+
 #include <libff/algebra/scalar_multiplication/wnaf.hpp>
 #include <libsnark/gadgetlib1/constraint_profiling.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>

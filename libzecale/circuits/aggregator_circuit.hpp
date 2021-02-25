@@ -115,6 +115,6 @@ public:
 
 } // namespace libzecale
 
-#include "aggregator_circuit.tcc"
+#include "libzecale/circuits/aggregator_circuit.tcc"
 
 #endif // __ZECALE_CORE_AGGREGATOR_CIRCUIT_HPP__

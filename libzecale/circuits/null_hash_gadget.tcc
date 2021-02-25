@@ -5,6 +5,8 @@
 #ifndef __ZECALE_CIRCUIT_NULL_HASH_GADGET_TCC__
 #define __ZECALE_CIRCUIT_NULL_HASH_GADGET_TCC__
 
+#include "libzecale/circuits/null_hash_gadget.hpp"
+
 namespace libzecale
 {
 

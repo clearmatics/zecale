@@ -22,6 +22,6 @@ nested_transaction<ppT, typename apiHandlerT::snark> nested_transaction_from_pro
 
 } // namespace libzecale
 
-#include "proto_utils.tcc"
+#include "libzecale/serialization/proto_utils.tcc"
 
 #endif // __ZECALE_SERIALIZATION_PROTO_UTILS_HPP__
