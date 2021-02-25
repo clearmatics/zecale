@@ -11,7 +11,4 @@
 // in the aggregator circuit
 static const size_t ZECALE_BATCH_SIZE = 2;
 
-// Max depth of the Proofs pool/Zeth tx pool
-static const size_t ZECALE_MAX_POOL_DEPTH = 10;
-
 #endif // __ZECALE_ZECALE_CONSTANTS__
