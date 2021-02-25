@@ -70,7 +70,9 @@ aggregator_server
 
 ```console
 # Pull the zeth-base image (this project has the same configuration as Zeth)
-docker pull clearmatics/zeth-base:latest
+docker pull ghcr.io/clearmatics/zeth:latest-base
+# To fetch a specific version of the zeth-base image, replace `latest` by
+# the desired version number (e.g. `zeth:0.0.2-base`)
 
 # Build the Zecale dev image
 docker build -f Dockerfile-zecale -t clearmatics/zecale-dev:0.3 .
