@@ -6,7 +6,7 @@
 #define __ZECALE_CIRCUITS_PAIRING_MNT_PAIRING_PARAMS_HPP__
 
 #include "libzecale/circuits/pairing/pairing_params.hpp"
-#include "libzecale/circuits/pairing/weierstrass_miller_loop.hpp"
+#include "libzecale/circuits/pairing/mnt_weierstrass_quadruple_miller_loop.hpp"
 
 #include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
 #include <libff/algebra/curves/mnt/mnt6/mnt6_pp.hpp>
