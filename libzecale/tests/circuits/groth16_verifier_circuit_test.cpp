@@ -138,8 +138,7 @@ void test_hardcoded_verifier(
     const size_t primary_input_size_in_bits = elt_size * primary_input_size;
 
     protoboard<FieldT_B> pb;
-    r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
-        ppT_B>
+    r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT_B>
         hardcoded_vk(pb, keypair.vk, "hardcoded_vk");
     pb_variable_array<FieldT_B> primary_input_bits;
     primary_input_bits.allocate(

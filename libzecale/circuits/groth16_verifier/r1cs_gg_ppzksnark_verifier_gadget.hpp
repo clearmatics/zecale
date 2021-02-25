@@ -103,9 +103,6 @@ public:
     std::shared_ptr<libsnark::G1_variable<ppT>> _encoded_ABC_base;
     std::vector<std::shared_ptr<libsnark::G1_variable<ppT>>> _ABC_g1;
 
-    libsnark::pb_linear_combination_array<FieldT> _all_vars;
-    const size_t _num_primary_inputs;
-
     r1cs_gg_ppzksnark_verification_key_scalar_variable(
         libsnark::protoboard<FieldT> &pb,
         const size_t num_primary_inputs,
@@ -115,14 +112,19 @@ public:
         const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
             &vk);
 
+    size_t num_primary_inputs() const;
     const libsnark::pb_linear_combination_array<FieldT> &get_all_vars() const;
     static std::vector<FieldT> get_verification_key_scalars(
         const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
             &r1cs_vk);
+
+protected:
+    libsnark::pb_linear_combination_array<FieldT> _all_vars;
+    const size_t _num_primary_inputs;
 };
 
 template<typename ppT>
-class r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable
+class r1cs_gg_ppzksnark_preprocessed_verification_key_variable
 {
 public:
     typedef libff::Fr<ppT> FieldT;
@@ -135,8 +137,8 @@ public:
     std::shared_ptr<libsnark::G1_variable<ppT>> _encoded_ABC_base;
     std::vector<std::shared_ptr<libsnark::G1_variable<ppT>>> _ABC_g1;
 
-    r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable();
-    r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable(
+    r1cs_gg_ppzksnark_preprocessed_verification_key_variable();
+    r1cs_gg_ppzksnark_preprocessed_verification_key_variable(
         libsnark::protoboard<FieldT> &pb,
         const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
             &r1cs_vk,
@@ -157,14 +159,12 @@ public:
     std::shared_ptr<G2_precompute_gadget<ppT>> _compute_vk_delta_g2_precomp;
 
     r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT> _vk;
-    r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
-        ppT> &_pvk;
+    r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT> &_pvk;
 
     r1cs_gg_ppzksnark_verifier_process_vk_gadget(
         libsnark::protoboard<FieldT> &pb,
         const r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT> &vk,
-        r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
-            ppT> &pvk,
+        r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT> &pvk,
         const std::string &annotation_prefix);
     void generate_r1cs_constraints();
     void generate_r1cs_witness();
@@ -177,9 +177,7 @@ class r1cs_gg_ppzksnark_online_verifier_gadget
 public:
     typedef libff::Fr<ppT> FieldT;
 
-    r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
-        ppT>
-        _pvk;
+    r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT> _pvk;
 
     libsnark::pb_variable_array<FieldT> _input;
     size_t _elt_size;
@@ -205,8 +203,8 @@ public:
 
     r1cs_gg_ppzksnark_online_verifier_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
-            ppT> &pvk,
+        const r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT>
+            &pvk,
         const libsnark::pb_variable_array<FieldT> &input,
         const size_t elt_size,
         const r1cs_gg_ppzksnark_proof_variable<ppT> &proof,
@@ -224,8 +222,7 @@ public:
     typedef libff::Fr<ppT> FieldT;
 
     std::shared_ptr<
-        r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
-            ppT>>
+        r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT>>
         _pvk;
     std::shared_ptr<r1cs_gg_ppzksnark_verifier_process_vk_gadget<ppT>>
         _compute_pvk;

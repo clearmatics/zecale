@@ -159,6 +159,13 @@ void r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT>::
 }
 
 template<typename ppT>
+size_t r1cs_gg_ppzksnark_verification_key_scalar_variable<
+    ppT>::num_primary_inputs() const
+{
+    return _num_primary_inputs;
+}
+
+template<typename ppT>
 const libsnark::pb_linear_combination_array<libff::Fr<ppT>>
     &r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT>::get_all_vars()
         const
@@ -327,17 +334,15 @@ libff::bit_vector r1cs_gg_ppzksnark_verification_key_variable<ppT>::
 }
 
 template<typename ppT>
-r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
-    ppT>::
-    r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable()
+r1cs_gg_ppzksnark_preprocessed_verification_key_variable<
+    ppT>::r1cs_gg_ppzksnark_preprocessed_verification_key_variable()
 {
     // will be allocated outside
 }
 
 template<typename ppT>
-r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
-    ppT>::
-    r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable(
+r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT>::
+    r1cs_gg_ppzksnark_preprocessed_verification_key_variable(
         libsnark::protoboard<FieldT> &pb,
         const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
             &r1cs_vk,
@@ -372,8 +377,7 @@ r1cs_gg_ppzksnark_verifier_process_vk_gadget<ppT>::
     r1cs_gg_ppzksnark_verifier_process_vk_gadget(
         libsnark::protoboard<FieldT> &pb,
         const r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT> &vk,
-        r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
-            ppT> &pvk,
+        r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT> &pvk,
         const std::string &annotation_prefix)
     : libsnark::gadget<FieldT>(pb, annotation_prefix), _vk(vk), _pvk(pvk)
 {
@@ -431,8 +435,8 @@ template<typename ppT>
 r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::
     r1cs_gg_ppzksnark_online_verifier_gadget(
         libsnark::protoboard<FieldT> &pb,
-        const r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
-            ppT> &pvk,
+        const r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT>
+            &pvk,
         const libsnark::pb_variable_array<FieldT> &input,
         const size_t elt_size,
         const r1cs_gg_ppzksnark_proof_variable<ppT> &proof,
@@ -564,8 +568,7 @@ r1cs_gg_ppzksnark_verifier_gadget<ppT>::r1cs_gg_ppzksnark_verifier_gadget(
     : libsnark::gadget<FieldT>(pb, annotation_prefix)
 {
     _pvk.reset(
-        new r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
-            ppT>());
+        new r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT>());
     _compute_pvk.reset(new r1cs_gg_ppzksnark_verifier_process_vk_gadget<ppT>(
         pb, vk, *_pvk, FMT(annotation_prefix, " compute_pvk")));
     _online_verifier.reset(new r1cs_gg_ppzksnark_online_verifier_gadget<ppT>(

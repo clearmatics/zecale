@@ -31,6 +31,8 @@ public:
         const std::string &annotation_prefix);
 
     void generate_r1cs_constraints();
+
+    size_t num_primary_inputs() const;
     const libsnark::pb_linear_combination_array<FieldT> &get_all_vars() const;
     static std::vector<FieldT> get_verification_key_scalars(
         const libsnark::r1cs_ppzksnark_verification_key<other_curve<ppT>>

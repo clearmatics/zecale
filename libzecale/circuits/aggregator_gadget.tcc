@@ -21,8 +21,11 @@ aggregator_gadget<wppT, nverifierT, NumProofs>::aggregator_gadget(
         &proof_results,
     const std::string &annotation_prefix)
     : libsnark::gadget<libff::Fr<wppT>>(pb, annotation_prefix)
-    , num_inputs_per_nested_proof(vk._num_primary_inputs)
+    , num_inputs_per_nested_proof(vk.num_primary_inputs())
+    , processed_vk()
     , nested_primary_inputs(inputs)
+    , vk_processor(
+          pb, vk, processed_vk, FMT(annotation_prefix, " vk_processor"))
 {
     // Assert that a single input of a nested proof (element of
     // libff::Fr<nppT>) can be encoded in a single input of the wrapping proof
@@ -57,9 +60,9 @@ aggregator_gadget<wppT, nverifierT, NumProofs>::aggregator_gadget(
 
     // Initialize the verifier gadgets
     for (size_t i = 0; i < NumProofs; i++) {
-        verifiers[i].reset(new verifier_gadget(
+        verifiers[i].reset(new online_verifier_gadget(
             pb,
-            vk,
+            processed_vk,
             nested_primary_inputs_bits[i],
             libff::Fr<npp>::size_in_bits(),
             *proofs[i],
@@ -71,6 +74,8 @@ aggregator_gadget<wppT, nverifierT, NumProofs>::aggregator_gadget(
 template<typename wppT, typename nverifierT, size_t NumProofs>
 void aggregator_gadget<wppT, nverifierT, NumProofs>::generate_r1cs_constraints()
 {
+    vk_processor.generate_r1cs_constraints();
+
     // Generate constraints (including boolean-ness of the bit representations)
     // for input packers, nested proofs and the proof verifiers.
     for (size_t i = 0; i < NumProofs; i++) {
@@ -85,6 +90,8 @@ void aggregator_gadget<wppT, nverifierT, NumProofs>::generate_r1cs_witness(
         const libsnark::r1cs_primary_input<libff::Fr<npp>> *,
         NumProofs> &nested_inputs)
 {
+    vk_processor.generate_r1cs_witness();
+
     for (size_t i = 0; i < NumProofs; i++) {
         // Witness the nested_primary_inputs. This is done by input values are
         // of type libff::Fr<nppT>. They are converted to bit arrays to

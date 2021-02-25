@@ -18,12 +18,19 @@ template<typename ppT> class groth16_verifier_parameters
 public:
     using snark = libzeth::groth16_snark<other_curve<ppT>>;
 
+    using process_verification_key_gadget =
+        r1cs_gg_ppzksnark_verifier_process_vk_gadget<ppT>;
+    using online_verifier_gadget =
+        r1cs_gg_ppzksnark_online_verifier_gadget<ppT>;
     using verifier_gadget = r1cs_gg_ppzksnark_verifier_gadget<ppT>;
+
     using proof_variable_gadget = r1cs_gg_ppzksnark_proof_variable<ppT>;
     using verification_key_variable_gadget =
         r1cs_gg_ppzksnark_verification_key_variable<ppT>;
     using verification_key_scalar_variable_gadget =
         r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT>;
+    using processed_verification_key_variable_gadget =
+        r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT>;
 };
 
 } // namespace libzecale
