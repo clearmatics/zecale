@@ -243,7 +243,7 @@ TEST(AggregatorTest, AggregateDummyApplicationBls12Groth16Bw6Pghr13)
 
 // Note, the verification gadgets for pghr13 as the nested proof scheme (from
 // libsnark) can only be used with the mnt variable gadgets. Hence, without
-// some reefactoring, we cannot write tests
+// some refactoring, we cannot write tests
 // AggregateDummyApplicationBls12Pghr13Bw6{Groth16,Pghr13}
 
 TEST(AggregatorTest, AggregateDummyApplicationMnt4Pghr13Mnt6Groth16)
