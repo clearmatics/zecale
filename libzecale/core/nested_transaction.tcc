@@ -5,7 +5,7 @@
 #ifndef __ZECALE_CORE_NESTED_TRANSACTION_TCC__
 #define __ZECALE_CORE_NESTED_TRANSACTION_TCC__
 
-#include "nested_transaction.hpp"
+#include "libzecale/core/nested_transaction.hpp"
 
 #include <libzeth/core/utils.hpp>
 

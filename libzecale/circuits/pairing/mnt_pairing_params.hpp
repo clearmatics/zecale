@@ -5,8 +5,8 @@
 #ifndef __ZECALE_CIRCUITS_PAIRING_MNT_PAIRING_PARAMS_HPP__
 #define __ZECALE_CIRCUITS_PAIRING_MNT_PAIRING_PARAMS_HPP__
 
+#include "libzecale/circuits/pairing/mnt_weierstrass_quadruple_miller_loop.hpp"
 #include "libzecale/circuits/pairing/pairing_params.hpp"
-#include "libzecale/circuits/pairing/weierstrass_miller_loop.hpp"
 
 #include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
 #include <libff/algebra/curves/mnt/mnt6/mnt6_pp.hpp>
@@ -16,6 +16,7 @@
 #include <libsnark/gadgetlib1/gadgets/fields/fp6_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/pairing/weierstrass_final_exponentiation.hpp>
 #include <libsnark/gadgetlib1/gadgets/pairing/weierstrass_precomputation.hpp>
+#include <libzeth/circuits/mimc/mimc_mp.hpp>
 
 namespace libzecale
 {
@@ -41,6 +42,9 @@ public:
 
     typedef libff::mnt6_pp other_curve_type;
 
+    typedef libsnark::G1_checker_gadget<libff::mnt4_pp> G1_checker_type;
+    typedef libsnark::G2_checker_gadget<libff::mnt4_pp> G2_checker_type;
+
     typedef libsnark::G1_precomputation<libff::mnt4_pp> G1_precomputation_type;
     typedef libsnark::precompute_G1_gadget<libff::mnt4_pp>
         G1_precompute_gadget_type;
@@ -61,6 +65,13 @@ public:
 
     static const constexpr libff::bigint<libff::mnt6_Fr::num_limbs>
         &pairing_loop_count = libff::mnt6_ate_loop_count;
+
+    // Constants e=31, r=61 computed via scripts/mimc_constraints.sage in
+    // http://github.com/clearmatics/zeth.
+    typedef libzeth::MiMC_mp_gadget<
+        libff::mnt4_Fr,
+        libzeth::MiMC_permutation_gadget<libff::mnt4_Fr, 31, 61>>
+        compression_function_gadget_type;
 };
 
 // Specialization for MNT6.
@@ -85,6 +96,9 @@ public:
 
     typedef libff::mnt4_pp other_curve_type;
 
+    typedef libsnark::G1_checker_gadget<libff::mnt6_pp> G1_checker_type;
+    typedef libsnark::G2_checker_gadget<libff::mnt6_pp> G2_checker_type;
+
     typedef libsnark::G1_precomputation<libff::mnt6_pp> G1_precomputation_type;
     typedef libsnark::precompute_G1_gadget<libff::mnt6_pp>
         G1_precompute_gadget_type;
@@ -105,6 +119,13 @@ public:
 
     static const constexpr libff::bigint<libff::mnt4_Fr::num_limbs>
         &pairing_loop_count = libff::mnt4_ate_loop_count;
+
+    // Constants e=31, r=61 computed via scripts/mimc_constraints.sage in
+    // http://github.com/clearmatics/zeth.
+    typedef libzeth::MiMC_mp_gadget<
+        libff::mnt6_Fr,
+        libzeth::MiMC_permutation_gadget<libff::mnt6_Fr, 31, 61>>
+        compression_function_gadget_type;
 };
 
 } // namespace libzecale

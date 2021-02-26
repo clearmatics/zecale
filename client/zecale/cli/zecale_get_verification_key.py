@@ -10,15 +10,14 @@ from click import option, command, pass_context, Context
 
 @command()
 @option(
-    "--verification-key-file",
-    "-f",
+    "--vk-out",
+    "-o",
     default=AGGREGATOR_VERIFICATION_KEY_FILE_DEFAULT,
-    help="Write verification key to this file (default: "
-    f"{AGGREGATOR_VERIFICATION_KEY_FILE_DEFAULT})")
+    help=f"Output file (default: {AGGREGATOR_VERIFICATION_KEY_FILE_DEFAULT})")
 @pass_context
 def get_verification_key(
         ctx: Context,
-        verification_key_file: str) -> None:
+        vk_out: str) -> None:
     """
     Get the aggregator (wrapping) verification key from the aggregation server
     and write to a file.
@@ -27,5 +26,5 @@ def get_verification_key(
     aggregator_client = cmd_ctx.get_aggregator_client()
     aggregator_vk = aggregator_client.get_verification_key(
         cmd_ctx.get_wrapper_snark())
-    with open(verification_key_file, "w") as vk_f:
+    with open(vk_out, "w") as vk_f:
         json.dump(aggregator_vk.to_json_dict(), vk_f)

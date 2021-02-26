@@ -23,15 +23,9 @@ def check_batch(ctx: Context, batch_file: str, batch_size: int) -> None:
     aggregated_tx = load_aggregated_transaction(
         cmd_ctx.get_wrapper_snark(), batch_file)
     inputs = aggregated_tx.ext_proof.inputs
+    results = int(inputs[1], 16)
+    print(f"results={hex(results)}")
 
-    # Attempt to automatically detect the vk_hash param at position 0
-    batch_offset = len(inputs) % batch_size
-    inputs_per_batch = int((len(inputs) - batch_offset) / batch_size)
-    print(f"inputs=\n{inputs}")
-
-    for i in range(batch_size):
-        result_idx = batch_offset + (inputs_per_batch * (i + 1)) - 1
-        result = int(inputs[result_idx][2:], 16)
-        print(f"result[{i}]={result}")
-        if result != 1:
-            raise ClickException("nested proof judged as invalid")
+    expect_results = (1 << batch_size) - 1
+    if expect_results != results:
+        raise ClickException("at least one nested proof judged as invalid")

@@ -65,6 +65,6 @@ public:
 
 } // namespace libzecale
 
-#include "application_pool.tcc"
+#include "libzecale/core/application_pool.tcc"
 
 #endif // __ZECALE_CORE_APPLICATION_POOL_HPP__

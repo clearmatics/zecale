@@ -5,6 +5,8 @@
 #ifndef __ZECALE_CIRCUITS_PAIRING_PAIRING_CHECKS_TCC__
 #define __ZECALE_CIRCUITS_PAIRING_PAIRING_CHECKS_TCC__
 
+#include "libzecale/circuits/pairing/pairing_checks.hpp"
+
 namespace libzecale
 {
 

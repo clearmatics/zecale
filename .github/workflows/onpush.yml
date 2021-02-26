@@ -5,17 +5,37 @@ on:
   push:
 
 env:
-  MACOS_BREW_PACKAGES: "pkg-config libomp"
+  MACOS_BREW_PACKAGES: "pkg-config libomp ccache"
 
 jobs:
+
+  # Extract the commits of submodules for use by cache steps
+  submodules:
+    runs-on: ubuntu-20.04
+    outputs:
+      commits: ${{ steps.get-commits.outputs.commits }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Get Submodule Commits
+      id: get-commits
+      run: |
+        git submodule sync
+        echo "::set-output name=commits::"`git submodule status depends/zeth | grep -oe '[0-9a-fA-F]\+' | head -c 8`
 
   check-client:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         submodules: recursive
-    - name: Execute
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache/pip
+          ~/Library/Caches/pip
+        key: check-client-pip-${{ hashFiles('**/setup.py') }}-${{ runner.os }}
+    - name: Check Client
       run: scripts/ci check_client
 
   build-macos:
@@ -24,9 +44,16 @@ jobs:
       matrix:
         config: [ Debug, Release ]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         submodules: recursive
+    - name: Cache ccache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.ccache
+          ~/Library/Caches/ccache
+        key: build-ccache-${{ needs.submodules.outputs.commits }}-${{ matrix.config }}-${{ runner.os }}
     - name: Install Dependencies
       run: brew install ${MACOS_BREW_PACKAGES}
     - name: Execute
@@ -38,11 +65,11 @@ jobs:
       matrix:
         config: [ Debug, Release ]
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         submodules: recursive
     - name: Execute
-      run: CI_CHECK_FORMAT=1 CI_USE_DOCKER=1 CI_CONFIG=${{ matrix.config }} scripts/ci build
+      run: CI_USE_DOCKER=1 CI_CONFIG=${{ matrix.config }} scripts/ci build
 
   check-cpp-linux:
     runs-on: ubuntu-20.04

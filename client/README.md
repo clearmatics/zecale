@@ -39,11 +39,9 @@ $ source env/bin/activate
 (env)$ make setup
 ```
 
-Then, Execute the following inside the `client` directory:
+Then, execute the following inside the `client` directory:
 ```console
 $ cd $ZECALE/client
-$ python -m venv env
-$ source env/bin/activate
 (env)$ make setup
 ```
 
@@ -65,10 +63,15 @@ In order for Zecale to work, it is necessary for the blockchain to support
 BW6-761 arithmetic. As such, we assume below that the smart contracts are
 deployed on an Ethereum testnet that supports BW6-761 precompiled contracts.
 
-To do so, please follow the instructions below to run a modified version
+To do so, you can start a ganache-cli instance via docker by running:
+```console
+docker run -ti -p 8545:8545 ghcr.io/clearmatics/ganache-cli --hardfork istanbul --gasLimit 0x3FFFFFFFFFFFF --gasPrice 1 --defaultBalanceEther 90000000000
+```
+
+Otherwise, please follow the instructions below to run a modified version
 of ganache-cli in a new terminal (see [Zeth](https://github.com/clearmatics/zeth/) for more information):
 ```console
-cd ../depends/zeth/zeth_contracts
+cd $ZECALE/depends/zeth/zeth_contracts
 npm install # make sure that node and npm have the right versions
 npm run testrpc
 ```
@@ -144,6 +147,9 @@ funds.
 # Specify an eth-address file for an (unlocked) Ethereum account
 (env)$ echo 0x.... > eth-address
 
+# Get the verification key
+(env)$ zecale get-verification-key
+
 # Compile and deploy
 (env)$ zecale deploy
 
@@ -159,3 +165,7 @@ application. One can use the `DummyApplication` contract as an example:
 ```console
 zecale_dummy_app deploy
 ```
+
+For a more comprehensive overview on how to use Zecale with a base
+application, please refer to the [zeth-zecale integration test script](../scripts/test_zeth_zecale).
+

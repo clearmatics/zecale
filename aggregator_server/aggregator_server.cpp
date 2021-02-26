@@ -6,7 +6,6 @@
 // the corresponding pairing parameters type.
 
 #include "libzecale/circuits/aggregator_circuit.hpp"
-#include "libzecale/circuits/null_hash_gadget.hpp"
 #include "libzecale/core/application_pool.hpp"
 #include "libzecale/serialization/proto_utils.hpp"
 #include "zecale_config.h"
@@ -20,6 +19,7 @@
 #include <grpcpp/server_context.h>
 #include <iostream>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
+#include <libzeth/circuits/circuit_types.hpp>
 #include <libzeth/core/utils.hpp>
 #include <libzeth/serialization/proto_utils.hpp>
 #include <libzeth/serialization/r1cs_serialization.hpp>
@@ -67,13 +67,12 @@ using napi_handler = libzeth::groth16_api_handler<npp>;
 #endif
 
 using nsnark = typename nverifier::snark;
-using hash = libzecale::null_hash_gadget<libff::Fr<wpp>>;
 
 static const size_t batch_size = 2;
 static const size_t num_inputs_per_nested_proof = 1;
 
 using aggregator_circuit =
-    libzecale::aggregator_circuit<wpp, wsnark, nverifier, hash, batch_size>;
+    libzecale::aggregator_circuit<wpp, wsnark, nverifier, batch_size>;
 
 static wsnark::keypair load_keypair(const boost::filesystem::path &keypair_file)
 {
@@ -176,7 +175,7 @@ public:
         typename nsnark::verification_key vk =
             napi_handler::verification_key_from_proto(*request);
         const libff::Fr<wpp> vk_hash =
-            libzecale::verification_key_hash_gadget<wpp, nverifier, hash>::
+            libzecale::verification_key_scalar_hash_gadget<wpp, nverifier>::
                 compute_hash(vk, num_inputs_per_nested_proof);
         const std::string vk_hash_str = libzeth::field_element_to_json(vk_hash);
         response->set_hash(vk_hash_str);
@@ -213,7 +212,7 @@ public:
                 napi_handler::verification_key_from_proto(vk_proto);
             application_pools[name] = new application_pool(name, vk);
             const libff::Fr<wpp> vk_hash =
-                libzecale::verification_key_hash_gadget<wpp, nverifier, hash>::
+                libzecale::verification_key_scalar_hash_gadget<wpp, nverifier>::
                     compute_hash(vk, num_inputs_per_nested_proof);
             const std::string vk_hash_str =
                 libzeth::field_element_to_json(vk_hash);
@@ -294,7 +293,7 @@ public:
             std::array<libzecale::nested_transaction<npp, nsnark>, batch_size>
                 batch;
             const size_t num_entries = app_pool->get_next_batch(batch);
-            std::cout << "[DEBUG] Got batch of size"
+            std::cout << "[DEBUG] Got batch of size "
                       << std::to_string(num_entries) << " from the pool\n";
             if (num_entries == 0) {
                 throw std::runtime_error("insufficient entries in pool");
@@ -484,12 +483,30 @@ int main(int argc, char **argv)
     wsnark::keypair keypair = [&keypair_file, &aggregator]() {
         if (boost::filesystem::exists(keypair_file)) {
             std::cout << "[INFO] Loading keypair: " << keypair_file << "\n";
-            return load_keypair(keypair_file);
+            wsnark::keypair keypair = load_keypair(keypair_file);
+
+            // Check the VK is for the correct number of inputs.
+            if (keypair.vk.ABC_g1.size() != aggregator.num_primary_inputs()) {
+                throw std::invalid_argument("invalid VK");
+            }
+
+            return keypair;
         }
 
         std::cout << "[INFO] No keypair file " << keypair_file
                   << ". Generating.\n";
         const wsnark::keypair keypair = aggregator.generate_trusted_setup();
+
+        // Check the VK is for the correct number of inputs.
+        if (keypair.vk.ABC_g1.size() != aggregator.num_primary_inputs()) {
+            throw std::invalid_argument("invalid VK");
+        }
+
+        const size_t num_constraints =
+            aggregator.get_constraint_system().num_constraints();
+        std::cout << "[INFO] Circuit has " << std::to_string(num_constraints)
+                  << " constraints\n";
+
         std::cout << "[INFO] Writing new keypair to " << keypair_file << "\n";
         write_keypair(keypair, keypair_file);
         return keypair;

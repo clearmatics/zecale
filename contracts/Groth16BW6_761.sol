@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0+
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.0;
 
 // Implementation notes:
 //
@@ -99,10 +99,10 @@ library Groth16BW6_761
         assembly {
 
             // Copied from bn implementation in zeth.
-            let g := sub(gas, 2000)
+            let g := sub(gas(), 2000)
 
             // Compute starting slot of the vk data and abc data.
-            mstore(pad, vk_slot)
+            mstore(pad, vk.slot)
             vk_slot_num := keccak256(pad, 0x20)
             let abc_slot_num := add(vk_slot_num, 0x12)
 
@@ -256,7 +256,7 @@ library Groth16BW6_761
             mstore(add(pad, 0x5e0), sload(add(vk_slot_num, 17)))
 
             // Call ecpairing
-            result := call(gas, 0xc3, 0, pad, 0x600, pad, 0x20)
+            result := call(gas(), 0xc3, 0, pad, 0x600, pad, 0x20)
         }
 
         return 1 == pad[0];
@@ -265,7 +265,9 @@ library Groth16BW6_761
     /// Given the length of a verification key, encoded as a uint256 array,
     /// compute the number of inputs expected in the proof.
     function num_inputs_from_vk_length(uint256 vk_length) internal returns (uint256) {
-        // See the format of vk above
-        return (vk_length - 0x12) / 6;
+        // See the format of vk above. This computes the length of the ABC
+        // array (measured in group elements) - 1, which is the number of
+        // inputs required in a valid proof.
+        return (vk_length - 0x18) / 6;
     }
 }

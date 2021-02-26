@@ -54,6 +54,23 @@ Fp12_2over3over2_variable<Fp12T> Fp12_2over3over2_variable<Fp12T>::operator*(
 }
 
 template<typename Fp12T>
+Fp12_2over3over2_variable<Fp12T> Fp12_2over3over2_variable<Fp12T>::operator*(
+    const Fp12T &fp12_const) const
+{
+    using Fp6_variable = Fp6_3over2_variable<Fp6T>;
+    const Fp6_variable a0_b0 = _c0 * fp12_const.coeffs[0];
+    const Fp6_variable a1_b1 = _c1 * fp12_const.coeffs[1];
+    const Fp6_variable a0a1_b0b1 =
+        (_c0 + _c1) * (fp12_const.coeffs[0] + fp12_const.coeffs[1]);
+
+    return Fp12_2over3over2_variable(
+        this->pb,
+        a0_b0 + (a1_b1 * Fp6T(Fp2T::zero(), Fp2T::one(), Fp2T::zero())),
+        a0a1_b0b1 - a0_b0 - a1_b1,
+        FMT(this->annotation_prefix, " fp12_var*fp12_const"));
+}
+
+template<typename Fp12T>
 Fp12_2over3over2_variable<Fp12T> Fp12_2over3over2_variable<
     Fp12T>::frobenius_map(size_t power) const
 {

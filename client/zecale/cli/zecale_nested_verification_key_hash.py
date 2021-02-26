@@ -4,7 +4,6 @@
 
 from zecale.cli.command_context import CommandContext
 from zecale.cli.utils import load_verification_key
-from zeth.core.utils import hex_to_uint256_list
 from click import command, argument, Context, pass_context
 
 
@@ -25,12 +24,4 @@ def nested_verification_key_hash(
     vk = load_verification_key(snark, verification_key_file)
     aggregator_client = cmd_ctx.get_aggregator_client()
     vk_hash_hex = aggregator_client.get_nested_verification_key_hash(snark, vk)
-
-    # Decode the key into evm words and extract the lowest order one. Assert
-    # that the higher order ints are all zero.
-    vk_hash_evm = list(hex_to_uint256_list(vk_hash_hex))
-    vk_hash = vk_hash_evm[-1]
-    for i in vk_hash_evm[:-1]:
-        assert i == 0, "expected higher orders words to be 0"
-
-    print(vk_hash.to_bytes(32, byteorder='big').hex())
+    print(vk_hash_hex)

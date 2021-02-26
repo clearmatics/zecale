@@ -27,22 +27,42 @@ using namespace libzeth;
 // because now, a digest can be fully packed into a field element without
 // residual bits
 
+namespace libzeth
+{
+
+// Use mimc7 by default
+template<> class tree_hash_selector<libff::mnt4_Fr>
+{
+public:
+    using tree_hash = MiMC_mp_gadget<
+        libff::mnt4_Fr,
+        MiMC_permutation_gadget<libff::mnt4_Fr, 7, 91>>;
+};
+template<> class tree_hash_selector<libff::mnt6_Fr>
+{
+public:
+    using tree_hash = MiMC_mp_gadget<
+        libff::mnt6_Fr,
+        MiMC_permutation_gadget<libff::mnt6_Fr, 7, 91>>;
+};
+
+} // namespace libzeth
+
 // The templates and constants used in the Zeth circuit.
 template<typename nppT> using hash = libzeth::BLAKE2s_256<libff::Fr<nppT>>;
 template<typename nppT>
-using hashTree = libzeth::MiMC_mp_gadget<libff::Fr<nppT>>;
+using hashTree =
+    typename libzeth::tree_hash_selector<libff::Fr<nppT>>::tree_hash;
 
 static const size_t tree_depth = 4;
 static const size_t inputs_number = 2;
 static const size_t outputs_number = 2;
 static const size_t batch_size = 2;
 
-// The # of primary inputs for Zeth proofs is 9, since the primary inputs are:
+// The single primary input is the hash of public data elements:
 // [Root, NullifierS(2), CommitmentS(2), h_sig, h_iS(2), Residual Field,
 // Element]
-static const size_t num_zeth_inputs = 9;
-template<typename wppT>
-using nested_key_hash = libzecale::null_hash_gadget<libff::Fr<wppT>>;
+static const size_t num_zeth_inputs = 1;
 
 using namespace libzecale;
 
@@ -61,7 +81,8 @@ libzeth::extended_proof<nppT, snarkT> generate_valid_zeth_proof(
         inputs_number,
         outputs_number,
         tree_depth> &zeth_prover,
-    const typename snarkT::keypair &zeth_keypair)
+    const typename snarkT::keypair &zeth_keypair,
+    std::vector<libff::Fr<nppT>> &public_data)
 {
     using zethScalarField = libff::Fr<nppT>;
 
@@ -174,7 +195,8 @@ libzeth::extended_proof<nppT, snarkT> generate_valid_zeth_proof(
         value_pub_out_bits64,
         h_sig,
         phi,
-        zeth_keypair.pk);
+        zeth_keypair.pk,
+        public_data);
     libff::leave_block("Generate Zeth proof", true);
 
     libff::enter_block("Verify Zeth proof", true);
@@ -199,12 +221,8 @@ libzeth::extended_proof<nppT, snarkT> generate_valid_zeth_proof(
 /// We use the same SNARK for simplicity.
 template<typename wppT, typename wsnarkT, typename nverifierT>
 bool test_valid_aggregation_batch_proofs(
-    aggregator_circuit<
-        wppT,
-        wsnarkT,
-        nverifierT,
-        nested_key_hash<wppT>,
-        batch_size> &aggregator_prover,
+    aggregator_circuit<wppT, wsnarkT, nverifierT, batch_size>
+        &aggregator_prover,
     typename wsnarkT::keypair &aggregator_keypair,
     typename nverifierT::snark::keypair &zeth_keypair,
     const std::array<
@@ -261,8 +279,10 @@ void aggregator_test()
     // Test to aggregate a single proof (i.e. generate a proof for the
     // verification of the proof)
     std::cout << "[DEBUG] Before gen Zeth proof" << std::endl;
+    std::vector<libff::Fr<npp>> nested_public_data;
     libzeth::extended_proof<npp, nsnark> valid_proof =
-        generate_valid_zeth_proof(zeth_prover, zeth_keypair);
+        generate_valid_zeth_proof(
+            zeth_prover, zeth_keypair, nested_public_data);
 
     /*
      * // Generate an invalid proof
@@ -277,17 +297,12 @@ void aggregator_test()
     std::cout << "[DEBUG] nested_proofs[0].get_primary_inputs().size(): "
               << batch[0]->get_primary_inputs().size() << std::endl;
     // Make sure that we have the right amount of primary inputs
-    ASSERT_EQ(batch[0]->get_primary_inputs().size(), 9);
+    ASSERT_EQ(batch[0]->get_primary_inputs().size(), num_zeth_inputs);
 
     std::cout << "[DEBUG] Before creation of the Aggregator prover"
               << std::endl;
-    aggregator_circuit<
-        wppT,
-        wsnarkT,
-        nverifierT,
-        nested_key_hash<wppT>,
-        batch_size>
-        aggregator_prover(num_zeth_inputs);
+    aggregator_circuit<wppT, wsnarkT, nverifierT, batch_size> aggregator_prover(
+        num_zeth_inputs);
     std::cout << "[DEBUG] Before gen Aggregator setup" << std::endl;
     typename wsnarkT::keypair aggregator_keypair =
         aggregator_prover.generate_trusted_setup();
@@ -313,11 +328,6 @@ template<typename nppT, typename wppT> void aggregator_test_pghr13()
         wppT,
         libzeth::pghr13_snark<wppT>,
         libzecale::pghr13_verifier_parameters<wppT>>();
-}
-
-TEST(AggregatorTests, AggregatorMnt4Mnt6Groth16)
-{
-    aggregator_test_groth16<libff::mnt4_pp, libff::mnt6_pp>();
 }
 
 TEST(AggregatorTests, AggregatorBls12Bw6Groth16)

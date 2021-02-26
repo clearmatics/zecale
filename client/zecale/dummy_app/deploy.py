@@ -47,9 +47,8 @@ def deploy(
         dispatcher_desc = InstanceDescription.from_json_dict(
             json.load(dispatcher_instance_f))
 
-    # Assume there is only one evm word
-    verification_key_hash_evm = next(
-        iter(hex_to_uint256_list(verification_key_hash)))
+    # Verification key hash as an array of evm words.
+    verification_key_hash_evm = list(hex_to_uint256_list(verification_key_hash))
     print(f"verification_key_hash_evm = {verification_key_hash_evm}")
 
     web3 = open_web3_from_network(eth_network)

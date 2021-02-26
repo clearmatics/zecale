@@ -35,15 +35,24 @@ class aggregator_gadget : libsnark::gadget<libff::Fr<wppT>>
 private:
     using npp = other_curve<wppT>;
     using nsnark = typename nverifierT::snark;
-    using verifier_gadget = typename nverifierT::verifier_gadget;
+    using process_verification_key_gadget =
+        typename nverifierT::process_verification_key_gadget;
+    using online_verifier_gadget = typename nverifierT::online_verifier_gadget;
     using proof_variable_gadget = typename nverifierT::proof_variable_gadget;
     using verification_key_variable_gadget =
-        typename nverifierT::verification_key_variable_gadget;
+        typename nverifierT::verification_key_scalar_variable_gadget;
+    using processed_verification_key_variable_gadget =
+        typename nverifierT::processed_verification_key_variable_gadget;
     using input_packing_gadget = libsnark::multipacking_gadget<libff::Fr<wppT>>;
 
     const size_t num_inputs_per_nested_proof;
 
-    // Required in order to generate the bit strings from witness value.
+    // TODO: Remove unused variables
+
+    /// Processed verification key
+    processed_verification_key_variable_gadget processed_vk;
+
+    // Required in order to generate the bit strings from instance value.
     std::array<libsnark::pb_variable_array<libff::Fr<wppT>>, NumProofs>
         nested_primary_inputs;
 
@@ -53,12 +62,15 @@ private:
     std::array<libsnark::pb_variable_array<libff::Fr<wppT>>, NumProofs>
         nested_primary_inputs_bits;
 
+    /// Verification key processor
+    process_verification_key_gadget vk_processor;
+
     /// Gadgets checking the binary representation of the nested inputs.
     std::vector<std::shared_ptr<input_packing_gadget>>
         nested_primary_input_packers;
 
     // Gadgets that verify the proofs and inputs against nested_vk.
-    std::array<std::shared_ptr<verifier_gadget>, NumProofs> verifiers;
+    std::array<std::shared_ptr<online_verifier_gadget>, NumProofs> verifiers;
 
 public:
     aggregator_gadget(

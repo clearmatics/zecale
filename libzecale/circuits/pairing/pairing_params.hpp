@@ -60,6 +60,8 @@ namespace libzecale
  *       typedef my_Fqk_special_mul_gadget_type Fqk_special_mul_gadget_type;
  *       typedef my_Fqk_sqr_gadget_type Fqk_sqr_gadget_type;
  *       typedef my_other_curve_type other_curve_type;
+ *       typedef my_G1_checker_gadget_type G1_checker_type;
+ *       typedef my_G2_checker_gadget_type G2_checker_type;
  *       typedef my_G1_precompute_variable_type G1_precompute_variable_type;
  *       typedef my_G1_precompute_gadget_type G1_precompute_gadget_type;
  *       typedef my_G2_precompute_variable_type G2_precompute_variable_type;
@@ -112,6 +114,11 @@ using other_curve = typename pairing_selector<ppT>::other_curve_type;
 // specialized for MNT. Care must be taken with namespaces.
 
 template<typename ppT>
+using G1_checker = typename pairing_selector<ppT>::G1_checker_type;
+template<typename ppT>
+using G2_checker = typename pairing_selector<ppT>::G2_checker_type;
+
+template<typename ppT>
 using G1_precomputation =
     typename pairing_selector<ppT>::G1_precomputation_type;
 template<typename ppT>
@@ -136,6 +143,10 @@ using e_times_e_times_e_over_e_miller_loop_gadget = typename pairing_selector<
     ppT>::e_times_e_times_e_over_e_miller_loop_gadget_type;
 template<typename ppT>
 using final_exp_gadget = typename pairing_selector<ppT>::final_exp_gadget_type;
+
+template<typename ppT>
+using compression_function_gadget =
+    typename pairing_selector<ppT>::compression_function_gadget_type;
 
 } // namespace libzecale
 

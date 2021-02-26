@@ -52,6 +52,6 @@ public:
 
 } // namespace libzecale
 
-#include "nested_transaction.tcc"
+#include "libzecale/core/nested_transaction.tcc"
 
 #endif // __ZECALE_CORE_NESTED_TRANSACTION_HPP__

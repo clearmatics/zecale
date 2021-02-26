@@ -16,25 +16,26 @@ if sys.version_info < (3, 7):
 
 setup(
     name='zecale-client',
-    version='0.3',
+    version='0.4',
     description='Client to interact with Zecale server',
     packages=find_packages(),
     # zip_safe=False,
     install_requires=[
-        "mypy==0.720",
+        "mypy==0.790",
         "mypy-protobuf==1.23",
         "flake8==3.8.3",
-        "pylint==2.4.3",
+        "pylint==2.6",
         "click==7.0",
         "click-default-group==1.2",
         "protobuf==3.13.0",
-        "grpcio==1.30",
-        "grpcio-tools==1.30",
+        "grpcio==1.33.2",
+        "grpcio-tools==1.33.2",
     ],
     entry_points={
         'console_scripts': [
             'zecale_dummy_app=zecale.dummy_app.__main__:dummy_app',
             'zecale=zecale.cli.__main__:zecale',
+            'zeth_zecale=zeth_zecale.__main__:zeth_zecale',
         ],
     }
 )

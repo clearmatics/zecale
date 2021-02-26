@@ -6,6 +6,7 @@
 #define __ZECALE_CIRCUITS_PAIRING_BW6_761_PAIRING_PARAMS_HPP__
 
 #include "libzecale/circuits/fields/fp12_2over3over2_gadgets.hpp"
+#include "libzecale/circuits/pairing/bls12_377_membership_check_gadgets.hpp"
 #include "libzecale/circuits/pairing/bls12_377_pairing.hpp"
 #include "libzecale/circuits/pairing/pairing_params.hpp"
 
@@ -13,6 +14,7 @@
 #include <libff/algebra/curves/bw6_761/bw6_761_pp.hpp>
 #include <libsnark/gadgetlib1/gadgets/fields/fp2_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/pairing/pairing_params.hpp>
+#include <libzeth/circuits/mimc/mimc_mp.hpp>
 
 namespace libzecale
 {
@@ -53,6 +55,10 @@ public:
 
     typedef libff::bls12_377_pp other_curve_type;
 
+    typedef bls12_377_G1_membership_check_gadget<libff::bw6_761_pp>
+        G1_checker_type;
+    typedef bls12_377_G2_membership_check_gadget<libff::bw6_761_pp>
+        G2_checker_type;
     typedef bls12_377_G1_precomputation<libff::bw6_761_pp>
         G1_precomputation_type;
     typedef bls12_377_G1_precompute_gadget<libff::bw6_761_pp>
@@ -75,6 +81,13 @@ public:
 
     static const constexpr libff::bigint<libff::bw6_761_Fr::num_limbs>
         &pairing_loop_count = libff::bls12_377_ate_loop_count;
+
+    // Constants e=31, r=77 computed via scripts/mimc_constraints.sage in
+    // http://github.com/clearmatics/zeth.
+    typedef libzeth::MiMC_mp_gadget<
+        libff::bw6_761_Fr,
+        libzeth::MiMC_permutation_gadget<libff::bw6_761_Fr, 31, 77>>
+        compression_function_gadget_type;
 };
 
 template<>

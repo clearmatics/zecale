@@ -49,21 +49,16 @@ void test_verifier(
 
     const size_t elt_size = FieldT_A::size_in_bits();
     const size_t primary_input_size_in_bits = elt_size * primary_input_size;
-    const size_t vk_size_in_bits =
-        r1cs_gg_ppzksnark_verification_key_variable<ppT_B>::size_in_bits(
-            primary_input_size);
 
     libsnark::protoboard<FieldT_B> pb;
-    libsnark::pb_variable_array<FieldT_B> vk_bits;
-    vk_bits.allocate(pb, vk_size_in_bits, "vk_bits");
 
     libsnark::pb_variable_array<FieldT_B> primary_input_bits;
     primary_input_bits.allocate(
         pb, primary_input_size_in_bits, "primary_input_bits");
 
     r1cs_gg_ppzksnark_proof_variable<ppT_B> proof(pb, "proof");
-    r1cs_gg_ppzksnark_verification_key_variable<ppT_B> vk(
-        pb, vk_bits, primary_input_size, "vk");
+    r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT_B> vk(
+        pb, primary_input_size, "vk");
 
     libsnark::pb_variable<FieldT_B> result;
     result.allocate(pb, "result");
@@ -143,8 +138,7 @@ void test_hardcoded_verifier(
     const size_t primary_input_size_in_bits = elt_size * primary_input_size;
 
     protoboard<FieldT_B> pb;
-    r1cs_gg_ppzksnark_preprocessed_r1cs_gg_ppzksnark_verification_key_variable<
-        ppT_B>
+    r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT_B>
         hardcoded_vk(pb, keypair.vk, "hardcoded_vk");
     pb_variable_array<FieldT_B> primary_input_bits;
     primary_input_bits.allocate(
