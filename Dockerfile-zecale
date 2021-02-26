@@ -1,5 +1,5 @@
 # We use the same base image as zeth since we need the same dependencies
-FROM clearmatics/zeth-base
+FROM ghcr.io/clearmatics/zeth:latest-base
 
 # Copy the project in the docker container
 COPY . /home/zecale
@@ -9,4 +9,3 @@ WORKDIR /home/zecale
 RUN git submodule update --init --recursive
 
 CMD ["/bin/bash"]
-

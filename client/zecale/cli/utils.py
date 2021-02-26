@@ -29,7 +29,7 @@ def load_nested_transaction(
 def load_aggregated_transaction(
         zksnark: IZKSnarkProvider, agg_tx_file: str) -> AggregatedTransaction:
     """
-    Load an aggreagted transction from a file
+    Load an aggregated transaction from a file
     """
     with open(agg_tx_file, "r") as tx_f:
         return AggregatedTransaction.from_json_dict(zksnark, json.load(tx_f))

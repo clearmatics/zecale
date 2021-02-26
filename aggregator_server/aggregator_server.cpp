@@ -293,7 +293,7 @@ public:
             std::array<libzecale::nested_transaction<npp, nsnark>, batch_size>
                 batch;
             const size_t num_entries = app_pool->get_next_batch(batch);
-            std::cout << "[DEBUG] Got batch of size"
+            std::cout << "[DEBUG] Got batch of size "
                       << std::to_string(num_entries) << " from the pool\n";
             if (num_entries == 0) {
                 throw std::runtime_error("insufficient entries in pool");
