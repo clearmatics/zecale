@@ -110,11 +110,11 @@ typename wsnarkT::keypair aggregator_circuit<
 }
 
 template<typename wppT, typename wsnarkT, typename nverifierT, size_t NumProofs>
-const libsnark::protoboard<libff::Fr<wppT>>
+const libsnark::r1cs_constraint_system<libff::Fr<wppT>>
     &aggregator_circuit<wppT, wsnarkT, nverifierT, NumProofs>::
         get_constraint_system() const
 {
-    return _pb;
+    return _pb.get_constraint_system();
 }
 
 template<typename wppT, typename wsnarkT, typename nverifierT, size_t NumProofs>
@@ -166,7 +166,7 @@ libzeth::extended_proof<wppT, wsnarkT> aggregator_circuit<
 
     // Return an extended_proof for the given witness.
     return extended_proof<wppT, wsnarkT>(
-        wsnarkT::generate_proof(_pb, aggregator_proving_key),
+        wsnarkT::generate_proof(aggregator_proving_key, _pb),
         _pb.primary_input());
 }
 

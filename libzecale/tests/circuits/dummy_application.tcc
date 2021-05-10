@@ -67,7 +67,7 @@ typename libzeth::extended_proof<ppT, snarkT> dummy_app_wrapper<ppT, snarkT>::
     _pb.val(_a) = a;
     _check_inverse.generate_r1cs_witness();
 
-    typename snarkT::proof proof = snarkT::generate_proof(_pb, pk);
+    typename snarkT::proof proof = snarkT::generate_proof(pk, _pb);
     libsnark::r1cs_primary_input<FieldT> primary_input = _pb.primary_input();
     return libzeth::extended_proof<ppT, snarkT>(
         std::move(proof), std::move(primary_input));
