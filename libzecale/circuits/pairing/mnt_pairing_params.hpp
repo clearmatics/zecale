@@ -66,11 +66,11 @@ public:
     static const constexpr libff::bigint<libff::mnt6_Fr::num_limbs>
         &pairing_loop_count = libff::mnt6_ate_loop_count;
 
-    // Constants e=31, r=61 computed via scripts/mimc_constraints.sage in
+    // Constants e=17, r=73 computed via scripts/mimc_constraints.sage in
     // http://github.com/clearmatics/zeth.
     typedef libzeth::MiMC_mp_gadget<
         libff::mnt4_Fr,
-        libzeth::MiMC_permutation_gadget<libff::mnt4_Fr, 31, 61>>
+        libzeth::MiMC_permutation_gadget<libff::mnt4_Fr, 17, 73>>
         compression_function_gadget_type;
 };
 
@@ -120,11 +120,11 @@ public:
     static const constexpr libff::bigint<libff::mnt4_Fr::num_limbs>
         &pairing_loop_count = libff::mnt4_ate_loop_count;
 
-    // Constants e=31, r=61 computed via scripts/mimc_constraints.sage in
+    // Constants e=17, r=73 computed via scripts/mimc_constraints.sage in
     // http://github.com/clearmatics/zeth.
     typedef libzeth::MiMC_mp_gadget<
         libff::mnt6_Fr,
-        libzeth::MiMC_permutation_gadget<libff::mnt6_Fr, 31, 61>>
+        libzeth::MiMC_permutation_gadget<libff::mnt6_Fr, 17, 73>>
         compression_function_gadget_type;
 };
 
