@@ -102,7 +102,8 @@ public:
     // Number of primary inputs to the wrapping circuit
     size_t num_primary_inputs() const;
 
-    const libsnark::protoboard<libff::Fr<wppT>> &get_constraint_system() const;
+    const libsnark::r1cs_constraint_system<libff::Fr<wppT>>
+        &get_constraint_system() const;
 
     /// Generate a proof and returns an extended proof
     extended_proof<wppT, wsnarkT> prove(

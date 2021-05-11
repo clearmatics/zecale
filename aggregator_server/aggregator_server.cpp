@@ -74,13 +74,14 @@ static const size_t num_inputs_per_nested_proof = 1;
 using aggregator_circuit =
     libzecale::aggregator_circuit<wpp, wsnark, nverifier, batch_size>;
 
-static wsnark::keypair load_keypair(const boost::filesystem::path &keypair_file)
+static void load_keypair(
+    wsnark::keypair &keypair, const boost::filesystem::path &keypair_file)
 {
     std::ifstream in(
         keypair_file.c_str(), std::ios_base::in | std::ios_base::binary);
     in.exceptions(
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    return wsnark::keypair_read_bytes(in);
+    return wsnark::keypair_read_bytes(keypair, in);
 }
 
 static void write_keypair(
@@ -97,8 +98,7 @@ static void write_constraint_system(
     const boost::filesystem::path &r1cs_file)
 {
     std::ofstream r1cs_stream(r1cs_file.c_str());
-    libzeth::r1cs_write_json<wpp>(
-        aggregator.get_constraint_system(), r1cs_stream);
+    libzeth::r1cs_write_json(aggregator.get_constraint_system(), r1cs_stream);
 }
 
 /// The aggregator_server class inherits from the Aggregator service defined in
@@ -182,8 +182,8 @@ public:
 
         std::cout << "[DEBUG] GetNestedVerificationKeyHash: "
                   << "vk:\n";
-        nsnark::verification_key_write_json(vk, std::cout)
-            << "\n VK hash: " << vk_hash_str << "\n";
+        nsnark::verification_key_write_json(vk, std::cout);
+        std::cout << "\n VK hash: " << vk_hash_str << "\n";
         return grpc::Status::OK;
     }
 
@@ -220,8 +220,8 @@ public:
 
             std::cout << "[DEBUG] Registered application '" << name
                       << " with VK:\n";
-            nsnark::verification_key_write_json(vk, std::cout)
-                << "\n VK hash: " << vk_hash_str << "\n";
+            nsnark::verification_key_write_json(vk, std::cout);
+            std::cout << "\n VK hash: " << vk_hash_str << "\n";
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -483,7 +483,8 @@ int main(int argc, char **argv)
     wsnark::keypair keypair = [&keypair_file, &aggregator]() {
         if (boost::filesystem::exists(keypair_file)) {
             std::cout << "[INFO] Loading keypair: " << keypair_file << "\n";
-            wsnark::keypair keypair = load_keypair(keypair_file);
+            wsnark::keypair keypair;
+            load_keypair(keypair, keypair_file);
 
             // Check the VK is for the correct number of inputs.
             if (keypair.vk.ABC_g1.size() != aggregator.num_primary_inputs()) {

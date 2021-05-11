@@ -141,7 +141,7 @@ TEST(Fp12_2over3over2_Test, SquareGadgetTest)
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<pp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(keypair.pk, pb);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -245,7 +245,7 @@ TEST(Fp12_2over3over2_Test, MulBy024GadgetTest)
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<pp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(keypair.pk, pb);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -328,7 +328,7 @@ TEST(Fp12_2over3over2_Test, MulGadgetTest)
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<pp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(keypair.pk, pb);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -376,7 +376,7 @@ TEST(Fp12_2over3over2_Test, InvGadgetTest)
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<pp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(keypair.pk, pb);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
@@ -474,7 +474,7 @@ TEST(Fp12_2over3over2_Test, CyclotomicSquareGadget)
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<pp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(keypair.pk, pb);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 

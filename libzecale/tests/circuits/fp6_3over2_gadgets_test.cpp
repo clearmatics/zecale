@@ -152,7 +152,7 @@ TEST(Fp6_3over2_Test, MulGadgetTest)
         pb.primary_input();
     libsnark::r1cs_auxiliary_input<libff::Fr<pp>> auxiliary_input =
         pb.auxiliary_input();
-    typename snark::proof proof = snark::generate_proof(pb, keypair.pk);
+    typename snark::proof proof = snark::generate_proof(keypair.pk, pb);
     ASSERT_TRUE(snark::verify(primary_input, proof, keypair.vk));
 }
 
