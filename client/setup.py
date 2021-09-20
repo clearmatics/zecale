@@ -19,17 +19,9 @@ setup(
     version='0.4',
     description='Client to interact with Zecale server',
     packages=find_packages(),
-    # zip_safe=False,
     install_requires=[
-        "mypy==0.790",
-        "mypy-protobuf==1.23",
-        "flake8==3.8.3",
-        "pylint==2.6",
-        "click==7.0",
-        "click-default-group==1.2",
-        "protobuf==3.13.0",
-        "grpcio==1.33.2",
-        "grpcio-tools==1.33.2",
+        # Dependencies installed as part of zeth client. Further dependencies
+        # are listed here:
     ],
     entry_points={
         'console_scripts': [

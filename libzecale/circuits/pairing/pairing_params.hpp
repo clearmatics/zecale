@@ -83,10 +83,8 @@ template<typename ppT> class pairing_selector;
  * Below are various template aliases (used for convenience).
  */
 
-template<typename ppT>
-using FqkT =
-    typename pairing_selector<ppT>::FqkT; // TODO: better name when stable
-
+// TODO: better name when stable
+template<typename ppT> using FqkT = typename pairing_selector<ppT>::FqkT;
 template<typename ppT>
 using Fqe_variable = typename pairing_selector<ppT>::Fqe_variable_type;
 template<typename ppT>
