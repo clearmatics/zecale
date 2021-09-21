@@ -84,7 +84,7 @@ function integration_tests() {
 
     # Run integration test
     . client/env/bin/activate
-    ./scripts/test_client
+    ./scripts/test-client
     deactivate
 
     aggregator_stop
