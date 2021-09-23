@@ -62,9 +62,6 @@ public:
         e_times_e_times_e_over_e_miller_loop_gadget_type;
     typedef libsnark::mnt4_final_exp_gadget<libff::mnt4_pp>
         final_exp_gadget_type;
-
-    static const constexpr libff::bigint<libff::mnt6_Fr::num_limbs>
-        &pairing_loop_count = libff::mnt6_ate_loop_count;
 };
 
 // Specialization for MNT6.
@@ -109,9 +106,6 @@ public:
         e_times_e_times_e_over_e_miller_loop_gadget_type;
     typedef libsnark::mnt6_final_exp_gadget<libff::mnt6_pp>
         final_exp_gadget_type;
-
-    static const constexpr libff::bigint<libff::mnt4_Fr::num_limbs>
-        &pairing_loop_count = libff::mnt4_ate_loop_count;
 };
 
 } // namespace libzecale

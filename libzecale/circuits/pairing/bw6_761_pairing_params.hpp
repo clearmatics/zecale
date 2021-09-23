@@ -78,9 +78,6 @@ public:
         e_times_e_times_e_over_e_miller_loop_gadget_type;
 
     typedef bls12_377_final_exp_gadget<libff::bw6_761_pp> final_exp_gadget_type;
-
-    static const constexpr libff::bigint<libff::bw6_761_Fr::num_limbs>
-        &pairing_loop_count = libff::bls12_377_ate_loop_count;
 };
 
 template<>
