@@ -5,7 +5,6 @@
 #ifndef __ZECALE_CIRCUITS_PAIRING_MNT_PAIRING_PARAMS_HPP__
 #define __ZECALE_CIRCUITS_PAIRING_MNT_PAIRING_PARAMS_HPP__
 
-#include "libzecale/circuits/pairing/mnt_weierstrass_quadruple_miller_loop.hpp"
 #include "libzecale/circuits/pairing/pairing_params.hpp"
 
 #include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
@@ -58,7 +57,8 @@ public:
     typedef libsnark::mnt_e_times_e_over_e_miller_loop_gadget<libff::mnt4_pp>
         e_times_e_over_e_miller_loop_gadget_type;
     // Add typedef for the `e_times_e_times_e_over_e_miller_loop_gadget` gadget
-    typedef mnt_e_times_e_times_e_over_e_miller_loop_gadget<libff::mnt4_pp>
+    typedef libsnark::mnt_e_times_e_times_e_over_e_miller_loop_gadget<
+        libff::mnt4_pp>
         e_times_e_times_e_over_e_miller_loop_gadget_type;
     typedef libsnark::mnt4_final_exp_gadget<libff::mnt4_pp>
         final_exp_gadget_type;
@@ -102,7 +102,8 @@ public:
     typedef libsnark::mnt_e_times_e_over_e_miller_loop_gadget<libff::mnt6_pp>
         e_times_e_over_e_miller_loop_gadget_type;
     // Add typedef for the `e_times_e_times_e_over_e_miller_loop_gadget` gadget
-    typedef mnt_e_times_e_times_e_over_e_miller_loop_gadget<libff::mnt6_pp>
+    typedef libsnark::mnt_e_times_e_times_e_over_e_miller_loop_gadget<
+        libff::mnt6_pp>
         e_times_e_times_e_over_e_miller_loop_gadget_type;
     typedef libsnark::mnt6_final_exp_gadget<libff::mnt6_pp>
         final_exp_gadget_type;
