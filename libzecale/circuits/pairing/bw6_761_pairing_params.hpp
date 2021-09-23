@@ -81,13 +81,6 @@ public:
 
     static const constexpr libff::bigint<libff::bw6_761_Fr::num_limbs>
         &pairing_loop_count = libff::bls12_377_ate_loop_count;
-
-    // Constants e=17, r=93 computed via scripts/mimc_constraints.sage in
-    // http://github.com/clearmatics/zeth.
-    typedef libzeth::MiMC_mp_gadget<
-        libff::bw6_761_Fr,
-        libzeth::MiMC_permutation_gadget<libff::bw6_761_Fr, 17, 93>>
-        compression_function_gadget_type;
 };
 
 template<>

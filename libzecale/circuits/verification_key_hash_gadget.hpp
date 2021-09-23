@@ -5,6 +5,8 @@
 #ifndef __ZECALE_CIRCUITS_VERIFICATION_KEY_HASH_GADGET_HPP__
 #define __ZECALE_CIRCUITS_VERIFICATION_KEY_HASH_GADGET_HPP__
 
+#include "libzecale/circuits/compression_function_selector.hpp"
+
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/hashes/hash_io.hpp>
 #include <libzeth/circuits/mimc/mimc_input_hasher.hpp>
