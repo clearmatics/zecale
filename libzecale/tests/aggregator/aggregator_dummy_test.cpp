@@ -11,6 +11,8 @@
 #include "libzecale/tests/circuits/dummy_application.hpp"
 
 #include <gtest/gtest.h>
+#include <libsnark/gadgetlib1/gadgets/pairing/bw6_761_bls12_377/bw6_761_pairing_params.hpp>
+#include <libsnark/gadgetlib1/gadgets/pairing/mnt/mnt_pairing_params.hpp>
 #include <libzeth/circuits/blake2s/blake2s.hpp>
 
 using namespace libzecale;

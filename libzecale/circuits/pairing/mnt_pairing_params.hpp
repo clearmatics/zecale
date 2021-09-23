@@ -14,8 +14,8 @@
 #include <libsnark/gadgetlib1/gadgets/fields/fp3_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/fields/fp4_gadgets.hpp>
 #include <libsnark/gadgetlib1/gadgets/fields/fp6_gadgets.hpp>
-#include <libsnark/gadgetlib1/gadgets/pairing/weierstrass_final_exponentiation.hpp>
-#include <libsnark/gadgetlib1/gadgets/pairing/weierstrass_precomputation.hpp>
+#include <libsnark/gadgetlib1/gadgets/pairing/mnt/mnt_final_exponentiation.hpp>
+#include <libsnark/gadgetlib1/gadgets/pairing/mnt/mnt_precomputation.hpp>
 #include <libzeth/circuits/mimc/mimc_mp.hpp>
 
 namespace libzecale
