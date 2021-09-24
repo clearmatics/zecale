@@ -18,7 +18,7 @@ template<typename wppT>
 class G1_variable_with_get_element : public libsnark::G1_variable<wppT>
 {
 public:
-    using nppT = other_curve<wppT>;
+    using nppT = libsnark::other_curve<wppT>;
     inline libff::G1<nppT> get_element() const
     {
         return libff::G1<nppT>(
@@ -31,7 +31,7 @@ public:
 } // namespace internal
 
 template<typename wppT>
-libff::G1<other_curve<wppT>> g1_variable_get_element(
+libff::G1<libsnark::other_curve<wppT>> g1_variable_get_element(
     const libsnark::G1_variable<wppT> &var)
 {
     return ((internal::G1_variable_with_get_element<wppT> *)(&var))
@@ -39,10 +39,10 @@ libff::G1<other_curve<wppT>> g1_variable_get_element(
 }
 
 template<typename wppT>
-libff::G2<other_curve<wppT>> g2_variable_get_element(
+libff::G2<libsnark::other_curve<wppT>> g2_variable_get_element(
     const libsnark::G2_variable<wppT> &var)
 {
-    using nppT = other_curve<wppT>;
+    using nppT = libsnark::other_curve<wppT>;
     return libff::G2<nppT>(
         var.X->get_element(),
         var.Y->get_element(),
@@ -257,7 +257,7 @@ template<typename wppT> void G2_add_gadget<wppT>::generate_r1cs_constraints()
 
 template<typename wppT> void G2_add_gadget<wppT>::generate_r1cs_witness()
 {
-    using nppT = other_curve<wppT>;
+    using nppT = libsnark::other_curve<wppT>;
     const libff::Fqe<nppT> Ax = _A.X->get_element();
     const libff::Fqe<nppT> Ay = _A.Y->get_element();
     const libff::Fqe<nppT> Bx = _B.X->get_element();
@@ -404,8 +404,8 @@ template<typename wppT> void G2_equality_gadget<wppT>::generate_r1cs_witness()
 
 template<typename wppT>
 void G2_equality_gadget<wppT>::generate_fpe_equality_constraints(
-    const libsnark::Fp2_variable<libff::Fqe<nppT>> &a,
-    const libsnark::Fp2_variable<libff::Fqe<nppT>> &b)
+    const libsnark::Fqe_variable<wppT> &a,
+    const libsnark::Fqe_variable<wppT> &b)
 {
     this->pb.add_r1cs_constraint(
         libsnark::r1cs_constraint<libff::Fr<wppT>>(a.c0, 1, b.c0),

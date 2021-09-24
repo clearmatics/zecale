@@ -50,8 +50,8 @@ template<typename ppT>
 std::vector<libff::Fr<ppT>> r1cs_ppzksnark_verification_key_scalar_variable<
     ppT>::
     get_verification_key_scalars(
-        const libsnark::r1cs_ppzksnark_verification_key<other_curve<ppT>>
-            &r1cs_vk)
+        const libsnark::r1cs_ppzksnark_verification_key<
+            libsnark::other_curve<ppT>> &r1cs_vk)
 {
     const size_t input_size_in_elts =
         r1cs_vk.encoded_IC_query.rest.indices

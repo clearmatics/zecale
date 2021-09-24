@@ -66,7 +66,7 @@ libsnark::G2_variable<wppT> bls12_377_g2_untwist_frobenius_twist(
     // bls12_377_G2::untwist_frobenius_twist(). See:
     // libff/algebra/curves/bls12_377/bls12_377_g2.cpp.
 
-    using nppT = other_curve<wppT>;
+    using nppT = libsnark::other_curve<wppT>;
     using FqeT = libff::Fqe<nppT>;
     using FqkT = libff::Fqk<nppT>;
     using Fq6T = typename FqkT::my_Fp6;

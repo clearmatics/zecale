@@ -6,7 +6,6 @@
 #define __ZECALE_CORE_AGGREGATOR_CIRCUIT_HPP__
 
 #include "libzecale/circuits/aggregator_gadget.hpp"
-#include "libzecale/circuits/pairing/pairing_params.hpp"
 #include "libzecale/circuits/verification_key_hash_gadget.hpp"
 
 #include <libzeth/core/extended_proof.hpp>
@@ -34,7 +33,7 @@ template<typename wppT, typename wsnarkT, typename nverifierT, size_t NumProofs>
 class aggregator_circuit
 {
 private:
-    using npp = other_curve<wppT>;
+    using npp = libsnark::other_curve<wppT>;
     using nsnark = typename nverifierT::snark;
     using verification_key_variable_gadget =
         typename nverifierT::verification_key_scalar_variable_gadget;

@@ -16,7 +16,7 @@ namespace libzecale
 template<typename ppT> class groth16_verifier_parameters
 {
 public:
-    using snark = libzeth::groth16_snark<other_curve<ppT>>;
+    using snark = libzeth::groth16_snark<libsnark::other_curve<ppT>>;
 
     using process_verification_key_gadget =
         r1cs_gg_ppzksnark_verifier_process_vk_gadget<ppT>;

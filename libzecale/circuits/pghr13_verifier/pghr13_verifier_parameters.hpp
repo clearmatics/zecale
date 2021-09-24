@@ -16,7 +16,7 @@ namespace libzecale
 template<typename ppT> class pghr13_verifier_parameters
 {
 public:
-    using snark = libzeth::pghr13_snark<other_curve<ppT>>;
+    using snark = libzeth::pghr13_snark<libsnark::other_curve<ppT>>;
 
     using process_verification_key_gadget =
         libsnark::r1cs_ppzksnark_verifier_process_vk_gadget<ppT>;

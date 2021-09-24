@@ -37,14 +37,14 @@ r1cs_gg_ppzksnark_proof_variable<ppT>::r1cs_gg_ppzksnark_proof_variable(
     _all_G1_checkers.resize(_all_G1_vars.size());
 
     for (size_t i = 0; i < _all_G1_vars.size(); ++i) {
-        _all_G1_checkers[i].reset(new G1_checker<ppT>(
+        _all_G1_checkers[i].reset(new libsnark::G1_checker<ppT>(
             pb,
             *_all_G1_vars[i],
             FMT(annotation_prefix, " all_G1_checkers_%zu", i)));
     }
 
-    _G2_checker.reset(
-        new G2_checker<ppT>(pb, *_g_B, FMT(annotation_prefix, " G2_checker")));
+    _G2_checker.reset(new libsnark::G2_checker<ppT>(
+        pb, *_g_B, FMT(annotation_prefix, " G2_checker")));
 
     assert(_all_G1_vars.size() == num_G1);
     assert(_all_G2_vars.size() == num_G2);
@@ -62,10 +62,10 @@ void r1cs_gg_ppzksnark_proof_variable<ppT>::generate_r1cs_constraints()
 
 template<typename ppT>
 void r1cs_gg_ppzksnark_proof_variable<ppT>::generate_r1cs_witness(
-    const libsnark::r1cs_gg_ppzksnark_proof<other_curve<ppT>> &proof)
+    const libsnark::r1cs_gg_ppzksnark_proof<libsnark::other_curve<ppT>> &proof)
 {
-    std::vector<libff::G1<other_curve<ppT>>> G1_elems;
-    std::vector<libff::G2<other_curve<ppT>>> G2_elems;
+    std::vector<libff::G1<libsnark::other_curve<ppT>>> G1_elems;
+    std::vector<libff::G2<libsnark::other_curve<ppT>>> G2_elems;
 
     G1_elems = {proof.g_A, proof.g_C};
     G2_elems = {proof.g_B};
@@ -143,9 +143,8 @@ void r1cs_gg_ppzksnark_verification_key_scalar_variable<
 
 template<typename ppT>
 void r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT>::
-    generate_r1cs_witness(
-        const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
-            &vk)
+    generate_r1cs_witness(const libsnark::r1cs_gg_ppzksnark_verification_key<
+                          libsnark::other_curve<ppT>> &vk)
 {
     assert(vk.ABC_g1.rest.size() == _num_primary_inputs);
     _alpha_g1.generate_r1cs_witness(vk.alpha_g1);
@@ -177,8 +176,8 @@ template<typename ppT>
 std::vector<libff::Fr<ppT>> r1cs_gg_ppzksnark_verification_key_scalar_variable<
     ppT>::
     get_verification_key_scalars(
-        const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
-            &r1cs_vk)
+        const libsnark::r1cs_gg_ppzksnark_verification_key<
+            libsnark::other_curve<ppT>> &r1cs_vk)
 {
     // TODO: It would be much more efficient to simply iterate through the
     // field elements of r1cs_vk, replicating the order in the constructor. For
@@ -272,7 +271,8 @@ void r1cs_gg_ppzksnark_verification_key_variable<
 
 template<typename ppT>
 void r1cs_gg_ppzksnark_verification_key_variable<ppT>::generate_r1cs_witness(
-    const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>> &vk)
+    const libsnark::r1cs_gg_ppzksnark_verification_key<
+        libsnark::other_curve<ppT>> &vk)
 {
     assert(vk.ABC_g1.rest.size() == _num_primary_inputs);
     _alpha_g1->generate_r1cs_witness(vk.alpha_g1);
@@ -315,8 +315,8 @@ size_t r1cs_gg_ppzksnark_verification_key_variable<ppT>::size_in_bits(
 template<typename ppT>
 libff::bit_vector r1cs_gg_ppzksnark_verification_key_variable<ppT>::
     get_verification_key_bits(
-        const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
-            &r1cs_vk)
+        const libsnark::r1cs_gg_ppzksnark_verification_key<
+            libsnark::other_curve<ppT>> &r1cs_vk)
 {
     typedef libff::Fr<ppT> FieldT;
 
@@ -344,8 +344,8 @@ template<typename ppT>
 r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT>::
     r1cs_gg_ppzksnark_preprocessed_verification_key_variable(
         libsnark::protoboard<FieldT> &pb,
-        const libsnark::r1cs_gg_ppzksnark_verification_key<other_curve<ppT>>
-            &r1cs_vk,
+        const libsnark::r1cs_gg_ppzksnark_verification_key<
+            libsnark::other_curve<ppT>> &r1cs_vk,
         const std::string &annotation_prefix)
 {
     _encoded_ABC_base.reset(new libsnark::G1_variable<ppT>(
@@ -359,16 +359,16 @@ r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT>::
             FMT(annotation_prefix, " ABC_g1[%zu]", i)));
     }
 
-    _vk_alpha_g1_precomp.reset(new G1_precomputation<ppT>(
+    _vk_alpha_g1_precomp.reset(new libsnark::G1_precomputation<ppT>(
         pb, r1cs_vk.alpha_g1, FMT(annotation_prefix, " vk_alpha_g1_precomp")));
 
-    _vk_generator_g2_precomp.reset(new G2_precomputation<ppT>(
+    _vk_generator_g2_precomp.reset(new libsnark::G2_precomputation<ppT>(
         pb,
-        libff::G2<other_curve<ppT>>::one(),
+        libff::G2<libsnark::other_curve<ppT>>::one(),
         FMT(annotation_prefix, " vk_generator_g2_precomp")));
-    _vk_beta_g2_precomp.reset(new G2_precomputation<ppT>(
+    _vk_beta_g2_precomp.reset(new libsnark::G2_precomputation<ppT>(
         pb, r1cs_vk.beta_g2, FMT(annotation_prefix, " vk_beta_g2_precomp")));
-    _vk_delta_g2_precomp.reset(new G2_precomputation<ppT>(
+    _vk_delta_g2_precomp.reset(new libsnark::G2_precomputation<ppT>(
         pb, r1cs_vk.delta_g2, FMT(annotation_prefix, " vk_delta_g2_precomp")));
 }
 
@@ -384,28 +384,28 @@ r1cs_gg_ppzksnark_verifier_process_vk_gadget<ppT>::
     _pvk._encoded_ABC_base = vk._encoded_ABC_base;
     _pvk._ABC_g1 = vk._ABC_g1;
 
-    _pvk._vk_alpha_g1_precomp.reset(new G1_precomputation<ppT>());
+    _pvk._vk_alpha_g1_precomp.reset(new libsnark::G1_precomputation<ppT>());
 
-    _pvk._vk_generator_g2_precomp.reset(new G2_precomputation<ppT>());
-    _pvk._vk_beta_g2_precomp.reset(new G2_precomputation<ppT>());
-    _pvk._vk_delta_g2_precomp.reset(new G2_precomputation<ppT>());
+    _pvk._vk_generator_g2_precomp.reset(new libsnark::G2_precomputation<ppT>());
+    _pvk._vk_beta_g2_precomp.reset(new libsnark::G2_precomputation<ppT>());
+    _pvk._vk_delta_g2_precomp.reset(new libsnark::G2_precomputation<ppT>());
 
-    _compute_vk_alpha_g1_precomp.reset(new G1_precompute_gadget<ppT>(
+    _compute_vk_alpha_g1_precomp.reset(new libsnark::precompute_G1_gadget<ppT>(
         pb,
         vk._alpha_g1,
         *pvk._vk_alpha_g1_precomp,
         FMT(annotation_prefix, " compute_vk_alpha_g1_precomp")));
 
-    _pvk._vk_generator_g2_precomp.reset(new G2_precomputation<ppT>(
+    _pvk._vk_generator_g2_precomp.reset(new libsnark::G2_precomputation<ppT>(
         pb,
-        libff::G2<other_curve<ppT>>::one(),
+        libff::G2<libsnark::other_curve<ppT>>::one(),
         FMT(annotation_prefix, " vk_generator_g2_precomp")));
-    _compute_vk_beta_g2_precomp.reset(new G2_precompute_gadget<ppT>(
+    _compute_vk_beta_g2_precomp.reset(new libsnark::precompute_G2_gadget<ppT>(
         pb,
         vk._beta_g2,
         *pvk._vk_beta_g2_precomp,
         FMT(annotation_prefix, " compute_vk_beta_g2_precomp")));
-    _compute_vk_delta_g2_precomp.reset(new G2_precompute_gadget<ppT>(
+    _compute_vk_delta_g2_precomp.reset(new libsnark::precompute_G2_gadget<ppT>(
         pb,
         vk._delta_g2,
         *pvk._vk_delta_g2_precomp,
@@ -473,34 +473,34 @@ r1cs_gg_ppzksnark_online_verifier_gadget<ppT>::
     // https://github.com/clearmatics/libsnark/blob/master/libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/r1cs_gg_ppzksnark.tcc#L588-L591
     //
     // 2.1 Allocate the results of the precomputations
-    _proof_g_A_precomp.reset(new G1_precomputation<ppT>());
-    _proof_g_B_precomp.reset(new G2_precomputation<ppT>());
-    _proof_g_C_precomp.reset(new G1_precomputation<ppT>());
-    _acc_precomp.reset(new G1_precomputation<ppT>());
+    _proof_g_A_precomp.reset(new libsnark::G1_precomputation<ppT>());
+    _proof_g_B_precomp.reset(new libsnark::G2_precomputation<ppT>());
+    _proof_g_C_precomp.reset(new libsnark::G1_precomputation<ppT>());
+    _acc_precomp.reset(new libsnark::G1_precomputation<ppT>());
     // 2.2 Do the precomputations
-    _compute_proof_g_A_precomp.reset(new G1_precompute_gadget<ppT>(
+    _compute_proof_g_A_precomp.reset(new libsnark::precompute_G1_gadget<ppT>(
         pb,
         *(proof._g_A),
         *_proof_g_A_precomp,
         FMT(annotation_prefix, " compute_proof_g_A_precomp")));
-    _compute_proof_g_B_precomp.reset(new G2_precompute_gadget<ppT>(
+    _compute_proof_g_B_precomp.reset(new libsnark::precompute_G2_gadget<ppT>(
         pb,
         *(proof._g_B),
         *_proof_g_B_precomp,
         FMT(annotation_prefix, " compute_proof_g_B_precomp")));
-    _compute_proof_g_C_precomp.reset(new G1_precompute_gadget<ppT>(
+    _compute_proof_g_C_precomp.reset(new libsnark::precompute_G1_gadget<ppT>(
         pb,
         *(proof._g_C),
         *_proof_g_C_precomp,
         FMT(annotation_prefix, " compute_proof_g_C_precomp")));
-    _compute_acc_precomp.reset(new G1_precompute_gadget<ppT>(
+    _compute_acc_precomp.reset(new libsnark::precompute_G1_gadget<ppT>(
         pb,
         *_acc,
         *_acc_precomp,
         FMT(annotation_prefix, " compute_acc_precomp")));
 
     // 3. Carry out the pairing checks to check QAP equation
-    _check_QAP_valid.reset(new check_e_equals_eee_gadget<ppT>(
+    _check_QAP_valid.reset(new libsnark::check_e_equals_eee_gadget<ppT>(
         pb,
         // LHS
         *_proof_g_A_precomp,

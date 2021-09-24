@@ -45,7 +45,7 @@ using wpp = libff::bw6_761_pp;
 #endif
 
 // The nested curve type (npp)
-using npp = libzecale::other_curve<wpp>;
+using npp = libsnark::other_curve<wpp>;
 
 // Set both wrapper and nested snark schemes based on the build configuration.
 #if defined(ZECALE_SNARK_PGHR13)

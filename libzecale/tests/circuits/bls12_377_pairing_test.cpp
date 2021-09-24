@@ -5,7 +5,6 @@
 #include "libzecale/circuits/fields/fp12_2over3over2_gadgets.hpp"
 #include "libzecale/circuits/pairing/bls12_377_pairing.hpp"
 #include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
-#include "libzecale/circuits/pairing/pairing_params.hpp"
 
 #include <gtest/gtest.h>
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
@@ -172,8 +171,8 @@ TEST(BLS12_377_PairingTest, PrecomputeAddGadgetTest)
     // add gadget.
 
     libsnark::protoboard<libff::Fr<wpp>> pb;
-    libzecale::Fqe_variable<wpp> Q_X(pb, "Q_X");
-    libzecale::Fqe_variable<wpp> Q_Y(pb, "Q_Y");
+    libsnark::Fqe_variable<wpp> Q_X(pb, "Q_X");
+    libsnark::Fqe_variable<wpp> Q_Y(pb, "Q_Y");
     libzecale::bls12_377_G2_proj<wpp> R0_var(pb, "R0");
     libzecale::bls12_377_G2_proj<wpp> R1_var(pb, "R1");
     libzecale::bls12_377_ate_ell_coeffs<wpp> R1_coeffs_var(pb, "R1_coeffs");
@@ -354,12 +353,12 @@ TEST(BLS12_377_PairingTest, MillerLoopGadgetTest)
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
 
-    libzecale::G1_precomputation<wpp> P_prec_var;
-    libzecale::G1_precompute_gadget<wpp> precompute_P(
+    libsnark::G1_precomputation<wpp> P_prec_var;
+    libsnark::precompute_G1_gadget<wpp> precompute_P(
         pb, P_var, P_prec_var, "precomp_P");
 
-    libzecale::G2_precomputation<wpp> Q_prec_var;
-    libzecale::G2_precompute_gadget<wpp> precompute_Q(
+    libsnark::G2_precomputation<wpp> Q_prec_var;
+    libsnark::precompute_G2_gadget<wpp> precompute_Q(
         pb, Q_var, Q_prec_var, "precomp_Q");
 
     libzecale::bls12_377_miller_loop_gadget<wpp> miller_loop_gadget(
@@ -413,9 +412,9 @@ TEST(BLS12_377_PairingTest, MillerLoopGadgetWithConstantG1Precomputation)
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
 
-    libzecale::G1_precomputation<wpp> P_prec_const(pb, P, "P_prec");
-    libzecale::G2_precomputation<wpp> Q_prec_var;
-    libzecale::G2_precompute_gadget<wpp> precompute_Q(
+    libsnark::G1_precomputation<wpp> P_prec_const(pb, P, "P_prec");
+    libsnark::G2_precomputation<wpp> Q_prec_var;
+    libsnark::precompute_G2_gadget<wpp> precompute_Q(
         pb, Q_var, Q_prec_var, "precomp_Q");
 
     libzecale::bls12_377_miller_loop_gadget<wpp> miller_loop_gadget(
@@ -467,11 +466,11 @@ TEST(BLS12_377_PairingTest, MillerLoopGadgetWithConstantG2Precomputation)
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
 
-    libzecale::G1_precomputation<wpp> P_prec_var;
-    libzecale::G1_precompute_gadget<wpp> precompute_P(
+    libsnark::G1_precomputation<wpp> P_prec_var;
+    libsnark::precompute_G1_gadget<wpp> precompute_P(
         pb, P_var, P_prec_var, "precomp_P");
 
-    libzecale::G2_precomputation<wpp> Q_prec_const(pb, Q, "precomp_Q");
+    libsnark::G2_precomputation<wpp> Q_prec_const(pb, Q, "precomp_Q");
 
     libzecale::bls12_377_miller_loop_gadget<wpp> miller_loop_gadget(
         pb, P_prec_var, Q_prec_const, miller_var, "miller loop");
@@ -668,12 +667,12 @@ TEST(BLS12_377_PairingTest, FullPairingCircuit)
     const size_t num_primary_inputs = pb.num_inputs();
     pb.set_input_sizes(num_primary_inputs);
 
-    libzecale::G1_precomputation<wpp> P_prec_var;
-    libzecale::G1_precompute_gadget<wpp> precompute_P(
+    libsnark::G1_precomputation<wpp> P_prec_var;
+    libsnark::precompute_G1_gadget<wpp> precompute_P(
         pb, P_var, P_prec_var, "P_prec");
 
-    libzecale::G2_precomputation<wpp> Q_prec_var;
-    libzecale::G2_precompute_gadget<wpp> precompute_Q(
+    libsnark::G2_precomputation<wpp> Q_prec_var;
+    libsnark::precompute_G2_gadget<wpp> precompute_Q(
         pb, Q_var, Q_prec_var, "Q_prec");
 
     libzecale::Fp12_2over3over2_variable<FqkT> miller_var(pb, "miller");
@@ -742,8 +741,8 @@ TEST(BLS12_377_PairingTest, FinalExpGadget)
 
     // Circuit
     libsnark::protoboard<FieldT> pb;
-    libzecale::Fqk_variable<wpp> miller_PQ_var(pb, "miller_PQ");
-    libzecale::Fqk_variable<wpp> miller_ee_var(pb, "miller_ee");
+    libsnark::Fqk_variable<wpp> miller_PQ_var(pb, "miller_PQ");
+    libsnark::Fqk_variable<wpp> miller_ee_var(pb, "miller_ee");
 
     // Case where output is NOT 1
     libsnark::pb_variable<FieldT> final_exp_PQ_is_one_var;

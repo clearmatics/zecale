@@ -8,7 +8,6 @@
 #include "libzecale/circuits/fields/fp12_2over3over2_gadgets.hpp"
 #include "libzecale/circuits/pairing/bls12_377_membership_check_gadgets.hpp"
 #include "libzecale/circuits/pairing/bls12_377_pairing.hpp"
-#include "libzecale/circuits/pairing/pairing_params.hpp"
 
 #include <libff/algebra/curves/bls12_377/bls12_377_pp.hpp>
 #include <libff/algebra/curves/bw6_761/bw6_761_pp.hpp>
@@ -48,9 +47,8 @@ public:
     typedef libsnark::Fp2_sqr_gadget<FqeT> Fqe_sqr_gadget_type;
 
     typedef Fp12_2over3over2_variable<FqkT> Fqk_variable_type;
-    // typedef libsnark::Fp12_mul_gadget<FqkT> Fqk_mul_gadget_type;
+    typedef Fp12_2over3over2_mul_gadget<FqkT> Fqk_mul_gadget_type;
     // typedef libsnark::Fp12_mul_by_2345_gadget<FqkT>
-    typedef Fp12_2over3over2_mul_by_024_gadget<FqkT> Fqk_mul_by_024_gadget_type;
     typedef Fp12_2over3over2_square_gadget<FqkT> Fqk_sqr_gadget_type;
 
     typedef libff::bls12_377_pp other_curve_type;
@@ -59,15 +57,18 @@ public:
         G1_checker_type;
     typedef bls12_377_G2_membership_check_gadget<libff::bw6_761_pp>
         G2_checker_type;
+
     typedef bls12_377_G1_precomputation<libff::bw6_761_pp>
         G1_precomputation_type;
     typedef bls12_377_G1_precompute_gadget<libff::bw6_761_pp>
-        G1_precompute_gadget_type;
+        precompute_G1_gadget_type;
+
     typedef bls12_377_G2_precomputation<libff::bw6_761_pp>
         G2_precomputation_type;
     typedef bls12_377_G2_precompute_gadget<libff::bw6_761_pp>
-        G2_precompute_gadget_type;
+        precompute_G2_gadget_type;
 
+    // Not implemented:
     // typedef bls12_377_e_over_e_miller_loop_gadget
     //     bls12_377_over_e_miller_loop_gadget_type;
     // typedef bls12_377_e_times_e_over_e_miller_loop_gadget
@@ -78,12 +79,6 @@ public:
         e_times_e_times_e_over_e_miller_loop_gadget_type;
 
     typedef bls12_377_final_exp_gadget<libff::bw6_761_pp> final_exp_gadget_type;
-};
-
-template<>
-class pairing_selector<libff::bw6_761_pp>
-    : public libzecale::bw6_761_pairing_selector
-{
 };
 
 } // namespace libzecale

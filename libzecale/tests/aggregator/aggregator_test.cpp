@@ -6,12 +6,12 @@
 #include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
 #include "libzecale/circuits/null_hash_gadget.hpp"
 #include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
-#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
 #include "libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp"
 
 #include <gtest/gtest.h>
 #include <libff/algebra/fields/field_utils.hpp>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
+#include <libsnark/gadgetlib1/gadgets/pairing/mnt/mnt_pairing_params.hpp>
 #include <libzeth/circuits/circuit_types.hpp>
 #include <libzeth/circuits/circuit_wrapper.hpp>
 #include <libzeth/core/bits.cpp>
@@ -227,7 +227,7 @@ bool test_valid_aggregation_batch_proofs(
     typename nverifierT::snark::keypair &zeth_keypair,
     const std::array<
         const libzeth::extended_proof<
-            libzecale::other_curve<wppT>,
+            libsnark::other_curve<wppT>,
             typename nverifierT::snark> *,
         batch_size> &nested_proofs)
 {
@@ -256,7 +256,7 @@ bool test_valid_aggregation_batch_proofs(
 template<typename wppT, typename wsnarkT, typename nverifierT>
 void aggregator_test()
 {
-    using npp = libzecale::other_curve<wppT>;
+    using npp = libsnark::other_curve<wppT>;
     using nsnark = typename nverifierT::snark;
 
     std::cout << "[DEBUG] Entering test for the aggregator" << std::endl;

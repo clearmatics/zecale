@@ -12,7 +12,7 @@
 #include <libzeth/snarks/groth16/groth16_snark.hpp>
 
 using wpp = libff::bw6_761_pp;
-using npp = libzecale::other_curve<wpp>;
+using npp = libsnark::other_curve<wpp>;
 using snark = libzeth::groth16_snark<wpp>;
 using Field = libff::Fr<wpp>;
 

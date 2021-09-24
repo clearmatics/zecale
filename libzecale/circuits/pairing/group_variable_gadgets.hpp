@@ -5,22 +5,21 @@
 #ifndef __ZECALE_CIRCUITS_PAIRING_GROUP_VARIABLE_GADGETS_HPP__
 #define __ZECALE_CIRCUITS_PAIRING_GROUP_VARIABLE_GADGETS_HPP__
 
-#include "libzecale/circuits/pairing/pairing_params.hpp"
-
 #include <libsnark/gadgetlib1/gadgets/curves/weierstrass_g1_gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/curves/weierstrass_g2_gadget.hpp>
+#include <libsnark/gadgetlib1/gadgets/pairing/pairing_params.hpp>
 
 namespace libzecale
 {
 
 /// Utility function to get the value from a (witnessed) G1_variable.
 template<typename wppT>
-libff::G1<other_curve<wppT>> g1_variable_get_element(
+libff::G1<libsnark::other_curve<wppT>> g1_variable_get_element(
     const libsnark::G1_variable<wppT> &g1_variable);
 
 /// Utility function to get the value from a (witnessed) G2_variable.
 template<typename wppT>
-libff::G2<other_curve<wppT>> g2_variable_get_element(
+libff::G2<libsnark::other_curve<wppT>> g2_variable_get_element(
     const libsnark::G2_variable<wppT> &var);
 
 /// Negate a G2 variable and return the result. (Note that evaluate should be
@@ -65,7 +64,7 @@ public:
 /// Gadget for scalar multiplication of G1 elements
 template<typename wppT, mp_size_t scalarLimbs>
 using G1_mul_by_const_scalar_gadget = point_mul_by_const_scalar_gadget<
-    libff::G1<other_curve<wppT>>,
+    libff::G1<libsnark::other_curve<wppT>>,
     libsnark::G1_variable<wppT>,
     libsnark::G1_add_gadget<wppT>,
     libsnark::G1_dbl_gadget<wppT>,
@@ -114,7 +113,7 @@ public:
 template<typename wppT> class G2_dbl_gadget : libsnark::gadget<libff::Fr<wppT>>
 {
 public:
-    using nppT = other_curve<wppT>;
+    using nppT = libsnark::other_curve<wppT>;
 
     libsnark::G2_variable<wppT> _A;
     libsnark::G2_variable<wppT> _B;
@@ -154,7 +153,7 @@ public:
 
 template<typename wppT, mp_size_t scalarLimbs>
 using G2_mul_by_const_scalar_gadget = point_mul_by_const_scalar_gadget<
-    libff::G2<other_curve<wppT>>,
+    libff::G2<libsnark::other_curve<wppT>>,
     libsnark::G2_variable<wppT>,
     G2_add_gadget<wppT>,
     G2_dbl_gadget<wppT>,
@@ -164,7 +163,7 @@ template<typename wppT>
 class G2_equality_gadget : libsnark::gadget<libff::Fr<wppT>>
 {
 public:
-    using nppT = other_curve<wppT>;
+    using nppT = libsnark::other_curve<wppT>;
 
     libsnark::G2_variable<wppT> _A;
     libsnark::G2_variable<wppT> _B;
@@ -185,8 +184,8 @@ private:
     // callers accidentally using this for other pairings and passing in
     // Fp?_variable.
     void generate_fpe_equality_constraints(
-        const libsnark::Fp2_variable<libff::Fqe<nppT>> &a,
-        const libsnark::Fp2_variable<libff::Fqe<nppT>> &b);
+        const libsnark::Fqe_variable<wppT> &a,
+        const libsnark::Fqe_variable<wppT> &b);
 };
 
 } // namespace libzecale

@@ -35,8 +35,8 @@ public:
     size_t num_primary_inputs() const;
     const libsnark::pb_linear_combination_array<FieldT> &get_all_vars() const;
     static std::vector<FieldT> get_verification_key_scalars(
-        const libsnark::r1cs_ppzksnark_verification_key<other_curve<ppT>>
-            &r1cs_vk);
+        const libsnark::r1cs_ppzksnark_verification_key<
+            libsnark::other_curve<ppT>> &r1cs_vk);
 
 private:
     static libsnark::pb_variable_array<FieldT> allocate_all_bits(

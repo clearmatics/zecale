@@ -6,7 +6,6 @@
 #include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
 #include "libzecale/circuits/null_hash_gadget.hpp"
 #include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
-#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
 #include "libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp"
 #include "libzecale/tests/circuits/dummy_application.hpp"
 
@@ -65,14 +64,14 @@ void test_aggregator_with_batch(
     const size_t num_inputs_per_nested_proof,
     const typename nverifierT::snark::keypair &nkp,
     const proof_batch<
-        libzecale::other_curve<wppT>,
+        libsnark::other_curve<wppT>,
         typename nverifierT::snark,
         batch_size> &batch,
     const typename wsnarkT::keypair &wkeypair,
     aggregator_circuit<wppT, wsnarkT, nverifierT, batch_size> &aggregator,
     const std::array<libff::Fr<wppT>, batch_size> &expected_results)
 {
-    using npp = libzecale::other_curve<wppT>;
+    using npp = libsnark::other_curve<wppT>;
 
     // Generate proof and check it.
     const libzeth::extended_proof<wppT, wsnarkT> wpf =
@@ -120,7 +119,7 @@ void test_aggregator_with_batch(
 template<typename wppT, typename wsnarkT, typename nverifierT>
 void test_aggregate_dummy_application()
 {
-    using npp = other_curve<wppT>;
+    using npp = libsnark::other_curve<wppT>;
     using nsnark = typename nverifierT::snark;
 
     static const size_t batch_size = 2;
@@ -161,7 +160,7 @@ void test_aggregate_dummy_application()
 template<typename wppT, typename wsnarkT, typename nverifierT>
 void test_aggregate_dummy_application_with_invalid_proof()
 {
-    using npp = other_curve<wppT>;
+    using npp = libsnark::other_curve<wppT>;
     using nsnark = typename nverifierT::snark;
 
     static const size_t batch_size = 2;

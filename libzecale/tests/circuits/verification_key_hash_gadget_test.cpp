@@ -4,13 +4,13 @@
 
 #include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
 #include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
-#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
 #include "libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp"
 #include "libzecale/circuits/verification_key_hash_gadget.hpp"
 #include "libzecale/tests/circuits/dummy_application.hpp"
 
 #include <gtest/gtest.h>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
+#include <libsnark/gadgetlib1/gadgets/pairing/mnt/mnt_pairing_params.hpp>
 #include <libzeth/circuits/blake2s/blake2s.hpp>
 #include <libzeth/snarks/groth16/groth16_snark.hpp>
 
@@ -21,7 +21,7 @@ template<typename wppT, typename nverifierT>
 static void verification_key_scalar_hash_test()
 {
     using FieldT = libff::Fr<wppT>;
-    using npp = libzecale::other_curve<wppT>;
+    using npp = libsnark::other_curve<wppT>;
     using nsnark = typename nverifierT::snark;
 
     // Get 2 VKs for the dummy app, and determine the number of primary inputs.
@@ -66,7 +66,7 @@ template<typename wppT, typename nverifierT>
 void verification_key_scalar_hash_gadget_test()
 {
     using FieldT = libff::Fr<wppT>;
-    using npp = libzecale::other_curve<wppT>;
+    using npp = libsnark::other_curve<wppT>;
     using nsnark = typename nverifierT::snark;
 
     const size_t num_nested_inputs =
@@ -147,7 +147,7 @@ template<typename wppT, typename nverifierT, typename hash_gadgetT>
 static void verification_key_hash_test()
 {
     using FieldT = libff::Fr<wppT>;
-    using npp = libzecale::other_curve<wppT>;
+    using npp = libsnark::other_curve<wppT>;
     using nsnark = typename nverifierT::snark;
 
     libzecale::test::dummy_app_wrapper<npp, nsnark> dummy_app;
@@ -172,7 +172,7 @@ template<typename wppT, typename nverifierT, typename hash_gadgetT>
 void verification_key_hash_gadget_test()
 {
     using FieldT = libff::Fr<wppT>;
-    using npp = libzecale::other_curve<wppT>;
+    using npp = libsnark::other_curve<wppT>;
     using nsnark = typename nverifierT::snark;
 
     const size_t num_nested_inputs =

@@ -5,11 +5,10 @@
 #ifndef __ZECALE_CIRCUITS_AGGREGATOR_GADGET_HPP_
 #define __ZECALE_CIRCUITS_AGGREGATOR_GADGET_HPP_
 
-#include "libzecale/circuits/pairing/pairing_params.hpp"
-
 #include <libff/algebra/fields/field_utils.hpp>
 #include <libsnark/gadgetlib1/gadget.hpp>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
+#include <libsnark/gadgetlib1/gadgets/pairing/pairing_params.hpp>
 #include <libzeth/core/extended_proof.hpp>
 
 namespace libzecale
@@ -33,7 +32,7 @@ template<typename wppT, typename nverifierT, size_t NumProofs>
 class aggregator_gadget : libsnark::gadget<libff::Fr<wppT>>
 {
 private:
-    using npp = other_curve<wppT>;
+    using npp = libsnark::other_curve<wppT>;
     using nsnark = typename nverifierT::snark;
     using process_verification_key_gadget =
         typename nverifierT::process_verification_key_gadget;

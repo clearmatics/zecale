@@ -7,7 +7,6 @@
 
 #include "libzecale/circuits/fields/fp12_2over3over2_gadgets.hpp"
 #include "libzecale/circuits/pairing/group_variable_gadgets.hpp"
-#include "libzecale/circuits/pairing/pairing_params.hpp"
 
 #include <libff/algebra/curves/bls12_377/bls12_377_init.hpp>
 #include <libsnark/gadgetlib1/gadgets/curves/weierstrass_g1_gadget.hpp>
@@ -16,12 +15,13 @@
 namespace libzecale
 {
 
-/// Curve equation and subgroup membership check for BLS12-377 G1 variables.
+/// Curve equation (via the generic G1_checker_gadget) and subgroup membership
+/// check for BLS12-377 G1 variables.
 template<typename wppT>
 class bls12_377_G1_membership_check_gadget : libsnark::gadget<libff::Fr<wppT>>
 {
 public:
-    using nppT = other_curve<wppT>;
+    using nppT = libsnark::other_curve<wppT>;
     using G1_mul_by_cofactor_gadget =
         G1_mul_by_const_scalar_gadget<wppT, libff::G1<nppT>::h_limbs>;
 
@@ -52,7 +52,8 @@ libsnark::G2_variable<wppT> bls12_377_g2_untwist_frobenius_twist(
     size_t exp,
     const std::string &annotation_prefix);
 
-/// Curve equation and subgroup membership check for BLS12-377 G2 variables.
+/// Curve equation (via generic G2_checker_gadget) and subgroup membership
+/// check for BLS12-377 G2 variables.
 template<typename wppT>
 class bls12_377_G2_membership_check_gadget : libsnark::gadget<libff::Fr<wppT>>
 {

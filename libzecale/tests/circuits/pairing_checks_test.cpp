@@ -3,16 +3,19 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
-#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
-#include "libzecale/circuits/pairing/pairing_checks.hpp"
-#include "libzecale/circuits/pairing/pairing_params.hpp"
 
 #include <gtest/gtest.h>
+#include <libsnark/gadgetlib1/gadgets/pairing/mnt/mnt_pairing_params.hpp>
+#include <libsnark/gadgetlib1/gadgets/pairing/pairing_checks.hpp>
+
+// TODO: move this to libsnark when bw6_761 pairing gadgets are mo
 
 using namespace libzecale;
 
 namespace
 {
+
+template<typename wppT> using other_curve = libsnark::other_curve<wppT>;
 
 /// In this test we carry out - via a circuit defined over Fr<ppT> - a pairing
 /// check between elements of G1 and G2 defined over other_curve<ppT>
@@ -52,47 +55,47 @@ bool test_check_e_equals_eee_gadget(
     libsnark::G1_variable<ppT> rhs_P3(pb, FMT(annotation_prefix, " rhs_P3"));
     libsnark::G2_variable<ppT> rhs_Q3(pb, FMT(annotation_prefix, " rhs_Q3"));
 
-    G1_precomputation<ppT> lhs_prec_P;
-    G1_precompute_gadget<ppT> compute_lhs_prec_P(
+    libsnark::G1_precomputation<ppT> lhs_prec_P;
+    libsnark::precompute_G1_gadget<ppT> compute_lhs_prec_P(
         pb, lhs_P, lhs_prec_P, FMT(annotation_prefix, "compute_lhs_prec_P"));
-    G2_precomputation<ppT> lhs_prec_Q;
-    G2_precompute_gadget<ppT> compute_lhs_prec_Q(
+    libsnark::G2_precomputation<ppT> lhs_prec_Q;
+    libsnark::precompute_G2_gadget<ppT> compute_lhs_prec_Q(
         pb, lhs_Q, lhs_prec_Q, FMT(annotation_prefix, "compute_lhs_prec_Q"));
 
-    G1_precomputation<ppT> rhs_prec1_P;
-    G1_precompute_gadget<ppT> compute_rhs_prec1_P(
+    libsnark::G1_precomputation<ppT> rhs_prec1_P;
+    libsnark::precompute_G1_gadget<ppT> compute_rhs_prec1_P(
         pb,
         rhs_P1,
         rhs_prec1_P,
         FMT(annotation_prefix, " compute_rhs_prec1_P"));
-    G2_precomputation<ppT> rhs_prec1_Q;
-    G2_precompute_gadget<ppT> compute_rhs_prec1_Q(
+    libsnark::G2_precomputation<ppT> rhs_prec1_Q;
+    libsnark::precompute_G2_gadget<ppT> compute_rhs_prec1_Q(
         pb,
         rhs_Q1,
         rhs_prec1_Q,
         FMT(annotation_prefix, " compute_rhs_prec1_Q"));
 
-    G1_precomputation<ppT> rhs_prec2_P;
-    G1_precompute_gadget<ppT> compute_rhs_prec2_P(
+    libsnark::G1_precomputation<ppT> rhs_prec2_P;
+    libsnark::precompute_G1_gadget<ppT> compute_rhs_prec2_P(
         pb,
         rhs_P2,
         rhs_prec2_P,
         FMT(annotation_prefix, " compute_rhs_prec2_P"));
-    G2_precomputation<ppT> rhs_prec2_Q;
-    G2_precompute_gadget<ppT> compute_rhs_prec2_Q(
+    libsnark::G2_precomputation<ppT> rhs_prec2_Q;
+    libsnark::precompute_G2_gadget<ppT> compute_rhs_prec2_Q(
         pb,
         rhs_Q2,
         rhs_prec2_Q,
         FMT(annotation_prefix, " compute_rhs_prec2_Q"));
 
-    G1_precomputation<ppT> rhs_prec3_P;
-    G1_precompute_gadget<ppT> compute_rhs_prec3_P(
+    libsnark::G1_precomputation<ppT> rhs_prec3_P;
+    libsnark::precompute_G1_gadget<ppT> compute_rhs_prec3_P(
         pb,
         rhs_P3,
         rhs_prec3_P,
         FMT(annotation_prefix, " compute_rhs_prec3_P"));
-    G2_precomputation<ppT> rhs_prec3_Q;
-    G2_precompute_gadget<ppT> compute_rhs_prec3_Q(
+    libsnark::G2_precomputation<ppT> rhs_prec3_Q;
+    libsnark::precompute_G2_gadget<ppT> compute_rhs_prec3_Q(
         pb,
         rhs_Q3,
         rhs_prec3_Q,
@@ -101,7 +104,7 @@ bool test_check_e_equals_eee_gadget(
     libsnark::pb_variable<libff::Fr<ppT>> result;
     result.allocate(pb, FMT(annotation_prefix, " result"));
 
-    check_e_equals_eee_gadget<ppT> pairing_check(
+    libsnark::check_e_equals_eee_gadget<ppT> pairing_check(
         pb,
         lhs_prec_P,
         lhs_prec_Q,
