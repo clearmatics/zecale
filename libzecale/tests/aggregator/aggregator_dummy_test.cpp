@@ -5,7 +5,6 @@
 #include "libzecale/circuits/aggregator_circuit.hpp"
 #include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
 #include "libzecale/circuits/null_hash_gadget.hpp"
-#include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
 #include "libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp"
 #include "libzecale/tests/circuits/dummy_application.hpp"
 
@@ -22,25 +21,6 @@ namespace
 template<typename nppT, typename nsnarkT, size_t batch_size>
 using proof_batch =
     std::array<const libzeth::extended_proof<nppT, nsnarkT> *, batch_size>;
-
-template<
-    mp_size_t wn,
-    const libff::bigint<wn> &wmodulus,
-    mp_size_t nn,
-    const libff::bigint<nn> &nmodulus>
-void fp_from_fp(
-    libff::Fp_model<wn, wmodulus> &wfp,
-    const libff::Fp_model<nn, nmodulus> &nfp)
-{
-    libff::bigint<wn> wint;
-    const libff::bigint<nn> nint = nfp.as_bigint();
-    assert(wint.max_bits() >= nint.max_bits());
-    for (size_t limb_idx = 0; limb_idx < nn; ++limb_idx) {
-        wint.data[limb_idx] = nint.data[limb_idx];
-    }
-
-    wfp = libff::Fp_model<wn, wmodulus>(wint);
-}
 
 template<typename FieldT, size_t length>
 FieldT fp_from_bits(const std::array<FieldT, length> &bits)
@@ -110,7 +90,7 @@ void test_aggregator_with_batch(
         for (const libff::Fr<npp> &ninput :
              batch[proof_idx]->get_primary_inputs()) {
             libff::Fr<wppT> ninput_w;
-            fp_from_fp(ninput_w, ninput);
+            libff::fp_from_fp(ninput_w, ninput);
             ASSERT_EQ(ninput_w, winputs[winput_idx++]);
         }
     }

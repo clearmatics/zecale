@@ -11,7 +11,7 @@ namespace libzecale
 {
 
 /// Version of libsnark::r1cs_ppzksnark_verification_key_variable that exposes
-/// the scalar variables (equivalent of
+/// the scalar variables instead of bit variables (the equivalent of
 /// r1cs_gg_ppzksnark_verification_key_scalar_variable). We are forced to
 /// inherit from libsnark::r1cs_ppzksnark_verification_key_variable in order
 /// that this object can be passed to the

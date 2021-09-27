@@ -5,12 +5,12 @@
 #include "libzecale/circuits/aggregator_circuit.hpp"
 #include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
 #include "libzecale/circuits/null_hash_gadget.hpp"
-#include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
 #include "libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp"
 
 #include <gtest/gtest.h>
 #include <libff/algebra/fields/field_utils.hpp>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
+#include <libsnark/gadgetlib1/gadgets/pairing/bw6_761_bls12_377/bw6_761_pairing_params.hpp>
 #include <libsnark/gadgetlib1/gadgets/pairing/mnt/mnt_pairing_params.hpp>
 #include <libzeth/circuits/circuit_types.hpp>
 #include <libzeth/circuits/circuit_wrapper.hpp>

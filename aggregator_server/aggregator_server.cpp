@@ -35,10 +35,10 @@ namespace po = boost::program_options;
 
 // Set the wrapper curve type (wpp) based on the build configuration.
 #if defined(ZECALE_CURVE_MNT6)
-#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
+#include <libsnark/gadgetlib1/gadgets/pairing/mnt/mnt_pairing_params.hpp>
 using wpp = libff::mnt6_pp;
 #elif defined(ZECALE_CURVE_BW6_761)
-#include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
+#include <libsnark/gadgetlib1/gadgets/pairing/bw6_761_bls12_377/bw6_761_pairing_params.hpp>
 using wpp = libff::bw6_761_pp;
 #else
 #error "ZECALE_CURVE_* variable not set to supported curve"

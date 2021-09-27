@@ -3,13 +3,13 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
-#include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
 #include "libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp"
 #include "libzecale/circuits/verification_key_hash_gadget.hpp"
 #include "libzecale/tests/circuits/dummy_application.hpp"
 
 #include <gtest/gtest.h>
 #include <libsnark/gadgetlib1/gadgets/basic_gadgets.hpp>
+#include <libsnark/gadgetlib1/gadgets/pairing/bw6_761_bls12_377/bw6_761_pairing_params.hpp>
 #include <libsnark/gadgetlib1/gadgets/pairing/mnt/mnt_pairing_params.hpp>
 #include <libzeth/circuits/blake2s/blake2s.hpp>
 #include <libzeth/snarks/groth16/groth16_snark.hpp>
