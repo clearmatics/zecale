@@ -27,8 +27,6 @@ public:
         libsnark::r1cs_gg_ppzksnark_proof_variable<ppT>;
     using verification_key_variable_gadget =
         libsnark::r1cs_gg_ppzksnark_verification_key_variable<ppT>;
-    using verification_key_scalar_variable_gadget =
-        libsnark::r1cs_gg_ppzksnark_verification_key_scalar_variable<ppT>;
     using processed_verification_key_variable_gadget =
         libsnark::r1cs_gg_ppzksnark_preprocessed_verification_key_variable<ppT>;
 };

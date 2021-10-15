@@ -59,7 +59,7 @@ aggregator_circuit<wppT, wsnarkT, nverifierT, NumProofs>::aggregator_circuit(
 
     // Nested verification key hash gadget
     _nested_vk_hash_gadget.reset(
-        new verification_key_scalar_hash_gadget<wppT, nverifierT>(
+        new verification_key_hash_gadget<wppT, nverifierT>(
             _pb,
             *_nested_vk,
             _nested_vk_hash,
@@ -89,7 +89,6 @@ aggregator_circuit<wppT, wsnarkT, nverifierT, NumProofs>::aggregator_circuit(
             "_nested_proof_results_packer"));
 
     // Initialize all constraints in the circuit.
-    _nested_vk->generate_r1cs_constraints();
     for (size_t i = 0; i < NumProofs; ++i) {
         _nested_proofs[i]->generate_r1cs_constraints();
     }

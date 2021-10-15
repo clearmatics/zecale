@@ -175,7 +175,7 @@ public:
         typename nsnark::verification_key vk =
             napi_handler::verification_key_from_proto(*request);
         const libff::Fr<wpp> vk_hash =
-            libzecale::verification_key_scalar_hash_gadget<wpp, nverifier>::
+            libzecale::verification_key_hash_gadget<wpp, nverifier>::
                 compute_hash(vk, num_inputs_per_nested_proof);
         const std::string vk_hash_str = libzeth::field_element_to_json(vk_hash);
         response->set_hash(vk_hash_str);
@@ -212,7 +212,7 @@ public:
                 napi_handler::verification_key_from_proto(vk_proto);
             application_pools[name] = new application_pool(name, vk);
             const libff::Fr<wpp> vk_hash =
-                libzecale::verification_key_scalar_hash_gadget<wpp, nverifier>::
+                libzecale::verification_key_hash_gadget<wpp, nverifier>::
                     compute_hash(vk, num_inputs_per_nested_proof);
             const std::string vk_hash_str =
                 libzeth::field_element_to_json(vk_hash);

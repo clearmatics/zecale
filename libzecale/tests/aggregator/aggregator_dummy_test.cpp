@@ -68,7 +68,7 @@ void test_aggregator_with_batch(
 
     // Check the nested vk hash
     libff::Fr<wppT> expect_nested_vk_hash =
-        verification_key_scalar_hash_gadget<wppT, nverifierT>::compute_hash(
+        verification_key_hash_gadget<wppT, nverifierT>::compute_hash(
             nkp.vk, num_inputs_per_nested_proof);
     ASSERT_EQ(expect_nested_vk_hash, winputs[winput_idx]);
     ++winput_idx;

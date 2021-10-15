@@ -36,7 +36,7 @@ private:
     using npp = libsnark::other_curve<wppT>;
     using nsnark = typename nverifierT::snark;
     using verification_key_variable_gadget =
-        typename nverifierT::verification_key_scalar_variable_gadget;
+        typename nverifierT::verification_key_variable_gadget;
     using proof_variable_gadget = typename nverifierT::proof_variable_gadget;
 
     const size_t _num_inputs_per_nested_proof;
@@ -78,7 +78,7 @@ private:
         _nested_proofs;
 
     /// Gadget to check the hash of the nested verification key.
-    std::shared_ptr<verification_key_scalar_hash_gadget<wppT, nverifierT>>
+    std::shared_ptr<verification_key_hash_gadget<wppT, nverifierT>>
         _nested_vk_hash_gadget;
 
     /// Gadget to aggregate proofs.

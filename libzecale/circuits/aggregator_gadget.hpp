@@ -39,7 +39,7 @@ private:
     using online_verifier_gadget = typename nverifierT::online_verifier_gadget;
     using proof_variable_gadget = typename nverifierT::proof_variable_gadget;
     using verification_key_variable_gadget =
-        typename nverifierT::verification_key_scalar_variable_gadget;
+        typename nverifierT::verification_key_variable_gadget;
     using processed_verification_key_variable_gadget =
         typename nverifierT::processed_verification_key_variable_gadget;
     using input_packing_gadget = libsnark::multipacking_gadget<libff::Fr<wppT>>;
