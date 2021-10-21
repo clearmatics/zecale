@@ -16,9 +16,12 @@ jobs:
       uses: actions/cache@v2
       with:
         key: grpc-1.31.x-${{ runner.os }}
-        path: depends/grpc
+        path: depends/zeth/depends/grpc
     - name: Build grpc
-      run: if ! [ -d depends/grpc ] ; then depends/zeth/scripts/install_grpc /usr v1.31.x depends/grpc ; fi
+      run: |
+        pushd depends/zeth
+        if ! [ -d depends/grpc ] ; then scripts/install-grpc /usr v1.31.x ; fi
+        popd
 
   build-linux-full-tests:
     runs-on: ubuntu-20.04
@@ -34,7 +37,7 @@ jobs:
       uses: actions/cache@v2
       with:
         key: grpc-1.31.x-${{ runner.os }}
-        path: depends/grpc
+        path: depends/zeth/depends/grpc
     - name: Cache pip
       uses: actions/cache@v2
       with:
@@ -51,7 +54,9 @@ jobs:
         key: build-linux-full-tests-npm-${{ hashFiles('**/package-lock.json') }}-${{ runner.os }}
     - name: Install dependencies
       run: |
-        depends/zeth/scripts/install_grpc /usr v1.31.x depends/grpc
+        pushd depends/zeth
+        INSTALL_ONLY=1 scripts/install-grpc /usr v1.31.x
+        popd
     - name: Execute
       run: CI_FULL_TESTS=1 CI_CONFIG=Release scripts/ci build
 
@@ -69,7 +74,7 @@ jobs:
       uses: actions/cache@v2
       with:
         key: grpc-1.31.x-${{ runner.os }}
-        path: depends/grpc
+        path: depends/zeth/depends/grpc
     - name: Cache pip
       uses: actions/cache@v2
       with:
@@ -86,6 +91,8 @@ jobs:
         key: build-linux-integration-tests-npm-${{ hashFiles('**/package-lock.json') }}-${{ runner.os }}
     - name: Install dependencies
       run: |
-        depends/zeth/scripts/install_grpc /usr v1.31.x depends/grpc
+        pushd depends/zeth
+        INSTALL_ONLY=1 scripts/install-grpc /usr v1.31.x
+        popd
     - name: Execute
       run: CI_INTEGRATION_TESTS=1 CI_CONFIG=Release scripts/ci build

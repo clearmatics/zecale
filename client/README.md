@@ -96,7 +96,7 @@ Moreover, the CLIs are tested using the following script:
 
 ```console
 (env)$ cd ..
-(env)$ ./scripts/test_client
+(env)$ ./scripts/test-client
 ```
 
 # The `zecale` command line interface
@@ -104,7 +104,7 @@ Moreover, the CLIs are tested using the following script:
 The `zecale` command exposes Zecale operations via a command line interface. A
 brief description is given in this section. More details are available via
 `zecale --help`, and example usage can be seen in the [client test
-script](../scripts/test_client).
+script](../scripts/test-client).
 
 ## Environment
 
@@ -167,5 +167,5 @@ zecale_dummy_app deploy
 ```
 
 For a more comprehensive overview on how to use Zecale with a base
-application, please refer to the [zeth-zecale integration test script](../scripts/test_zeth_zecale).
+application, please refer to the [zeth-zecale integration test script](../scripts/test-zeth-zecale).
 

@@ -10,9 +10,9 @@ ROOT_DIR=`pwd`
 function setup_user() {
     mkdir -p $1
     pushd $1
-    [ -e eth-network ] || zeth_helper eth-gen-network-config $2
+    [ -e eth-network ] || zeth-helper eth-gen-network-config $2
     [ -e eth-address ] || \
-        (zeth_helper eth-gen-address && zeth_helper eth-fund)
+        (zeth-helper eth-gen-address && zeth-helper eth-fund)
     [ -e zeth-address.priv ] || zeth gen-address
     popd
 }
@@ -52,7 +52,7 @@ pushd zeth_deployer
     [ -e vk-hash ] || zecale nested-verification-key-hash zeth-vk.json > vk-hash
 
     # Deploy zeth using zecale_address and vk_hash.
-    dispatcher_address=`zeth_helper eth-get-contract-address zecale-instance`
+    dispatcher_address=`zeth-helper eth-get-contract-address zecale-instance`
     [ -e zeth-instance ] || zeth deploy \
                                  --permitted-dispatcher ${dispatcher_address} \
                                  --vk-hash `cat vk-hash`

@@ -4,7 +4,9 @@ platform=`uname`
 echo platform=${platform}
 echo "running against commit: "`git log --oneline --no-decorate -n 1`
 
-. depends/zeth/scripts/ci_utils.sh
+pushd depends/zeth
+. scripts/ci_utils.sh
+popd
 . scripts/ci_utils.sh
 
 set -x
@@ -82,7 +84,7 @@ function integration_tests() {
 
     # Run integration test
     . client/env/bin/activate
-    ./scripts/test_client
+    ./scripts/test-client
     deactivate
 
     aggregator_stop

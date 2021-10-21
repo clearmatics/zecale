@@ -14,9 +14,9 @@ TEST_DATA_DIR=${ROOT_DIR}/testdata
 function setup_user() {
     mkdir -p $1
     pushd $1
-    [ -e eth-network ] || zeth_helper eth-gen-network-config
+    [ -e eth-network ] || zeth-helper eth-gen-network-config
     [ -e eth-address ] || \
-        (zeth_helper eth-gen-address && zeth_helper eth-fund)
+        (zeth-helper eth-gen-address && zeth-helper eth-fund)
     popd
 }
 
