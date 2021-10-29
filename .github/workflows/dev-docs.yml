@@ -10,13 +10,18 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: recursive
     - name: Cache grpc
       uses: actions/cache@v2
       with:
         key: grpc-1.31.x-${{ runner.os }}
-        path: depends/grpc
+        path: depends/zeth/depends/grpc
     - name: Build grpc
-      run: if ! [ -d depends/grpc ] ; then depends/zeth/scripts/install-grpc /usr v1.31.x depends/grpc ; fi
+      run: |
+        pushd depends/zeth
+        if ! [ -d depends/grpc ] ; then scripts/install-grpc /usr v1.31.x ; fi
+        popd
 
   build-documentation:
     runs-on: ubuntu-20.04
@@ -30,11 +35,13 @@ jobs:
       uses: actions/cache@v2
       with:
         key: grpc-1.31.x-${{ runner.os }}
-        path: depends/grpc
+        path: depends/zeth/depends/grpc
     - name: Install dependencies
       run: |
         sudo apt update -y
-        INSTALL_ONLY=1 depends/zeth/scripts/install-grpc /usr v1.31.x depends/grpc
+        pushd depends/zeth
+        INSTALL_ONLY=1 scripts/install-grpc /usr v1.31.x
+        popd
         sudo apt install -y doxygen graphviz
     - name: Generate documentation
       run: |
