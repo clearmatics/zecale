@@ -2,7 +2,7 @@ name: zecale-ci-dev-docs
 
 on:
   push:
-    branches: [ extend-doxy-config ]
+    branches: [ extend-doxy-config, extend-doxy-config-fix ]
     #branches: [ develop ]
 
 jobs:
@@ -44,12 +44,7 @@ jobs:
         popd
         sudo apt install -y doxygen graphviz
     - name: Generate documentation
-      run: |
-        mkdir -p build
-        pushd build
-        cmake -DGEN_DOC=ON ..
-        make build_docs
-        popd
+      run: scripts/ci build_docs
     - name: GH Pages Deployment
       uses: peaceiris/actions-gh-pages@v3
       with:
