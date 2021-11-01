@@ -145,6 +145,16 @@ function build() {
     fi
 }
 
+function build_docs() {
+    cpp_build_setup
+
+    mkdir -p build
+    pushd build
+    cmake -DGEN_DOC=ON ..
+    make build_docs
+    popd
+}
+
 function ci_setup() {
 
     if [ "${platform}" == "Darwin" ] ; then
