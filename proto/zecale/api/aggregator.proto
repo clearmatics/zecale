@@ -23,7 +23,7 @@ service Aggregator {
     rpc GetNestedVerificationKeyHash(zeth_proto.VerificationKey) returns (VerificationKeyHash) {}
 
     // Register a new application. That is, an application name and a
-    // corresponding verfication key. After registration, transactions for the
+    // corresponding verification key. After registration, transactions for the
     // app can be submitted. Returns the hex-encoded verification key hash.
     rpc RegisterApplication(ApplicationDescription) returns (VerificationKeyHash) {}
 
