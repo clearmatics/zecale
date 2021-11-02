@@ -14,7 +14,7 @@ endif()
 # Sets the env vars PROJECT_SOURCE_DIR, and PROJECT_BINARY_DIR
 project(zecale CXX)
 
-# Versionning of the project
+# Versioning of the project
 set (ZECALE_VERSION_MAJOR 0)
 set (ZECALE_VERSION_MINOR 4)
 
@@ -52,7 +52,7 @@ set(
   "BW6_761"
   CACHE
   STRING
-  "Default curve (Warning: make sure the choosen curve matches the curve used to
+  "Default curve (Warning: make sure the chosen curve matches the curve used to
   generate the nested proofs): one of MNT6, BW6_761"
 )
 
