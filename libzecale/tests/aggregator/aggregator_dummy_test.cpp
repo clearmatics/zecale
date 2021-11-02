@@ -5,12 +5,12 @@
 #include "libzecale/circuits/aggregator_circuit.hpp"
 #include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
 #include "libzecale/circuits/null_hash_gadget.hpp"
-#include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
-#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
 #include "libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp"
 #include "libzecale/tests/circuits/dummy_application.hpp"
 
 #include <gtest/gtest.h>
+#include <libsnark/gadgetlib1/gadgets/pairing/bw6_761_bls12_377/bw6_761_pairing_params.hpp>
+#include <libsnark/gadgetlib1/gadgets/pairing/mnt/mnt_pairing_params.hpp>
 #include <libzeth/circuits/blake2s/blake2s.hpp>
 
 using namespace libzecale;
@@ -21,25 +21,6 @@ namespace
 template<typename nppT, typename nsnarkT, size_t batch_size>
 using proof_batch =
     std::array<const libzeth::extended_proof<nppT, nsnarkT> *, batch_size>;
-
-template<
-    mp_size_t wn,
-    const libff::bigint<wn> &wmodulus,
-    mp_size_t nn,
-    const libff::bigint<nn> &nmodulus>
-void fp_from_fp(
-    libff::Fp_model<wn, wmodulus> &wfp,
-    const libff::Fp_model<nn, nmodulus> &nfp)
-{
-    libff::bigint<wn> wint;
-    const libff::bigint<nn> nint = nfp.as_bigint();
-    assert(wint.max_bits() >= nint.max_bits());
-    for (size_t limb_idx = 0; limb_idx < nn; ++limb_idx) {
-        wint.data[limb_idx] = nint.data[limb_idx];
-    }
-
-    wfp = libff::Fp_model<wn, wmodulus>(wint);
-}
 
 template<typename FieldT, size_t length>
 FieldT fp_from_bits(const std::array<FieldT, length> &bits)
@@ -63,14 +44,14 @@ void test_aggregator_with_batch(
     const size_t num_inputs_per_nested_proof,
     const typename nverifierT::snark::keypair &nkp,
     const proof_batch<
-        libzecale::other_curve<wppT>,
+        libsnark::other_curve<wppT>,
         typename nverifierT::snark,
         batch_size> &batch,
     const typename wsnarkT::keypair &wkeypair,
     aggregator_circuit<wppT, wsnarkT, nverifierT, batch_size> &aggregator,
     const std::array<libff::Fr<wppT>, batch_size> &expected_results)
 {
-    using npp = libzecale::other_curve<wppT>;
+    using npp = libsnark::other_curve<wppT>;
 
     // Generate proof and check it.
     const libzeth::extended_proof<wppT, wsnarkT> wpf =
@@ -87,7 +68,7 @@ void test_aggregator_with_batch(
 
     // Check the nested vk hash
     libff::Fr<wppT> expect_nested_vk_hash =
-        verification_key_scalar_hash_gadget<wppT, nverifierT>::compute_hash(
+        verification_key_hash_gadget<wppT, nverifierT>::compute_hash(
             nkp.vk, num_inputs_per_nested_proof);
     ASSERT_EQ(expect_nested_vk_hash, winputs[winput_idx]);
     ++winput_idx;
@@ -109,7 +90,7 @@ void test_aggregator_with_batch(
         for (const libff::Fr<npp> &ninput :
              batch[proof_idx]->get_primary_inputs()) {
             libff::Fr<wppT> ninput_w;
-            fp_from_fp(ninput_w, ninput);
+            libff::fp_from_fp(ninput_w, ninput);
             ASSERT_EQ(ninput_w, winputs[winput_idx++]);
         }
     }
@@ -118,7 +99,7 @@ void test_aggregator_with_batch(
 template<typename wppT, typename wsnarkT, typename nverifierT>
 void test_aggregate_dummy_application()
 {
-    using npp = other_curve<wppT>;
+    using npp = libsnark::other_curve<wppT>;
     using nsnark = typename nverifierT::snark;
 
     static const size_t batch_size = 2;
@@ -159,7 +140,7 @@ void test_aggregate_dummy_application()
 template<typename wppT, typename wsnarkT, typename nverifierT>
 void test_aggregate_dummy_application_with_invalid_proof()
 {
-    using npp = other_curve<wppT>;
+    using npp = libsnark::other_curve<wppT>;
     using nsnark = typename nverifierT::snark;
 
     static const size_t batch_size = 2;
