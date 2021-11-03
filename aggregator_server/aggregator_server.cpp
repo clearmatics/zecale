@@ -81,7 +81,7 @@ static void load_keypair(
         keypair_file.c_str(), std::ios_base::in | std::ios_base::binary);
     in.exceptions(
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    return wsnark::keypair_read_bytes(keypair, in);
+    wsnark::keypair_read_bytes(keypair, in);
 }
 
 static void write_keypair(
