@@ -16,7 +16,7 @@ if sys.version_info < (3, 7):
 
 setup(
     name='zecale-client',
-    version='0.4',
+    version='0.5',
     description='Client to interact with Zecale server',
     packages=find_packages(),
     install_requires=[
