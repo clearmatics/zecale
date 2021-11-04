@@ -64,7 +64,7 @@ library Groth16BW6_761
             (inputs.length / 2) == num_inputs,
             "Input length differs from expected");
 
-        // Memory scratch pad, large enough to accomodate the max used size
+        // Memory scratch pad, large enough to accommodate the max used size
         // (see layout diagrams below).
         uint256[24] memory pad;
         bool result = true;

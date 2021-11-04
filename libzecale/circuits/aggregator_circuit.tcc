@@ -59,7 +59,7 @@ aggregator_circuit<wppT, wsnarkT, nverifierT, NumProofs>::aggregator_circuit(
 
     // Nested verification key hash gadget
     _nested_vk_hash_gadget.reset(
-        new verification_key_scalar_hash_gadget<wppT, nverifierT>(
+        new verification_key_hash_gadget<wppT, nverifierT>(
             _pb,
             *_nested_vk,
             _nested_vk_hash,
@@ -89,7 +89,6 @@ aggregator_circuit<wppT, wsnarkT, nverifierT, NumProofs>::aggregator_circuit(
             "_nested_proof_results_packer"));
 
     // Initialize all constraints in the circuit.
-    _nested_vk->generate_r1cs_constraints();
     for (size_t i = 0; i < NumProofs; ++i) {
         _nested_proofs[i]->generate_r1cs_constraints();
     }
@@ -110,11 +109,11 @@ typename wsnarkT::keypair aggregator_circuit<
 }
 
 template<typename wppT, typename wsnarkT, typename nverifierT, size_t NumProofs>
-const libsnark::protoboard<libff::Fr<wppT>>
+const libsnark::r1cs_constraint_system<libff::Fr<wppT>>
     &aggregator_circuit<wppT, wsnarkT, nverifierT, NumProofs>::
         get_constraint_system() const
 {
-    return _pb;
+    return _pb.get_constraint_system();
 }
 
 template<typename wppT, typename wsnarkT, typename nverifierT, size_t NumProofs>
@@ -166,7 +165,7 @@ libzeth::extended_proof<wppT, wsnarkT> aggregator_circuit<
 
     // Return an extended_proof for the given witness.
     return extended_proof<wppT, wsnarkT>(
-        wsnarkT::generate_proof(_pb, aggregator_proving_key),
+        wsnarkT::generate_proof(aggregator_proving_key, _pb),
         _pb.primary_input());
 }
 

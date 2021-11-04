@@ -17,7 +17,7 @@ function aggregator_start() {
     pushd build
 
     server_start \
-        ./aggregator_server/aggregator_server \
+        ./aggregator_server/aggregator-server \
         aggregator_is_active \
         aggregator.pid \
         aggregator.stdout

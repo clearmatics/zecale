@@ -8,7 +8,7 @@ This project can be used to:
 
 :rotating_light: **WARNING** This project is a Work In Progress (WIP). It is highly inefficient and has not been thoroughly reviewed. Please do not use in production!
 
-## Building and running the `aggregator_server`:
+## Building and running the `aggregator-server`:
 
 :computer: **Warning** This project primarily targets x86_64 Linux and macOS platforms.
 
@@ -56,14 +56,12 @@ cmake ..
 # Compile all targets
 make
 
-# (optional) Run the unit tests
-make test
-
-# (optional) Run the all tests (unit tests, syntax checks, etc)
+# (optional) Build and run the all tests (unit tests, syntax checks, etc)
 make check
+# Alternatively, run: make build_tests && make test
 
-# Start the aggregator_server process
-aggregator_server
+# Start the aggregator-server process
+aggregator-server
 ```
 
 ### Build and run in a docker container
@@ -75,10 +73,10 @@ docker pull ghcr.io/clearmatics/zeth:latest-base
 # the desired version number (e.g. `zeth:0.0.2-base`)
 
 # Build the Zecale dev image
-docker build -f Dockerfile-zecale -t clearmatics/zecale-dev:0.4 .
+docker build -f Dockerfile-zecale -t clearmatics/zecale-dev:0.5 .
 
 # Start the container
-docker run -ti -p 50052:50052 --name zecale clearmatics/zecale-dev:0.4
+docker run -ti -p 50052:50052 --name zecale clearmatics/zecale-dev:0.5
 ```
 
 ### Generate the Doxygen documentation

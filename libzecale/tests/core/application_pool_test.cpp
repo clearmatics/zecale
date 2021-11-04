@@ -3,11 +3,11 @@
 // SPDX-License-Identifier: LGPL-3.0+
 
 #include "libzecale/circuits/groth16_verifier/groth16_verifier_parameters.hpp"
-#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
 #include "libzecale/circuits/pghr13_verifier/pghr13_verifier_parameters.hpp"
 #include "libzecale/core/application_pool.hpp"
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+#include <libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp>
 #include <stdio.h>
 
 using namespace libzecale;

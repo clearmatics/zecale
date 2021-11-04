@@ -1,0 +1,55 @@
+name: zecale-ci-dev-docs
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  build-grpc:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Cache grpc
+      uses: actions/cache@v2
+      with:
+        key: grpc-1.31.x-${{ runner.os }}
+        path: depends/zeth/depends/grpc
+    - name: Build grpc
+      run: |
+        pushd depends/zeth
+        if ! [ -d depends/grpc ] ; then scripts/install-grpc /usr v1.31.x ; fi
+        popd
+
+  build-documentation:
+    runs-on: ubuntu-20.04
+    needs: build-grpc
+    steps:
+    - name: Checkout repository and install submodules
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Cache grpc
+      uses: actions/cache@v2
+      with:
+        key: grpc-1.31.x-${{ runner.os }}
+        path: depends/zeth/depends/grpc
+    - name: Install dependencies
+      run: |
+        sudo apt update -y
+        pushd depends/zeth
+        INSTALL_ONLY=1 scripts/install-grpc /usr v1.31.x
+        popd
+        sudo apt install -y doxygen graphviz
+    - name: Generate documentation
+      run: scripts/ci build_docs
+    - name: GH Pages Deployment
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build/docs/html/
+        enable_jekyll: false
+        allow_empty_commit: false
+        force_orphan: true
+        publish_branch: doxy-gh-pages

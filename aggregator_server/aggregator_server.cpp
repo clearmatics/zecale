@@ -35,17 +35,17 @@ namespace po = boost::program_options;
 
 // Set the wrapper curve type (wpp) based on the build configuration.
 #if defined(ZECALE_CURVE_MNT6)
-#include "libzecale/circuits/pairing/mnt_pairing_params.hpp"
+#include <libsnark/gadgetlib1/gadgets/pairing/mnt/mnt_pairing_params.hpp>
 using wpp = libff::mnt6_pp;
 #elif defined(ZECALE_CURVE_BW6_761)
-#include "libzecale/circuits/pairing/bw6_761_pairing_params.hpp"
+#include <libsnark/gadgetlib1/gadgets/pairing/bw6_761_bls12_377/bw6_761_pairing_params.hpp>
 using wpp = libff::bw6_761_pp;
 #else
 #error "ZECALE_CURVE_* variable not set to supported curve"
 #endif
 
 // The nested curve type (npp)
-using npp = libzecale::other_curve<wpp>;
+using npp = libsnark::other_curve<wpp>;
 
 // Set both wrapper and nested snark schemes based on the build configuration.
 #if defined(ZECALE_SNARK_PGHR13)
@@ -74,13 +74,14 @@ static const size_t num_inputs_per_nested_proof = 1;
 using aggregator_circuit =
     libzecale::aggregator_circuit<wpp, wsnark, nverifier, batch_size>;
 
-static wsnark::keypair load_keypair(const boost::filesystem::path &keypair_file)
+static void load_keypair(
+    wsnark::keypair &keypair, const boost::filesystem::path &keypair_file)
 {
     std::ifstream in(
         keypair_file.c_str(), std::ios_base::in | std::ios_base::binary);
     in.exceptions(
         std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    return wsnark::keypair_read_bytes(in);
+    wsnark::keypair_read_bytes(keypair, in);
 }
 
 static void write_keypair(
@@ -97,8 +98,7 @@ static void write_constraint_system(
     const boost::filesystem::path &r1cs_file)
 {
     std::ofstream r1cs_stream(r1cs_file.c_str());
-    libzeth::r1cs_write_json<wpp>(
-        aggregator.get_constraint_system(), r1cs_stream);
+    libzeth::r1cs_write_json(aggregator.get_constraint_system(), r1cs_stream);
 }
 
 /// The aggregator_server class inherits from the Aggregator service defined in
@@ -175,15 +175,15 @@ public:
         typename nsnark::verification_key vk =
             napi_handler::verification_key_from_proto(*request);
         const libff::Fr<wpp> vk_hash =
-            libzecale::verification_key_scalar_hash_gadget<wpp, nverifier>::
+            libzecale::verification_key_hash_gadget<wpp, nverifier>::
                 compute_hash(vk, num_inputs_per_nested_proof);
         const std::string vk_hash_str = libzeth::field_element_to_json(vk_hash);
         response->set_hash(vk_hash_str);
 
         std::cout << "[DEBUG] GetNestedVerificationKeyHash: "
                   << "vk:\n";
-        nsnark::verification_key_write_json(vk, std::cout)
-            << "\n VK hash: " << vk_hash_str << "\n";
+        nsnark::verification_key_write_json(vk, std::cout);
+        std::cout << "\n VK hash: " << vk_hash_str << "\n";
         return grpc::Status::OK;
     }
 
@@ -212,7 +212,7 @@ public:
                 napi_handler::verification_key_from_proto(vk_proto);
             application_pools[name] = new application_pool(name, vk);
             const libff::Fr<wpp> vk_hash =
-                libzecale::verification_key_scalar_hash_gadget<wpp, nverifier>::
+                libzecale::verification_key_hash_gadget<wpp, nverifier>::
                     compute_hash(vk, num_inputs_per_nested_proof);
             const std::string vk_hash_str =
                 libzeth::field_element_to_json(vk_hash);
@@ -220,8 +220,8 @@ public:
 
             std::cout << "[DEBUG] Registered application '" << name
                       << " with VK:\n";
-            nsnark::verification_key_write_json(vk, std::cout)
-                << "\n VK hash: " << vk_hash_str << "\n";
+            nsnark::verification_key_write_json(vk, std::cout);
+            std::cout << "\n VK hash: " << vk_hash_str << "\n";
         } catch (const std::exception &e) {
             std::cout << "[ERROR] " << e.what() << std::endl;
             return grpc::Status(
@@ -483,7 +483,8 @@ int main(int argc, char **argv)
     wsnark::keypair keypair = [&keypair_file, &aggregator]() {
         if (boost::filesystem::exists(keypair_file)) {
             std::cout << "[INFO] Loading keypair: " << keypair_file << "\n";
-            wsnark::keypair keypair = load_keypair(keypair_file);
+            wsnark::keypair keypair;
+            load_keypair(keypair, keypair_file);
 
             // Check the VK is for the correct number of inputs.
             if (keypair.vk.ABC_g1.size() != aggregator.num_primary_inputs()) {

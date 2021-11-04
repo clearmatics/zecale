@@ -30,58 +30,48 @@ Ensure that the following are installed:
 - [venv](https://docs.python.org/3/library/venv.html#module-venv) module.
 - gcc
 
-First, make sure to setup the Zeth dependency in order to generate the
-API files and be able to use the Zeth CLIs:
+First, ensure that the Zeth client has been setup as described in the [Zeth client setup documentation](https://github.com/clearmatics/zeth/blob/master/client/README.md).  (This step is required since the Zeth client setup process includes some code generation).  If this has not already been done, it can be performed as follows (assuming the current working directory is the Zecale repository root):
 ```console
-$ cd $ZECALE/depends/zeth/client
+$ pushd depends/zeth/client
+$ python -m venv env
+$ source env/bin/activate
+(env)$ make setup
+(env)$ deactivate
+$ popd
+```
+
+For encapsulation, we suggest creating a Python virtualenv specific to the Zecale client tools.  The Zeth client will be installed as an editable package (a reference to, rather than a copy of, the package in `depends/zeth/client`) in this virtualenv. Setup is performed as follows:
+```console
+$ cd client
 $ python -m venv env
 $ source env/bin/activate
 (env)$ make setup
 ```
 
-Then, execute the following inside the `client` directory:
-```console
-$ cd $ZECALE/client
-(env)$ make setup
-```
-
-We assume all further commands described here are executed from within the
-Python virtualenv.  To enter the virtualenv from a new terminal, re-run
+Unless otherwise stated, we assume that all further commands are executed from within the Python virtualenv (indicated by the `(env)` prefix to the command prompt), and in the `client` directory. To enter the virtualenv from a new terminal, run the following:
 ```console
 $ source env/bin/activate
 ```
+(Alternatively, specify the full path to `client/env/bin/activate` to execute from outside the `client` directory).
 
 ## Execute unit tests
 
+Unit tests for the client code can be executed as follows:
 ```console
 (env)$ make check
 ```
 
 ## Launch a local Ethereum testnet
 
-In order for Zecale to work, it is necessary for the blockchain to support
-BW6-761 arithmetic. As such, we assume below that the smart contracts are
-deployed on an Ethereum testnet that supports BW6-761 precompiled contracts.
-
-To do so, you can start a ganache-cli instance via docker by running:
+Zecale smart contracts require support for BW6-761 arithmetic, via precompiled contracts. A modified version of ganache-cli (which includes such support) can be launched from a docker image as follows (note that this should be run in its own terminal instance, from the repo root, and does not require the Python virtualenv to be active):
 ```console
-docker run -ti -p 8545:8545 ghcr.io/clearmatics/ganache-cli --hardfork istanbul --gasLimit 0x3FFFFFFFFFFFF --gasPrice 1 --defaultBalanceEther 90000000000
+$ depends/zeth/scripts/ganache-start
 ```
-
-Otherwise, please follow the instructions below to run a modified version
-of ganache-cli in a new terminal (see [Zeth](https://github.com/clearmatics/zeth/) for more information):
-```console
-cd $ZECALE/depends/zeth/zeth_contracts
-npm install # make sure that node and npm have the right versions
-npm run testrpc
-```
+(See [Zeth](https://github.com/clearmatics/zeth/) for more information)
 
 ## Execute testing scripts
 
-Once the `aggregator_server` and a custom `ganache-cli` instance are
-running, several scripts can be executed to test the CLIs as well as
-various aspects of the client and the contracts. You can run such tests
-by doing:
+Once the `aggregator-server` and a custom `ganache-cli` instance are running, several scripts can be executed to test the CLIs as well as various aspects of the client and the contracts:
 
 ```console
 (env)$ python test_commands/<script-name> <script-arguments>
@@ -92,26 +82,23 @@ for instance:
 (env)$ python test_commands/test_bw6_761_groth16_contract.py
 ```
 
-Moreover, the CLIs are tested using the following script:
+A fuller integration test for the CLIs can also be executed:
 
 ```console
 (env)$ cd ..
-(env)$ ./scripts/test_client
+(env)$ ./scripts/test-client
 ```
 
 # The `zecale` command line interface
 
-The `zecale` command exposes Zecale operations via a command line interface. A
-brief description is given in this section. More details are available via
-`zecale --help`, and example usage can be seen in the [client test
-script](../scripts/test_client).
+The `zecale` command exposes Zecale operations via a command line interface. A brief description is given in this section. More details are available via `zecale --help`, and example usage can be seen in the [client test script](../scripts/test-client).  Note that `zecale` can be invoked from any directory, as long as the Python virtualenv is activated.
 
 ## Environment
 
 Depending on the operation being performed, the `zecale` client must:
 - interact with an Ethereum RPC host **that supports BW6 arithmetic** (e.g. [here](https://github.com/clearmatics/ganache-cli/tree/v6.10.1-clearmatics)),
 - interact with the deployed Zecale contracts,
-- request proofs and proof verification keys from `aggregator_server`
+- request proofs and proof verification keys from `aggregator-server`
 
 In a similar way as in Zeth, data is stored in files with
 default file names (which can be overridden on the zecale commands).
@@ -167,5 +154,4 @@ zecale_dummy_app deploy
 ```
 
 For a more comprehensive overview on how to use Zecale with a base
-application, please refer to the [zeth-zecale integration test script](../scripts/test_zeth_zecale).
-
+application, please refer to the [zeth-zecale integration test script](../scripts/test-zeth-zecale).

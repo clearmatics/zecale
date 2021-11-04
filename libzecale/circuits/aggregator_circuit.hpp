@@ -6,7 +6,6 @@
 #define __ZECALE_CORE_AGGREGATOR_CIRCUIT_HPP__
 
 #include "libzecale/circuits/aggregator_gadget.hpp"
-#include "libzecale/circuits/pairing/pairing_params.hpp"
 #include "libzecale/circuits/verification_key_hash_gadget.hpp"
 
 #include <libzeth/core/extended_proof.hpp>
@@ -34,10 +33,10 @@ template<typename wppT, typename wsnarkT, typename nverifierT, size_t NumProofs>
 class aggregator_circuit
 {
 private:
-    using npp = other_curve<wppT>;
+    using npp = libsnark::other_curve<wppT>;
     using nsnark = typename nverifierT::snark;
     using verification_key_variable_gadget =
-        typename nverifierT::verification_key_scalar_variable_gadget;
+        typename nverifierT::verification_key_variable_gadget;
     using proof_variable_gadget = typename nverifierT::proof_variable_gadget;
 
     const size_t _num_inputs_per_nested_proof;
@@ -79,7 +78,7 @@ private:
         _nested_proofs;
 
     /// Gadget to check the hash of the nested verification key.
-    std::shared_ptr<verification_key_scalar_hash_gadget<wppT, nverifierT>>
+    std::shared_ptr<verification_key_hash_gadget<wppT, nverifierT>>
         _nested_vk_hash_gadget;
 
     /// Gadget to aggregate proofs.
@@ -102,7 +101,8 @@ public:
     // Number of primary inputs to the wrapping circuit
     size_t num_primary_inputs() const;
 
-    const libsnark::protoboard<libff::Fr<wppT>> &get_constraint_system() const;
+    const libsnark::r1cs_constraint_system<libff::Fr<wppT>>
+        &get_constraint_system() const;
 
     /// Generate a proof and returns an extended proof
     extended_proof<wppT, wsnarkT> prove(
