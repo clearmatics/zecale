@@ -75,10 +75,10 @@ docker pull ghcr.io/clearmatics/zeth:latest-base
 # the desired version number (e.g. `zeth:0.0.2-base`)
 
 # Build the Zecale dev image
-docker build -f Dockerfile-zecale -t clearmatics/zecale-dev:0.4 .
+docker build -f Dockerfile-zecale -t clearmatics/zecale-dev:0.5 .
 
 # Start the container
-docker run -ti -p 50052:50052 --name zecale clearmatics/zecale-dev:0.4
+docker run -ti -p 50052:50052 --name zecale clearmatics/zecale-dev:0.5
 ```
 
 ### Generate the Doxygen documentation
