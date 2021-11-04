@@ -42,6 +42,7 @@ target_link_libraries(
   aggregator-server
 
   zecale
+  tool
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
