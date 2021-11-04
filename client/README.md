@@ -68,14 +68,6 @@ To do so, you can start a ganache-cli instance via docker by running:
 docker run -ti -p 8545:8545 ghcr.io/clearmatics/ganache-cli --hardfork istanbul --gasLimit 0x3FFFFFFFFFFFF --gasPrice 1 --defaultBalanceEther 90000000000
 ```
 
-Otherwise, please follow the instructions below to run a modified version
-of ganache-cli in a new terminal (see [Zeth](https://github.com/clearmatics/zeth/) for more information):
-```console
-cd $ZECALE/depends/zeth/zeth_contracts
-npm install # make sure that node and npm have the right versions
-npm run testrpc
-```
-
 ## Execute testing scripts
 
 Once the `aggregator_server` and a custom `ganache-cli` instance are
