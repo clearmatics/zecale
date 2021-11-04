@@ -8,7 +8,7 @@ This project can be used to:
 
 :rotating_light: **WARNING** This project is a Work In Progress (WIP). It is highly inefficient and has not been thoroughly reviewed. Please do not use in production!
 
-## Building and running the `aggregator_server`:
+## Building and running the `aggregator-server`:
 
 :computer: **Warning** This project primarily targets x86_64 Linux and macOS platforms.
 
@@ -60,8 +60,8 @@ make
 make check
 # Alternatively, run: make build_tests && make test
 
-# Start the aggregator_server process
-aggregator_server
+# Start the aggregator-server process
+aggregator-server
 ```
 
 ### Build and run in a docker container

@@ -23,7 +23,7 @@ function check_format() {
     fi
 
     # Perform the check for copyright notices here
-    scripts/check_copyright
+    scripts/check-copyright
 }
 
 function check_cpp() {
