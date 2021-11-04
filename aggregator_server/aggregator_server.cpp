@@ -19,6 +19,7 @@
 #include <grpcpp/server_context.h>
 #include <iostream>
 #include <libsnark/common/data_structures/merkle_tree.hpp>
+#include <libtool/tool_util.hpp>
 #include <libzeth/circuits/circuit_types.hpp>
 #include <libzeth/core/utils.hpp>
 #include <libzeth/serialization/proto_utils.hpp>
@@ -73,33 +74,6 @@ static const size_t num_inputs_per_nested_proof = 1;
 
 using aggregator_circuit =
     libzecale::aggregator_circuit<wpp, wsnark, nverifier, batch_size>;
-
-static void load_keypair(
-    wsnark::keypair &keypair, const boost::filesystem::path &keypair_file)
-{
-    std::ifstream in(
-        keypair_file.c_str(), std::ios_base::in | std::ios_base::binary);
-    in.exceptions(
-        std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
-    wsnark::keypair_read_bytes(keypair, in);
-}
-
-static void write_keypair(
-    const typename wsnark::keypair &keypair,
-    const boost::filesystem::path &keypair_file)
-{
-    std::ofstream out_s(
-        keypair_file.c_str(), std::ios_base::out | std::ios_base::binary);
-    wsnark::keypair_write_bytes(keypair, out_s);
-}
-
-static void write_constraint_system(
-    const aggregator_circuit &aggregator,
-    const boost::filesystem::path &r1cs_file)
-{
-    std::ofstream r1cs_stream(r1cs_file.c_str());
-    libzeth::r1cs_write_json(aggregator.get_constraint_system(), r1cs_stream);
-}
 
 /// The aggregator_server class inherits from the Aggregator service defined in
 /// the proto files, and provides an implementation of the service.
@@ -484,7 +458,9 @@ int main(int argc, char **argv)
         if (boost::filesystem::exists(keypair_file)) {
             std::cout << "[INFO] Loading keypair: " << keypair_file << "\n";
             wsnark::keypair keypair;
-            load_keypair(keypair, keypair_file);
+            std::ifstream in_s =
+                libtool::open_binary_input_file(keypair_file.c_str());
+            wsnark::keypair_read_bytes(keypair, in_s);
 
             // Check the VK is for the correct number of inputs.
             if (keypair.vk.ABC_g1.size() != aggregator.num_primary_inputs()) {
@@ -509,7 +485,9 @@ int main(int argc, char **argv)
                   << " constraints\n";
 
         std::cout << "[INFO] Writing new keypair to " << keypair_file << "\n";
-        write_keypair(keypair, keypair_file);
+        std::ofstream out_s =
+            libtool::open_binary_output_file(keypair_file.c_str());
+        wsnark::keypair_write_bytes(keypair, out_s);
         return keypair;
     }();
 
@@ -517,7 +495,9 @@ int main(int argc, char **argv)
     // write it out.
     if (!r1cs_file.empty()) {
         std::cout << "[INFO] Writing R1CS to " << std::endl;
-        write_constraint_system(aggregator, r1cs_file);
+        std::ofstream r1cs_stream(r1cs_file.c_str());
+        libzeth::r1cs_write_json(
+            aggregator.get_constraint_system(), r1cs_stream);
     }
 
     // Launch the server
