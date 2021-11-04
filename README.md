@@ -56,11 +56,9 @@ cmake ..
 # Compile all targets
 make
 
-# (optional) Run the unit tests
-make test
-
-# (optional) Run the all tests (unit tests, syntax checks, etc)
+# (optional) Build and run the all tests (unit tests, syntax checks, etc)
 make check
+# Alternatively, run: make build_tests && make test
 
 # Start the aggregator_server process
 aggregator_server
