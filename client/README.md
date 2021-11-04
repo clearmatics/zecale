@@ -46,9 +46,9 @@ $ cd $ZECALE/client
 ```
 
 We assume all further commands described here are executed from within the
-Python virtualenv.  To enter the virtualenv from a new terminal, re-run
+Python virtualenv. To enter the virtualenv from a new terminal, re-run
 ```console
-$ source env/bin/activate
+$ source $ZECALE/depends/zeth/client/env/bin/activate
 ```
 
 ## Execute unit tests
