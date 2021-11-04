@@ -71,7 +71,7 @@ $ depends/zeth/scripts/ganache-start
 
 ## Execute testing scripts
 
-Once the `aggregator_server` and a custom `ganache-cli` instance are running, several scripts can be executed to test the CLIs as well as various aspects of the client and the contracts:
+Once the `aggregator-server` and a custom `ganache-cli` instance are running, several scripts can be executed to test the CLIs as well as various aspects of the client and the contracts:
 
 ```console
 (env)$ python test_commands/<script-name> <script-arguments>
@@ -98,7 +98,7 @@ The `zecale` command exposes Zecale operations via a command line interface. A b
 Depending on the operation being performed, the `zecale` client must:
 - interact with an Ethereum RPC host **that supports BW6 arithmetic** (e.g. [here](https://github.com/clearmatics/ganache-cli/tree/v6.10.1-clearmatics)),
 - interact with the deployed Zecale contracts,
-- request proofs and proof verification keys from `aggregator_server`
+- request proofs and proof verification keys from `aggregator-server`
 
 In a similar way as in Zeth, data is stored in files with
 default file names (which can be overridden on the zecale commands).

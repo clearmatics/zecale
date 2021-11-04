@@ -14,7 +14,7 @@ def nested_verification_key_hash(
         ctx: Context,
         verification_key_file: str) -> None:
     """
-    Query the aggregator_server for the hash of a specific nested verification
+    Query the aggregator-server for the hash of a specific nested verification
     key. The verification key does not have to be registered.
     """
     cmd_ctx: CommandContext = ctx.obj

@@ -21,14 +21,14 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 # so that we will find zecale_config.h
 include_directories(${PROJECT_BINARY_DIR})
 
-# aggregator_server executable
+# aggregator-server executable
 file(
   GLOB_RECURSE
   AGGREGATOR_SERVER_SOURCE
   aggregator_server.cpp
 )
 add_executable(
-  aggregator_server
+  aggregator-server
   ${AGGREGATOR_SERVER_SOURCE}
   ${GRPC_SRCS}
 )
@@ -39,7 +39,7 @@ if (NOT APPLE)
 endif()
 
 target_link_libraries(
-  aggregator_server
+  aggregator-server
 
   zecale
   ${Boost_SYSTEM_LIBRARY}
