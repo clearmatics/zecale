@@ -150,7 +150,7 @@ After deploying the the Zecale dispatcher, it is possible to deploy a Zecale
 application. One can use the `DummyApplication` contract as an example:
 
 ```console
-zecale_dummy_app deploy
+zecale-dummy-app deploy
 ```
 
 For a more comprehensive overview on how to use Zecale with a base

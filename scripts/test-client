@@ -40,7 +40,7 @@ pushd application_deployer
     [ -e zecale-instance ] || cp ../aggregator_deployer/zecale-instance .
     [ -e app-vk.json ] || cp ${TEST_DATA_DIR}/dummy_app/vk.json app-vk.json
     [ -e vk-hash ] || zecale nested-verification-key-hash app-vk.json > vk-hash
-    [ -e app-instance ] || zecale_dummy_app deploy `cat vk-hash`
+    [ -e app-instance ] || zecale-dummy-app deploy `cat vk-hash`
 
     zecale register --key app-vk.json --name ${APP_NAME} || echo -n
     # Re-registration should fail
@@ -48,10 +48,10 @@ pushd application_deployer
         (echo Expected duplicate registration to fail; exit 1)
 
     echo Check starting app state
-    zecale_dummy_app get 7 --check 0
-    zecale_dummy_app get 8 --check 0
-    zecale_dummy_app get 9 --check 0
-    zecale_dummy_app get 10 --check 0
+    zecale-dummy-app get 7 --check 0
+    zecale-dummy-app get 8 --check 0
+    zecale-dummy-app get 9 --check 0
+    zecale-dummy-app get 10 --check 0
 popd # application_deployer
 
 # Submit 4 transactions to the aggregator (enough for 2 batches)
@@ -75,10 +75,10 @@ pushd user1
     zecale submit-batch batch1.json --wait
 
     echo Check app state after batch 1
-    zecale_dummy_app get 7 --check 23
-    zecale_dummy_app get 8 --check 24
-    zecale_dummy_app get 9 --check 0
-    zecale_dummy_app get 10 --check 0
+    zecale-dummy-app get 7 --check 23
+    zecale-dummy-app get 8 --check 24
+    zecale-dummy-app get 9 --check 0
+    zecale-dummy-app get 10 --check 0
 
     # get a second batch and send to the contract
     zecale get-batch --name ${APP_NAME} --batch-file batch2.json
@@ -86,10 +86,10 @@ pushd user1
     zecale submit-batch batch2.json --wait
 
     echo Check app state after batch 2
-    zecale_dummy_app get 7 --check 23
-    zecale_dummy_app get 8 --check 24
-    zecale_dummy_app get 9 --check 25
-    zecale_dummy_app get 10 --check 26
+    zecale-dummy-app get 7 --check 23
+    zecale-dummy-app get 8 --check 24
+    zecale-dummy-app get 9 --check 25
+    zecale-dummy-app get 10 --check 26
 
     # A third batch should be available
     zecale get-batch --name ${APP_NAME} --batch-file batch3.json && \
