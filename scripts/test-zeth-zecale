@@ -74,7 +74,7 @@ pushd zeth_deployer
          --in ${note_id_1} \
          --out zeth-address.pub,25 \
          --out zeth-address.pub,25
-    zeth_zecale create-nested-tx zeth_tx1.json -o nested_zeth_tx1.json
+    zeth-zecale create-nested-tx zeth_tx1.json -o nested_zeth_tx1.json
     zecale submit nested_zeth_tx1.json
 
     zeth mix --for-dispatch-call \
@@ -84,7 +84,7 @@ pushd zeth_deployer
          --in ${note_id_2} \
          --out zeth-address.pub,25 \
          --out zeth-address.pub,25
-    zeth_zecale create-nested-tx zeth_tx2.json -o nested_zeth_tx2.json
+    zeth-zecale create-nested-tx zeth_tx2.json -o nested_zeth_tx2.json
     zecale submit nested_zeth_tx2.json
 
     # Create a batch
