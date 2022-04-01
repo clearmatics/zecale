@@ -30,21 +30,21 @@ using namespace libzeth;
 namespace libzeth
 {
 
-// Use mimc7 by default
-template<> class tree_hash_selector<libff::mnt4_Fr>
-{
-public:
-    using tree_hash = MiMC_mp_gadget<
-        libff::mnt4_Fr,
-        MiMC_permutation_gadget<libff::mnt4_Fr, 7, 91>>;
-};
-template<> class tree_hash_selector<libff::mnt6_Fr>
-{
-public:
-    using tree_hash = MiMC_mp_gadget<
-        libff::mnt6_Fr,
-        MiMC_permutation_gadget<libff::mnt6_Fr, 7, 91>>;
-};
+// // Use mimc7 by default
+// template<> class tree_hash_selector<libff::mnt4_Fr>
+// {
+// public:
+//     using tree_hash = MiMC_mp_gadget<
+//         libff::mnt4_Fr,
+//         MiMC_permutation_gadget<libff::mnt4_Fr, 7, 91>>;
+// };
+// template<> class tree_hash_selector<libff::mnt6_Fr>
+// {
+// public:
+//     using tree_hash = MiMC_mp_gadget<
+//         libff::mnt6_Fr,
+//         MiMC_permutation_gadget<libff::mnt6_Fr, 7, 91>>;
+// };
 
 } // namespace libzeth
 
@@ -52,7 +52,7 @@ public:
 template<typename nppT> using hash = libzeth::BLAKE2s_256<libff::Fr<nppT>>;
 template<typename nppT>
 using hashTree =
-    typename libzeth::tree_hash_selector<libff::Fr<nppT>>::tree_hash;
+    typename libzeth::mimc_compression_function_gadget<libff::Fr<nppT>>;
 
 static const size_t tree_depth = 4;
 static const size_t inputs_number = 2;
