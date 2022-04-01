@@ -19,7 +19,7 @@ jobs:
     - name: Build grpc
       run: |
         pushd depends/zeth
-        if ! [ -d depends/grpc ] ; then scripts/install-grpc /usr v1.31.x ; fi
+        if ! [ -d depends/grpc ] ; then scripts/install-grpc /usr v1.32.x ; fi
         popd
 
   build-documentation:
@@ -39,7 +39,7 @@ jobs:
       run: |
         sudo apt update -y
         pushd depends/zeth
-        INSTALL_ONLY=1 scripts/install-grpc /usr v1.31.x
+        INSTALL_ONLY=1 scripts/install-grpc /usr v1.32.x
         popd
         sudo apt install -y doxygen graphviz
     - name: Generate documentation
